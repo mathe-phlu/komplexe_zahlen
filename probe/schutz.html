@@ -1,0 +1,87 @@
+<!doctype html><html lang="de"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Probe mit eingeschaltetem Schutz</title>
+<style>
+ body{font:16px/1.6 -apple-system,BlinkMacSystemFont,sans-serif;margin:0;
+      background:#f8f4ec;color:#2d2924}
+ main{width:min(46rem,100% - 2rem);margin:24px auto 60px}
+ h1{font-size:23px;margin:0 0 4px}p.unter{color:#6c6357;margin:0 0 20px}
+ .fall{background:#fffefb;border:1px solid #e4d9c7;border-radius:10px;
+       padding:14px 16px;margin:16px 0}
+ .fall h2{font-size:16px;margin:0 0 4px}
+ .fall .was{font-size:14px;color:#6c6357;margin:0 0 10px}
+ .kasten{position:relative;width:100%;max-width:400px;aspect-ratio:16/9;
+      border:1px solid #e4d9c7;background:linear-gradient(160deg,#3a3a3a,#1e1e1e);
+      cursor:pointer;display:block}
+ .kasten img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+ .kasten button{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+      width:64px;height:45px;border:0;border-radius:12px;background:rgba(0,0,0,.72);
+      cursor:pointer;display:grid;place-items:center}
+ .kasten .d{width:0;height:0;border-left:18px solid #fff;
+      border-top:11px solid transparent;border-bottom:11px solid transparent;
+      margin-left:4px}
+ iframe{width:100%;max-width:400px;aspect-ratio:16/9;border:1px solid #e4d9c7;
+      display:block;background:#000}
+ .knoepfe{margin-top:10px;display:flex;gap:8px}
+ .knoepfe button{font:inherit;font-size:14px;padding:6px 14px;border-radius:6px;
+      border:1px solid #e4d9c7;background:#fffefb;cursor:pointer}
+ .knoepfe .ja[aria-pressed=true]{background:#2E7D32;color:#fff;border-color:#2E7D32}
+ .knoepfe .nein[aria-pressed=true]{background:#C0392B;color:#fff;border-color:#C0392B}
+ pre{background:#efe9dd;padding:10px;border-radius:8px;font-size:12.5px;white-space:pre-wrap}
+ .haupt{font:inherit;padding:9px 18px;border:1px solid #0065A9;background:#0065A9;
+      color:#fff;border-radius:6px;cursor:pointer}
+ .achtung{background:#f6e0de;border-radius:8px;padding:10px 14px;font-size:14.5px}
+</style>
+<main>
+<h1>Probe mit <em>eingeschaltetem</em> Tracking-Schutz</h1>
+<p class="achtung"><b>Bitte zuerst:</b> Safari → Einstellungen → Datenschutz →
+«Websiteübergreifendes Tracking verhindern» wieder <b>anschalten</b>. Genau in
+diesem Zustand sitzen die Studierenden.</p>
+<p class="unter">Drei Wege, dasselbe Video zu zeigen. Klick jeweils auf Abspielen
+und sag darunter, was passiert.</p>
+
+<div class="fall"><h2>A · youtube.com, sofort eingebettet</h2>
+ <p class="was">So war es bisher. Vermutlich schwarz.</p>
+ <iframe src="https://www.youtube.com/embed/BWs1RaC3QZs" allowfullscreen></iframe>
+ <div class="knoepfe" data-fall="A"><button class="ja">spielt</button>
+ <button class="nein">spielt nicht</button></div></div>
+
+<div class="fall"><h2>B · youtube-nocookie.com, sofort eingebettet</h2>
+ <p class="was">Derselbe Weg, aber über den datenschonenden Wirt.</p>
+ <iframe src="https://www.youtube-nocookie.com/embed/BWs1RaC3QZs" allowfullscreen></iframe>
+ <div class="knoepfe" data-fall="B"><button class="ja">spielt</button>
+ <button class="nein">spielt nicht</button></div></div>
+
+<div class="fall"><h2>C · youtube-nocookie.com, erst auf Klick geladen</h2>
+ <p class="was">So ist es jetzt in den Etappenseiten gebaut: Standbild, und der
+ Rahmen entsteht erst durch deinen Klick.</p>
+ <div class="kasten" id="k">
+   <img src="https://i.ytimg.com/vi/BWs1RaC3QZs/hqdefault.jpg" alt="">
+   <button><span class="d"></span></button></div>
+ <div class="knoepfe" data-fall="C"><button class="ja">spielt</button>
+ <button class="nein">spielt nicht</button></div></div>
+
+<div class="fall"><h2>Bericht</h2>
+ <button class="haupt" onclick="kopieren()">in die Zwischenablage</button>
+ <pre id="bericht">…</pre></div>
+</main>
+<script>
+var B={browser:navigator.userAgent.slice(0,80)};
+function schreib(){document.getElementById('bericht').textContent=JSON.stringify(B,null,1);}
+function kopieren(){navigator.clipboard.writeText(document.getElementById('bericht').textContent);}
+document.getElementById('k').addEventListener('click',function(){
+  var f=document.createElement('iframe');
+  f.setAttribute('allowfullscreen','');
+  f.setAttribute('allow','autoplay; encrypted-media; picture-in-picture');
+  f.src='https://www.youtube-nocookie.com/embed/BWs1RaC3QZs?autoplay=1&rel=0';
+  this.replaceWith(f);
+});
+document.querySelectorAll('.knoepfe').forEach(function(g){
+  g.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click',function(){
+      g.querySelectorAll('button').forEach(function(x){
+        x.setAttribute('aria-pressed',String(x===b));});
+      B[g.getAttribute('data-fall')]=b.classList.contains('ja')?'spielt':'spielt nicht';
+      schreib();});});});
+schreib();
+</script></html>
