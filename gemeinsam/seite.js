@@ -403,6 +403,29 @@
      dem Telefon war das nie lesbar, und im Video steht sie klein,
      waehrend sie rechts in voller Groesse steht.
      ========================================================== */
+  /* **Die YouTube-Schnittstelle wird nachgeladen, nicht eingebunden.**
+     Sie taktet die Sprungmarken mit und wird erst gebraucht, wenn
+     jemand ein Video startet. Als `<script>` in der Seite ging sie
+     beim Seitenaufruf an Google — auch bei dem, der nur liest.
+
+     `onYouTubeIframeAPIReady` ruft der Browser genau einmal auf. Eine
+     schon gesetzte Fassung wird deshalb weitergereicht, nicht
+     ueberschrieben, und das Skript nur einmal eingehaengt. */
+  function apiLaden(fertig) {
+    if (window.YT && window.YT.Player) { fertig(); return; }
+    var vorher = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function () {
+      if (vorher) { try { vorher(); } catch (_) {} }
+      fertig();
+    };
+    if (document.querySelector('script[data-yt-api]')) return;
+    var s = document.createElement('script');
+    s.src = 'https://www.youtube.com/iframe_api';
+    s.setAttribute('data-yt-api', '');
+    s.defer = true;
+    document.head.appendChild(s);
+  }
+
   function etappeAufsetzen(etappe) {
     var knoepfe = [].slice.call(etappe.querySelectorAll('.marken button[data-marke]'));
     var tafeln = [].slice.call(etappe.querySelectorAll('.tafel'));
@@ -514,8 +537,34 @@
 
          Der Rahmen laedt weiterhin erst auf Klick. Das bleibt richtig:
          Vorher geht nichts an Google, und die Seite ist schneller da. */
+      /* **`enablejsapi` braucht `origin`.** YouTube verlangt bei
+         eingeschalteter Schnittstelle die Adresse der einbettenden
+         Seite. Fehlt sie, kommt der Handschlag zwischen Seite und
+         Abspieler in Browsern mit getrenntem Speicher (Safari mit
+         ITP, Firefox mit Total Cookie Protection) nicht zustande —
+         der Abspieler erscheint und tut nichts. Bei `file://` ist die
+         Adresse «null»; dann wird sie weggelassen.
+
+         **`playsinline` fuer das Telefon.** Ohne das versucht iOS,
+         das Video im Vollbild zu oeffnen, und verweigert es teils
+         ganz.
+
+         **Kein `autoplay` mehr.** Safari und Firefox lassen ein Video
+         mit Ton nicht von selbst anlaufen, und die Klickerlaubnis
+         traegt nicht in einen Rahmen hinein, der durch denselben
+         Klick erst entsteht. Der Abspieler laedt dann, startet aber
+         nicht — was aussieht, als sei er blockiert. Ohne `autoplay`
+         zeigt YouTube seinen eigenen Startknopf, und ein Klick
+         darauf laeuft in jedem Browser. Fuer Chrome kostet das einen
+         Klick, ueberall sonst macht es den Unterschied zwischen
+         «spielt» und «spielt nicht».
+
+         `start` bleibt: Wer eine Sprungmarke anklickt, landet an der
+         richtigen Stelle, sobald er startet. */
+      var ursprung = (window.location.protocol === 'file:')
+                     ? '' : '&origin=' + encodeURIComponent(window.location.origin);
       return 'https://www.youtube.com/embed/' + kennung +
-             '?rel=0&modestbranding=1&enablejsapi=1&autoplay=1' +
+             '?rel=0&modestbranding=1&playsinline=1&enablejsapi=1' + ursprung +
              (start ? '&start=' + Math.floor(start) : '');
     }
 
@@ -539,9 +588,14 @@
 
       /* Die Schnittstelle ist ein Zusatz, keine Bedingung. Klinkt sie
          sich ein, erscheinen die Aufgaben von selbst an ihrer Marke.
-         Tut sie es nicht — in Safari und Firefox oft der Fall —, bleibt
-         alles andere unberuehrt. */
-      if (window.YT && YT.Player) {
+         Tut sie es nicht, bleibt alles andere unberuehrt.
+
+         **Geladen wird sie erst hier.** Frueher stand sie als
+         `<script>` in jeder Etappenseite und ging beim Seitenaufruf an
+         Google — genau das, was das mitgelieferte Standbild vermeiden
+         soll. Wer kein Video startet, sendet jetzt gar nichts. */
+      apiLaden(function () {
+        if (!window.YT || !YT.Player) return;
         try {
           spieler = new YT.Player(rahmen, {
             events: {
@@ -556,7 +610,7 @@
             }
           });
         } catch (_) { spieler = null; }
-      }
+      });
     }
 
     vorschau.addEventListener('click', function () { einbetten(0); });
@@ -632,16 +686,48 @@
          plakativ. */
       var mass = Math.min(platz / breit, 1.55);
       strecke.style.transform = 'scale(' + mass.toFixed(4) + ')';
-      feld.style.height = Math.ceil(strecke.offsetHeight * mass) + 'px';
+      /* **Die Hoehe nur schreiben, wenn sie sich aendert.** Sie ist das
+         Einzige an `.feld`, was diese Funktion selbst veraendert — und
+         der ResizeObserver unten hoert darauf. Wer sie bei jedem Lauf
+         neu setzt, meldet sich seine eigene Aenderung zurueck und
+         dreht sich im Kreis. */
+      var hoehe = Math.ceil(strecke.offsetHeight * mass) + 'px';
+      if (feld.style.height !== hoehe) feld.style.height = hoehe;
     }
 
+    /* **Wird hier nie gerechnet, ist der Weg nicht unschoen, sondern
+       abgeschnitten.** `.feld` hat `overflow:hidden`. Ohne Massstab
+       steht der rechte Teil des Weges ausserhalb und ist weg — bei
+       Station I der ganze vierte Abschnitt, gemessen 444 Pixel, und
+       man kommt nicht hin.
+
+       `rechnen()` steigt aus, wenn das Feld (noch) keine Breite hat:
+       im Hintergrundtab, bei spaeter eingeblendeten Elternelementen,
+       bei verzoegertem Satz. Dafuer gab es einen einmaligen Versuch
+       nach 400 ms — war das Feld dann immer noch ohne Breite, blieb
+       der Weg fuer immer unskaliert. Ein `resize` reparierte es
+       sofort, aber nur, wenn eines kam.
+
+       Der `ResizeObserver` deckt alle diese Faelle ab: Er meldet sich,
+       sobald das Feld eine Breite bekommt.
+
+       **Ohne Bedingung.** Ein erster Versuch verglich die Breite mit
+       der zuletzt gesehenen und rechnete nur bei Aenderung — das
+       unterdrueckte genau die Rettung: Meldet das Ausblenden nichts,
+       sieht das Einblenden dieselbe Breite wie vorher und tut nichts.
+       Gegen die Schleife hilft stattdessen, dass `rechnen()` die Hoehe
+       nur bei Aenderung schreibt (siehe oben). */
     rechnen();
     window.addEventListener('resize', rechnen);
     /* Schriften kommen nach und aendern die Breite. */
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(rechnen).catch(function () {});
     }
-    setTimeout(rechnen, 400);
+    if (window.ResizeObserver) {
+      new ResizeObserver(rechnen).observe(feld);
+    } else {
+      setTimeout(rechnen, 400);
+    }
   }
 
   /* ==========================================================
