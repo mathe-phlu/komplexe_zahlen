@@ -406,7 +406,13 @@
   function etappeAufsetzen(etappe) {
     var knoepfe = [].slice.call(etappe.querySelectorAll('.marken button[data-marke]'));
     var tafeln = [].slice.call(etappe.querySelectorAll('.tafel'));
-    if (!tafeln.length) return;
+    /* **Kein frueher Ausstieg mehr.** Hier stand `if (!tafeln.length)
+       return;` — und damit blieb auf jeder Etappe **ohne** Aufgaben
+       auch der Abspielknopf tot, weil das Video weiter unten in
+       derselben Funktion verdrahtet wird. «Stationen der
+       Ideengeschichte» liess sich deshalb nicht starten, «Polarform»
+       schon: Der Unterschied war nicht das Video, sondern ob Aufgaben
+       daran hingen. Die Zeitmarken brauchen Tafeln, das Video nicht. */
 
     var marken = knoepfe.map(function (b) {
       return { nr: parseInt(b.getAttribute('data-marke'), 10),
@@ -441,7 +447,18 @@
        Leiste anklickt. Sie vorweg zu zeigen nimmt der Sache genau das,
        worum es geht: dass die Aufgabe kommt, wenn sie dran ist. */
     zeigen(-1);
-    if (!marken.length) return;
+
+    /* **Kein Ausstieg wegen fehlender Marken.** Hier stand
+       `if (!marken.length) return;` — und damit blieb auf jeder Etappe
+       ohne Aufgaben auch der Abspielknopf tot, denn das Video wird
+       weiter unten in derselben Funktion verdrahtet. «Stationen der
+       Ideengeschichte» liess sich deshalb nicht starten, «Polarform»
+       schon; der Unterschied war nicht das Video, sondern ob Aufgaben
+       daran hingen.
+
+       Ohne Marken laeuft alles Folgende ins Leere, ohne Schaden:
+       `pruefen` geht eine leere Liste durch, und die Knopfreihe hat
+       keine Knoepfe. */
 
     /* Welche Marken sind schon durchlaufen? Nur beim **Erreichen**
        wird angehalten, nicht beim spaeteren Vorbeispulen — sonst
@@ -469,6 +486,7 @@
 
     video = etappe.querySelector('video');
     if (video) {
+      if (!tafeln.length) return;
       video.addEventListener('timeupdate', function () { pruefen(video.currentTime); });
       knoepfe.forEach(function (b, i) {
         b.addEventListener('click', function () {
