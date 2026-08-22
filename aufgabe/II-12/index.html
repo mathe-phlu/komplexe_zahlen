@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe II.12 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="zugang">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">II.12</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe II.12</span></h2><div class="aufgabenblatt"><p>Beschreiben Sie die Spiegelung an der $y$-Achse unter Einbezug der
+  komplex konjugierten Zahl $\overline{z}$.</p>
+<p>Liesse sich damit auch eine Funktion für die Spiegelung an einer
+  beliebigen Achse beschreiben?</p>
+<aside class="merksatz">Hier lohnt es sich weitere Spezialfälle anzusehen: Die
+  erste Winkelhalbierende, Achsen, die durch den Ursprung gehen,
+   Achsen die parallel zu $x$- und $y$-Achse verlaufen, ...</aside><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Beginnen Sie mit der bekannten Spiegelung an der $x$-Achse.</li><li>Wie kann man andere Achsen auf die $x$-Achse drehen?</li><li>Nutzen Sie: Drehen → Spiegeln → Zurückdrehen.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Grundidee:</h4>
+<p>Die Spiegelung an der $x$-Achse kennen wir: $z \mapsto \overline{z}$. Alle anderen Achsenspiegelungen lassen sich darauf zurückführen!</p>
+<h4>Spiegelung an der $y$-Achse:</h4>
+<p>Die Funktion $w=f(z)=-\overline{z}$ beschreibt die
+  Achsenspiegelung an der $y$-Achse.</p>
+<h4>Spiegelung an Ursprungsgeraden:</h4>
+<p>Für alle Achsen, die durch den Ursprung verlaufen, lässt sich 
+  die Spiegelung als Spiegelung an der $x$-Achse mit anschliessender
+  Drehung realisieren.
+  <ul><li>Die Spiegelung an der $y$-Achse entspricht einer Spiegelung an
+    der $x$-Achse mit anschliessender Drehung um $180^\circ$. Daher
+    erhalten wir als Funktion die Verkettung der Spiegelung mit einer
+    Multiplikation einer Zahl, deren Betrag 1 und deren Argument/Winkel 
+    $180^\circ$ ist: $a=1\cdot\cis (180^\circ)=-1$
+    \[z \mapsto \overline{z} \mapsto (-1) \cdot\overline{z}\]</li><li>Für die 1. Winkelhalbierende ergibt sich dann eine Spiegelung
+    an der $x$-Achse mit einer Drehung um $90^\circ$. Wir
+    multiplizieren daher mit $a=1\cdot\cis (90^\circ)=i$
+    \[z \mapsto \overline{z} \mapsto i\cdot\overline{z}\]</li></ul></p>
+<h4>Spiegelung an Geraden parallel zur $x$-Achse:</h4>
+<p>Eine Spiegelung an einer Geraden parallel zur $x$-Achse
+  bzw. $y$-Achse ergibt
+  sich durch eine Verkettung einer Spiegelung an der $x$-Achse bzw. $y$-Achse mit
+  einer Verschiebung, senkrecht zu dieser Achse.
+  <ul><li>Die Spiegelung an der Geraden $y=2$ lässt sich realisieren
+    durch
+      \[z \mapsto \overline{z} \mapsto \overline{z}+4i\]</li><li>Die Spiegelung an der Geraden $x=3$ lässt sich realisieren
+    durch
+      \[z \mapsto -\overline{z} \mapsto -\overline{z}+6\]</li></ul></p>
+<p>Allgemein lässt sich die Spiegelung an einer beliebigen
+      Achse realisieren durch die Spiegelung an der $x$-Achse mit
+      Drehung und anschliessender Verschiebung.</p></div></div><aside class="merksatz"><strong>Achtung Fehler!</strong><p>Punkt 1: Spiegelung an der y~Achse</p><p>Punkt 3: +6 statt +3</p></aside></div><p class="fundort">Im Video: <a href="../../lernweg-2/achsenspiegelung/index.html">Etappe 8 · Achsenspiegelung</a> <span class="zeit">bei 5:49</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

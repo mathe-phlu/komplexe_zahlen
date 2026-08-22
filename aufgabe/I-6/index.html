@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe I.6 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="fach">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">I.6</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe I.6</span></h2><div class="aufgabenblatt"><ol class="klammer-a"><li>Finden Sie das neutrale Element zur Addition und Multiplikation in $\cc$.</li><li>Weisen Sie nach, dass es zu jedem Element $z$ ein additives und multiplikatives Inverses gibt.</li></ol><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Teil (a): Welche Zahlen erfüllen $z + e = z$ bzw. $z \cdot e = z$ für alle $z$?</li><li>Teil (b) Addition: Für $z = x + iy$ suchen Sie $w$ mit $z + w = 0$.</li><li>Teil (b) Multiplikation: Nutzen Sie $z \cdot \overline{z} = |z|^2$.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Teil (a): Neutrale Elemente</h4>
+<p><strong>Addition:</strong> Das neutrale Element bezüglich der Addition ist $0=0+0i$, denn
+\[(x+iy)+(0+0i) = (x+0) + i(y+0) = x+iy\]</p>
+<p><strong>Multiplikation:</strong> Das neutrale Element bezüglich der Multiplikation ist $1=1+0i$, denn
+\[(x+iy)(1+0i) = x \cdot 1 + x \cdot 0i + iy \cdot 1 + iy \cdot 0i = x + iy\]</p>
+<h4>Teil (b): Inverse Elemente</h4>
+<p><strong>Additives Inverses:</strong> 
+Sei $z=x+iy$. Wir suchen $w=u+iv$ mit $(x+iy)+(u+iv)=0$.</p>
+<p>Dies führt zu:
+\[(x+u)+i(y+v)=0+0i\]</p>
+<p>Also muss gelten: $x+u=0$ und $y+v=0$, somit $u=-x$ und $v=-y$.</p>
+<p>Das additive Inverse ist: $-z = -x - iy$</p>
+<h4>Multiplikatives Inverses:</h4>
+<p>Sei $z=x+iy \neq 0$. Wir suchen $w=u+iv$ mit $(x+iy)\cdot (u+iv)= 1$.</p>
+<p>Ausmultiplizieren ergibt:
+\[(xu-yv)+i(xv+yu)=1+0i\]</p>
+<p>Dies führt zum linearen Gleichungssystem:
+\begin{align*}
+xu - yv &amp;= 1\\
+xv + yu &amp;= 0
+\end{align*}</p>
+<p>Die Lösung ist:
+\[u=\frac{x}{x^2+y^2}\;\;\;\text{und}\;\;\; v=\frac{-y}{x^2+y^2}\]</p>
+<h4>Verifikation:</h4>
+<p>\[z \cdot z^{-1} = (x+iy) \cdot \frac{x-iy}{x^2+y^2} = \frac{(x+iy)(x-iy)}{x^2+y^2} = \frac{x^2+y^2}{x^2+y^2} = 1\]</p></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-1/exkurs-koerpertheorie/index.html">Bonus 1 · Exkurs: Körpertheorie</a> <span class="zeit">bei 1:44</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

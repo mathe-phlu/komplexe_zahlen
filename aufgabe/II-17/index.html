@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe II.17 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="zugang">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">II.17</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe II.17</span></h2><div class="aufgabenblatt"><p>Wie ändert sich die Funktionsgleichung, wenn wir die Inversion
+  allgemein an einem Kreis mit $r&gt;0$ durchführen?</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Beginnen Sie mit einem Kreis um den Ursprung mit Radius $r$.</li><li>Dann verschieben Sie zum Mittelpunkt $a$.</li><li>Nutzen Sie die Abstandsbeziehung $|w-a| \cdot |z-a| = r^2$.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Herleitung der allgemeinen Formel:</h4>
+<p><strong>Schritt 1: Kreis mit Radius $r$ um den Ursprung</strong></p>
+<p>Für einen Kreis mit Radius $r$ muss gelten:
+\[|w| \cdot |z| = r^2\]</p>
+<p>Dies führt zu:
+\[w = \frac{r^2}{\overline{z}}\]</p>
+<p><strong>Schritt 2: Kreis mit Mittelpunkt $a$ und Radius $r$</strong></p>
+<p>Vorgehen durch Koordinatentransformation:
+<ol><li>Verschiebe um $-a$: $z' = z - a$</li><li>Invertiere am Kreis mit Radius $r$ um Ursprung: $w' = \frac{r^2}{\overline{z'}}$</li><li>Verschiebe zurück um $+a$: $w = w' + a$</li></ol></p>
+<p>Zusammengefasst:
+\begin{align*}
+w - a &amp;= \frac{r^2}{\overline{z-a}}\\
+w &amp;= a + \frac{r^2}{\overline{z-a}}
+\end{align*}</p>
+<h4>Kompakte Schreibweise:</h4>
+<p>\[w = f(z) = a + \frac{r^2}{\overline{z-a}}\]</p>
+<p>Oder äquivalent (da $\overline{z-a} = \overline{z} - \overline{a}$):
+\[w = f(z) = a + \frac{r^2}{\overline{z} - \overline{a}}\]</p>
+<h4>Verifikation der Eigenschaften:</h4>
+<ul><li>Fixpunkte: Für $|z-a| = r$ gilt $|w-a| = r$ ✓</li><li>Involutorität: $f(f(z)) = z$ ✓</li><li>Für $r = 1$ und $a = 0$ erhalten wir die bekannte Formel $w = \frac{1}{\overline{z}}$ ✓</li></ul>
+<h4>Geometrische Interpretation:</h4>
+<p>Die Inversion an einem beliebigen Kreis lässt sich als Verkettung verstehen:
+<ol><li>Translation (Mittelpunkt → Ursprung)</li><li>Inversion am Kreis mit Radius $r$</li><li>Rücktranslation</li></ol></p></div></div><p class="ruhig"><a class="knopf" href="https://www.youtube.com/watch?v=Nr5r4Ngjgyw" target="_blank" rel="noopener">Video zur Aufgabe</a></p></div><p class="fundort">Im Video: <a href="../../lernweg-2/ortslinien-von-kreisen/index.html">Hilfe 1 · Ortslinien von Kreisen</a> <span class="zeit">bei 6:48</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

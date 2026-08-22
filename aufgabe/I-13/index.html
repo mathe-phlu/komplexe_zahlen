@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe I.13 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="fach">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">I.13</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe I.13</span></h2><div class="aufgabenblatt"><p>Man bestimme die zwei komplexen Lösungen der
+  Gleichung
+  \[w^2=z=3-4i \ \ \ \ (\glqq w=\sqrt{3-4i} \grqq)\]</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Schritt 1: Wandeln Sie $z = 3 - 4i$ in Polarform um.</li><li>Schritt 2: Wenden Sie die Wurzelformel auf Betrag und Argument an.</li><li>Schritt 3: Zurück in die Normalform für beide Lösungen.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Schritt 1: In Polarform übersetzen</h4>
+<p>Für $z = 3 - 4i$:
+<ul><li>Betrag: $|z| = \sqrt{3^2 + (-4)^2} = \sqrt{9 + 16} = 5$</li><li>Argument: $\tan(\alpha) = \frac{-4}{3}$, also $\alpha \approx -53.13°$</li><li>Polarform: $z = 5 \cdot \text{cis}(-53.13°)$</li></ul></p>
+<h4>Schritt 2: Anwenden der Formel</h4>
+<p>Für die Wurzeln gilt:
+<ul><li>Betrag: $|w| = \sqrt{|z|} = \sqrt{5}$</li><li>Argumente: 
+  <ul><li></li><li>$\beta_1 = \frac{\alpha}{2} = \frac{-53.13°}{2} \approx -26.565°$</li><li>$\beta_2 = \frac{\alpha}{2} + 180° \approx 153.435°$</li></ul></li></ul></p>
+<h4>Schritt 3: Die zwei Lösungen in Polarform</h4>
+<p>\begin{align*}
+w_1 &amp;= \sqrt{5} \cdot \text{cis}(-26.565°)\\
+w_2 &amp;= \sqrt{5} \cdot \text{cis}(153.435°)
+\end{align*}</p>
+<h4>Schritt 4: Zurück in die Normalform</h4>
+<p>\begin{align*}
+w_1 &amp;= \sqrt{5}[\cos(-26.565°) + i\sin(-26.565°)]\\
+&amp;= \sqrt{5}[0.8944 - 0.4472i]\\
+&amp;= 2 - i
+\end{align*}</p>
+<p>\begin{align*}
+w_2 &amp;= \sqrt{5}[\cos(153.435°) + i\sin(153.435°)]\\
+&amp;= \sqrt{5}[-0.8944 + 0.4472i]\\
+&amp;= -2 + i
+\end{align*}</p>
+<h4>Ergebnis:</h4>
+<p>Die beiden Quadratwurzeln sind $w_{1/2} = \pm(2 - i)$</p>
+<figure class="zeichnung"><img src="../../bilder/zeichnung-81d46ac26e22.svg" alt=""></figure>
+<h4>Verifikation:</h4>
+<p>$(2-i)^2 = 4 - 4i + i^2 = 3 - 4i$ ✓</p></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-1/wurzelziehen/index.html">Etappe 8 · Wurzelziehen</a> <span class="zeit">bei 5:36</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

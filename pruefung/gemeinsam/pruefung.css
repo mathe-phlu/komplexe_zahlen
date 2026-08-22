@@ -1,0 +1,309 @@
+/* ============================================================
+   PIA - Gestaltung der Prüfungsseiten
+
+   Folgt «Daten und Zufall». Farben, Schriften und Masse sind aus
+   KASPER/projekte/daten_und_zufall/ausgabe uebernommen, damit die
+   Prüfungen aussehen wie das übrige Material des Moduls.
+
+   Die vier Stationsfarben sind die Kapitelfarben aus
+   KASPER/projekte/komplexe_zahlen/projekt.md:
+     I   Komplexe Zahlen    blau  · Begriffe
+     II  Komplexe Funktionen grün · Darstellungen
+     III Komplexe Folgen    ocker · Begründen
+     IV  Komplexe Potenzen  lila  · Strategien
+   ============================================================ */
+
+:root{
+  --papier:#f8f4ec; --creme:#f6ecdf; --karte:#fffefb;
+  --tinte:#2d2924;  --matt:#6c6357;  --linie:#e4d9c7;
+  --fach:#0065A9; --zugang:#007D57; --beweis:#E09E5A; --aktion:#9867A5;
+  --richtig:#2E7D32; --falsch:#C0392B; --fast:#C77D0A;
+  --druck:'Fira Sans','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --hand:'Patrick Hand',cursive;
+  --akzent:var(--fach);
+}
+body[data-station="1"]{--akzent:var(--fach)}
+body[data-station="2"]{--akzent:var(--zugang)}
+body[data-station="3"]{--akzent:var(--beweis)}
+body[data-station="4"]{--akzent:var(--aktion)}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+
+/* Auszeichnung auf 500 statt auf den Vorgabewert 700.
+
+   Die Schriften werden mitgeliefert (gemeinsam/fremd/), und
+   mitgeliefert sind nur die Schnitte 400 und 500 - dieselben, mit
+   denen die Lernlandschaft von LARS gesetzt ist. Ohne diese Zeile
+   muesste der Browser aus 400 kuenstlich fetten; das sieht
+   nachgezogen aus. Fira Sans Medium traegt die Auszeichnung besser
+   als ein gerechnetes Fett. */
+b, strong{font-weight:500}
+body{margin:0;font:15.5px/1.6 var(--druck);color:var(--tinte);
+     background:var(--papier);display:flex;flex-direction:column}
+
+/* ---------- Kopf ---------- */
+header{display:flex;align-items:center;gap:14px;padding:8px 18px;
+       border-bottom:1px solid var(--linie);background:var(--karte);flex:0 0 auto}
+header .marke{width:5px;height:26px;background:var(--akzent);border-radius:3px;flex:0 0 auto}
+header h1{font-family:var(--hand);font-size:21px;margin:0;font-weight:400;white-space:nowrap}
+header .stand{margin-left:auto;font-size:13px;color:var(--matt);display:flex;
+              align-items:center;gap:14px}
+header .punkt{display:inline-block;width:9px;height:9px;border-radius:50%;
+              background:var(--falsch);vertical-align:-1px;margin-right:5px}
+header .punkt.laeuft{background:var(--falsch);animation:pulsen 1.6s infinite}
+@keyframes pulsen{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ---------- Wimmelbild für die Einstiegsseiten ---------- */
+.streifen{height:132px;background:url(kopfstreifen.png) center/cover;
+          border-bottom:1px solid var(--linie);position:relative;overflow:hidden;
+          flex:0 0 auto}
+.streifen .grund{position:absolute;right:0;top:0;bottom:0;width:min(620px,72%);
+   background:linear-gradient(90deg,rgba(255,255,255,0) 0%,
+              rgba(255,255,255,.72) 34%,rgba(255,255,255,.95) 62%,#fff 100%)}
+.streifen h1{position:absolute;right:30px;bottom:10px;margin:0;
+             font-family:var(--hand);font-size:44px;font-weight:400;color:var(--tinte)}
+
+/* ---------- Aufgabenleiste ---------- */
+nav.schritte{display:flex;gap:6px;flex-wrap:wrap;padding:8px 18px;
+     border-bottom:1px solid var(--linie);background:var(--karte);flex:0 0 auto}
+nav.schritte button{font:inherit;font-size:13px;padding:5px 13px;
+     border:1px solid var(--linie);background:var(--karte);border-radius:999px;
+     cursor:pointer;color:var(--tinte)}
+nav.schritte button[aria-current=true]{background:var(--akzent);color:#fff;
+     border-color:var(--akzent)}
+nav.schritte button.fertig{border-color:var(--akzent);color:var(--akzent)}
+nav.schritte button.fertig::before{content:'✓ '}
+nav.schritte button:disabled{opacity:.35;cursor:default}
+nav.schritte button.uebersprungen{opacity:.4}
+
+/* ---------- Auftragszeile ---------- */
+.auftrag{padding:10px 18px;background:var(--creme);border-bottom:1px solid var(--linie);
+         display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;flex:0 0 auto}
+.auftrag .rang{font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+      color:var(--matt);border:1px solid var(--linie);border-radius:999px;
+      padding:2px 9px;background:var(--karte);white-space:nowrap}
+.auftrag .titel{font-family:var(--hand);font-size:19px;color:var(--akzent);white-space:nowrap}
+.auftrag .text{color:var(--tinte);font-size:14px}
+
+/* ---------- Bühne ---------- */
+main{flex:1 1 auto;overflow:auto;padding:20px 18px 90px}
+.blatt{max-width:1000px;margin:0 auto}
+.frage{background:var(--karte);border:1px solid var(--linie);border-radius:14px;
+       padding:18px 20px;margin-bottom:14px}
+.frage h3{margin:0 0 10px;font-size:16px;font-weight:500}
+.frage p{margin:0 0 10px}
+.hinweis{color:var(--matt);font-size:13.5px}
+.formel{font-size:18px;letter-spacing:.01em}
+
+/* ---------- Eingaben ---------- */
+.zeile{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.zeile label{font-size:14px;color:var(--matt)}
+input[type=text].feld{font:inherit;font-size:16px;width:9.5em;padding:7px 10px;
+    border:1px solid var(--linie);border-radius:8px;background:var(--papier);
+    color:var(--tinte)}
+input.feld:focus{outline:2px solid var(--akzent);outline-offset:-1px;background:#fff}
+input.feld.schmal{width:6em}
+input.feld.unlesbar{border-color:var(--fast);background:#fdf6e8}
+.lesestand{font-size:12.5px;color:var(--fast);min-height:1.2em}
+.lesestand.gut{color:var(--matt)}
+
+/* ---------- Auswahl ---------- */
+.wahl{display:flex;flex-direction:column;gap:7px;margin:8px 0}
+.wahl label{display:flex;gap:9px;align-items:flex-start;padding:8px 12px;
+    border:1px solid var(--linie);border-radius:9px;background:var(--papier);
+    cursor:pointer;font-size:14.5px}
+.wahl label:hover{border-color:var(--akzent)}
+.wahl input{margin-top:3px;accent-color:var(--akzent)}
+.wahl label:has(input:checked){border-color:var(--akzent);background:var(--creme)}
+
+/* ---------- Zeichenfläche ---------- */
+.bild{background:var(--karte);border:1px solid var(--linie);border-radius:12px;
+      padding:6px;margin:10px 0;max-width:560px}
+.bild svg{display:block;width:100%;height:auto;touch-action:manipulation}
+.bild.waehlbar svg .ziel{cursor:pointer}
+.bild.waehlbar svg .ziel:hover .treffer{opacity:.18}
+.bildreihe{display:flex;gap:12px;flex-wrap:wrap}
+.bildreihe .bild{flex:1 1 200px;max-width:340px;margin:0}
+.spalten .bildreihe .bild{flex:1 1 120px}
+.bildreihe .bild.gewaehlt{border-color:var(--akzent);box-shadow:0 0 0 2px var(--akzent)}
+.bildmarke{font-size:13px;color:var(--matt);text-align:center;padding:2px 0 4px}
+
+/* ---------- Nebenblatt: Zeichenfeld und Foto ---------- */
+.nebenblatt{margin-top:12px;border-top:1px dashed var(--linie);padding-top:10px}
+.nebenblatt summary{cursor:pointer;font-size:13.5px;color:var(--matt);
+     list-style:none;display:flex;align-items:center;gap:7px}
+.nebenblatt summary::-webkit-details-marker{display:none}
+.nebenblatt summary::before{content:'✎';color:var(--akzent);font-size:15px}
+.nebenblatt[open] summary{margin-bottom:8px}
+.skizze{border:1px solid var(--linie);border-radius:10px;background:#fff;
+        touch-action:none;display:block;width:100%;max-width:760px;cursor:crosshair}
+.werkzeuge{display:flex;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap}
+
+/* ---------- Knöpfe ---------- */
+button.tat{font:inherit;font-weight:500;font-size:14.5px;padding:9px 20px;border:none;
+   border-radius:8px;background:var(--akzent);color:#fff;cursor:pointer}
+button.tat:hover{filter:brightness(.92)}
+button.tat:disabled{background:#c9c0b4;cursor:default}
+button.neben{font:inherit;font-size:14px;padding:8px 16px;border:1px solid var(--linie);
+   border-radius:8px;background:var(--karte);color:var(--tinte);cursor:pointer}
+button.neben:hover{border-color:var(--akzent)}
+
+/* ---------- Fussleiste ---------- */
+.fussleiste{position:fixed;left:0;right:0;bottom:0;background:var(--karte);
+   border-top:1px solid var(--linie);padding:10px 18px;display:flex;gap:12px;
+   align-items:center;z-index:50}
+.fussleiste .luft{margin-left:auto}
+.fussleiste .zart{font-size:13px;color:var(--matt)}
+
+/* ---------- Erklärstelle ---------- */
+.erklaerstelle{background:var(--creme);border:1px solid var(--linie);
+   border-left:4px solid var(--akzent);border-radius:12px;padding:16px 20px;margin-bottom:14px}
+.erklaerstelle .augen{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;
+   color:var(--matt);margin-bottom:4px}
+.erklaerstelle h3{font-family:var(--hand);font-size:20px;font-weight:400;margin:0 0 8px}
+.erklaerstelle .gesetzt{color:var(--richtig);font-size:13.5px;margin-top:8px}
+
+/* ---------- Einstiegsseite ---------- */
+.vorspann{font-size:16px;color:var(--matt);background:var(--creme);border-radius:14px;
+   padding:16px 20px;margin:0 0 20px}
+.vorspann b{color:var(--tinte)}
+.schritt{background:var(--karte);border:1px solid var(--linie);border-radius:12px;
+   padding:16px 20px;margin-bottom:12px}
+.schritt.getan{border-color:var(--richtig)}
+.schritt h2{font-family:var(--hand);font-size:20px;font-weight:400;margin:0 0 8px;
+   display:flex;align-items:center;gap:9px}
+.schritt h2 .nr{width:26px;height:26px;flex:0 0 26px;border-radius:50%;
+   background:var(--akzent);color:#fff;font-family:var(--druck);font-size:14px;
+   font-weight:500;display:flex;align-items:center;justify-content:center}
+.schritt.getan h2 .nr{background:var(--richtig)}
+.pegel{height:10px;border-radius:5px;background:var(--linie);overflow:hidden;
+   max-width:320px;margin:8px 0}
+.pegel i{display:block;height:100%;width:0;background:var(--richtig);transition:width .08s}
+.spiegel{width:200px;border-radius:10px;border:1px solid var(--linie);
+   background:#000;display:block;transform:scaleX(-1)}
+.warnung{background:#fdf6e8;border:1px solid var(--fast);border-radius:10px;
+   padding:12px 16px;color:#8a5a00;font-size:14px;margin:10px 0}
+.fehl{background:#fdeeec;border:1px solid var(--falsch);border-radius:10px;
+   padding:12px 16px;color:#8c2d24;font-size:14px;margin:10px 0}
+
+/* ---------- Auswertung am Schluss ---------- */
+.ergebnis{background:var(--karte);border:1px solid var(--linie);border-radius:14px;
+   padding:20px 24px;margin-bottom:14px}
+.ergebnis table{border-collapse:collapse;width:100%;margin:12px 0}
+.ergebnis td,.ergebnis th{border-bottom:1px solid var(--linie);padding:6px 8px;
+   text-align:left;font-size:14.5px}
+.ergebnis th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--matt)}
+.ergebnis td.p{text-align:right;white-space:nowrap}
+.ganz{color:var(--richtig);font-weight:500}
+.teils{color:var(--fast)}
+.nichts{color:var(--falsch)}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:22px;
+   letter-spacing:.12em;background:var(--creme);border:1px dashed var(--akzent);
+   border-radius:10px;padding:14px 20px;display:inline-block;margin:10px 0}
+
+@media (max-width:640px){
+  .streifen{height:96px} .streifen h1{font-size:30px;right:18px}
+  main{padding:14px 12px 96px}
+  header h1{font-size:18px}
+}
+
+/* ---------- Zwei Spalten auf einer Aufgabenseite ----------
+   Bild links, Fragen rechts. Auf schmalen Geräten untereinander —
+   nebeneinander wäre dort beides zu eng. */
+.spalten{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+         gap:20px;align-items:start}
+.spalten > div > .bild:first-child{margin-top:0}
+@media (max-width:820px){ .spalten{grid-template-columns:1fr;gap:12px} }
+
+/* ---------- Formelzeile mit Feldern mittendrin ---------- */
+.zeile.formelzeile{align-items:baseline;gap:7px;font-size:18px;margin:14px 0}
+.formelstueck{white-space:nowrap}
+.zeile.formelzeile input.feld{font-size:16px;width:6.6em;text-align:center}
+
+/* ---------- Blatt vor die Kamera ---------- */
+.sucher{margin-top:10px;padding:12px;border:1px solid var(--linie);
+        border-radius:10px;background:var(--creme)}
+.sucher video{width:100%;max-width:520px;border-radius:8px;background:#000;display:block}
+.sucher p{margin:0 0 8px}
+.blattliste{margin-top:8px}
+.blattliste .hinweis{margin:3px 0}
+.zeile.formelzeile select.formelwahl{font:inherit;font-size:16px;width:auto;
+  padding:7px 8px;border:1px solid var(--linie);border-radius:8px;
+  background:var(--papier);color:var(--tinte)}
+.zeile.formelzeile select.formelwahl:focus{outline:2px solid var(--akzent);
+  outline-offset:-1px;background:#fff}
+
+/* ---------- Kärtchen zuordnen ----------
+   Kartengestalt nach Kaspers flaeche.css, aber für feste Texte statt
+   für Bilder. Die Regeln, die das Ziehen tragen, sind übernommen:
+   user-select aus (sonst markiert die Geste Text) und pointer-events
+   aus auf der gezogenen Karte (sonst findet elementFromPoint immer
+   sie selbst statt des Ziels darunter). */
+.kartenbuehne{display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,1.5fr);
+  gap:14px;align-items:start;margin:10px 0}
+.kartenmarke,.kartenfeldkopf{font-family:var(--hand);font-size:16px;color:var(--matt);
+  margin-bottom:5px}
+.kartenvorrat{background:var(--creme);border:1px solid var(--linie);
+  border-radius:12px;padding:9px 10px}
+.kartenblatt{display:flex;flex-direction:column;gap:7px;min-height:74px;
+  border-radius:8px;padding:3px}
+.kartenfelder{display:flex;flex-direction:column;gap:10px}
+.kartenfeld{background:var(--papier);border:1px solid var(--linie);
+  border-radius:12px;padding:9px 10px}
+.kartenablage{min-height:46px;border:1px dashed var(--linie);border-radius:8px;
+  padding:5px;display:flex;flex-direction:column;gap:6px;background:var(--karte)}
+.kartenblatt.drueber,.kartenablage.drueber{border-color:var(--akzent);
+  background:var(--creme);border-style:solid}
+
+.kk{background:var(--karte);border:1px solid var(--linie);border-radius:8px;
+  padding:8px 11px;font-size:14.5px;line-height:1.35;cursor:grab;
+  box-shadow:0 1px 3px rgba(0,0,0,.13);touch-action:none;
+  user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.kk:hover{border-color:var(--akzent)}
+.kk.zieht{cursor:grabbing;box-shadow:0 6px 18px rgba(0,0,0,.24);
+  transform:rotate(-1.2deg);pointer-events:none}
+.kartenablage .kk{box-shadow:none;border-color:var(--akzent)}
+
+@media (max-width:820px){ .kartenbuehne{grid-template-columns:1fr} }
+
+/* ---------- Titelseite ----------
+   Sie hat keine Aufgabenleiste: Wer hier steht, hat die Prüfung noch
+   nicht begonnen. Der schmale Kopf mit dem Stationsnamen kommt erst
+   ab Aufgabe 1. */
+body.titelseite{display:block;height:auto}
+.streifen h1 .punktchen{margin:0 .38em;opacity:.55}
+.ausklapp{background:var(--karte);border:1px solid var(--linie);
+  border-radius:12px;margin-bottom:12px;overflow:hidden}
+.ausklapp > summary{cursor:pointer;list-style:none;padding:14px 18px;
+  font-family:var(--hand);font-size:19px;display:flex;align-items:center;gap:10px}
+.ausklapp > summary::-webkit-details-marker{display:none}
+.ausklapp > summary::before{content:'▸';color:var(--akzent);font-family:var(--druck);
+  font-size:15px;transition:transform .15s}
+.ausklapp[open] > summary::before{transform:rotate(90deg)}
+.ausklapp > summary:hover{background:var(--creme)}
+.ausklappinhalt{padding:0 18px 16px;border-top:1px solid var(--linie)}
+.ausklappinhalt > :first-child{margin-top:14px}
+.ausklappinhalt table{border-collapse:collapse;width:100%;margin:12px 0 0}
+.ausklappinhalt td,.ausklappinhalt th{border-bottom:1px solid var(--linie);
+  padding:6px 8px;text-align:left;font-size:14.5px}
+.ausklappinhalt th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--matt)}
+.ausklappinhalt td.p,.ausklappinhalt th.p{text-align:right}
+
+/* ---------- Zwei Auswahlen in einem Bild ---------- */
+.ebenenschalter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+.ebenenknopf{font:inherit;font-size:14px;padding:7px 14px;border-radius:999px;
+  border:1px solid var(--linie);background:var(--karte);color:var(--tinte);
+  cursor:pointer;display:flex;align-items:center;gap:8px}
+.ebenenknopf .tupfen{width:11px;height:11px;border-radius:50%;
+  border:2px solid var(--ebene);display:inline-block}
+.ebenenknopf[aria-current=true]{border-color:var(--ebene);
+  box-shadow:inset 0 0 0 1px var(--ebene);font-weight:500}
+.ebenenknopf[aria-current=true] .tupfen{background:var(--ebene)}
+.bildundliste{align-items:start}
+.punkteliste{font-size:13.5px;line-height:1.5}
+.punkteliste table{border-collapse:collapse;width:100%}
+.punkteliste td{padding:1px 6px 1px 0;white-space:nowrap}
+.punkteliste td.nr{color:var(--matt);text-align:right}
+.punkteliste .bruch{color:var(--matt)}

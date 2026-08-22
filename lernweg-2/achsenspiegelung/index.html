@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Achsenspiegelung · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="zugang">
+<div class="stationskopf"><span class="wort">STATION</span><span class="roemisch">II</span><h1>Komplexe Funktionen</h1><span class="wechsel"><a href="../../lernweg-1/index.html">I</a><a href="../../lernweg-2/index.html" aria-current='page'>II</a><a href="../../lernweg-3/index.html">III</a><a href="../../lernweg-4/index.html">IV</a></span><img class="kopf-portraet" src="../../gemeinsam/symbole/portraet-2.png" alt=""></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Etappe 8</span>Achsenspiegelung</h2><div class="etappe"><div class="film"><div class="rahmen vorschau" data-video="Z5ccQysIkac"><img class="standbild" alt="" loading="lazy" src="https://i.ytimg.com/vi/Z5ccQysIkac/hqdefault.jpg"><button type="button" class="starten" aria-label="Video abspielen"><span class="dreieck"></span></button></div><p class="ausweichen">Bleibt das Video schwarz? <a href="https://www.youtube.com/watch?v=Z5ccQysIkac" target="_blank" rel="noopener">Auf YouTube öffnen</a> — das geht in jedem Browser.</p></div><aside class="arbeit"><ul class="marken"><li><button type="button" data-marke="0" data-sekunde="42.4" data-pause="1" title="Aufgabe II.9" aria-label="Stopp 1 bei 0:42: Aufgabe II.9"><span class="nummer">1</span><span class="zeit">0:42</span></button></li><li><button type="button" data-marke="1" data-sekunde="267.0" data-pause="1" title="Aufgabe II.10 · Aufgabe II.11" aria-label="Stopp 2 bei 4:27: Aufgabe II.10 · Aufgabe II.11"><span class="nummer">2</span><span class="zeit">4:27</span></button></li><li><button type="button" data-marke="2" data-sekunde="349.8" title="Aufgabe II.12" aria-label="Stopp 3 bei 5:50: Aufgabe II.12"><span class="nummer">3</span><span class="zeit">5:50</span></button></li></ul><div class="tafeln"><article class="tafel" id="aufgabe-II-9" data-marke="0" hidden><h3 class="nurzeit"><span class="zeit">0:42</span></h3><div class="blaetter"><button type="button" data-blatt="0" aria-current="true">Aufgabe II.9</button></div><div class="blatt" data-blatt="0"><p>Finden Sie komplexe Funktionen, die die Achsenspiegelung an der
+  $x$-Achse bzw. $y$-Achse beschreiben.</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Was passiert mit Real- und Imaginärteil bei den Spiegelungen?</li><li>Denken Sie an die konjugiert komplexe Zahl.</li><li>Prüfen Sie Ihre Formeln an konkreten Beispielen.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><div class="neben">
+<strong>Spiegelung an der $x$-Achse:</strong>
+<p>Geometrische Überlegung:
+<ul><li>Punkt $P(x|y)$ wird auf $P'(x|-y)$ abgebildet</li><li>In komplexer Schreibweise: $z = x + iy \mapsto w = x - iy$</li></ul></p>
+<p>Dies ist genau die konjugiert komplexe Zahl:
+\[f(z) = \overline{z}\]
+</div></p>
+<div class="neben">
+<strong>Spiegelung an der $y$-Achse:</strong>
+<p>Geometrische Überlegung:
+<ul><li>Punkt $P(x|y)$ wird auf $P'(-x|y)$ abgebildet</li><li>In komplexer Schreibweise: $z = x + iy \mapsto w = -x + iy$</li></ul></p>
+<p>Dies lässt sich schreiben als:
+\[f(z) = -\overline{z}\]
+</div></p>
+<h4>Visualisierung:</h4>
+<figure class="zeichnung"><img src="../../bilder/zeichnung-bb340f4c5a1d.svg" alt=""></figure></div></div></div></article><article class="tafel" id="aufgabe-II-10" data-marke="1" hidden><h3 class="nurzeit"><span class="zeit">4:27</span></h3><div class="blaetter"><button type="button" data-blatt="0" aria-current="true">Aufgabe II.10</button><button type="button" data-blatt="1">Aufgabe II.11</button></div><div class="blatt" data-blatt="0"><p>Begründen Sie die Gültigkeit von
+    \[x=\frac{1}{2}(z+\overline{z})\;\;\;\;\text{ und }
+      \;\;\;\;y=\frac{1}{2i}(z-\overline{z}).
+    \]</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Setzen Sie $z = x + iy$ und $\overline{z} = x - iy$ ein.</li><li>Was passiert bei Addition bzw. Subtraktion?</li><li>Beachten Sie: $\frac{1}{i} = -i$.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><div class="neben">
+<h4>Nachweis für den Realteil:</h4>
+<p>\begin{align*}
+\frac{1}{2}(z+\overline{z}) &amp;= \frac{1}{2}[(x+iy) + (x-iy)]\\
+&amp;= \frac{1}{2}[x + iy + x - iy]\\
+&amp;= \frac{1}{2}[2x + 0]\\
+&amp;= x
+\end{align*}
+</div></p>
+<div class="neben">
+<h4>Nachweis für den Imaginärteil:</h4>
+<p>\begin{align*}
+\frac{1}{2i}(z-\overline{z}) &amp;= \frac{1}{2i}[(x+iy) - (x-iy)]\\
+&amp;= \frac{1}{2i}[2iy] = \frac{2iy}{2i} = y
+\end{align*}
+</div></p>
+<h4>Geometrische Interpretation:</h4>
+<ul><li>$z + \overline{z}$: Die Imaginärteile heben sich auf, es bleibt $2x$</li><li>$z - \overline{z}$: Die Realteile heben sich auf, es bleibt $2iy$</li></ul></div></div></div><div class="blatt" data-blatt="1" hidden><p>Zeigen Sie
+    \[z \cdot \overline{z}=|z|^2\phantom{\frac{1}{x}}\hspace{2cm}{}\]</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Setzen Sie $z = x + iy$ ein.</li><li>Berechnen Sie das Produkt $z \cdot \overline{z}$ ausmultipliziert.</li><li>Nutzen Sie die dritte binomische Formel.</li><li>Vergleichen Sie mit der Definition $|z|^2 = x^2 + y^2$.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><p>Sei $z = x + iy$, dann ist $\overline{z} = x - iy$.</p>
+<p>\begin{align*}
+z \cdot \overline{z} &amp;= (x + iy) \cdot (x - iy)\\
+&amp;= x \cdot x + x \cdot (-iy) + iy \cdot x + iy \cdot (-iy)\\
+&amp;= x^2 - ixy + ixy - i^2y^2\\
+&amp;= x^2 + 0 - i^2y^2\\
+&amp;= x^2 - (-1)y^2\\
+&amp;= x^2 + y^2\\
+&amp;=\left(\sqrt{x^2+y^2}\right)^2=|z|^2
+\end{align*}</p></div></div></div></article><article class="tafel" id="aufgabe-II-12" data-marke="2" hidden><h3 class="nurzeit"><span class="zeit">5:50</span></h3><div class="blaetter"><button type="button" data-blatt="0" aria-current="true">Aufgabe II.12</button></div><div class="blatt" data-blatt="0"><p>Beschreiben Sie die Spiegelung an der $y$-Achse unter Einbezug der
+  komplex konjugierten Zahl $\overline{z}$.</p>
+<p>Liesse sich damit auch eine Funktion für die Spiegelung an einer
+  beliebigen Achse beschreiben?</p>
+<aside class="merksatz">Hier lohnt es sich weitere Spezialfälle anzusehen: Die
+  erste Winkelhalbierende, Achsen, die durch den Ursprung gehen,
+   Achsen die parallel zu $x$- und $y$-Achse verlaufen, ...</aside><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Beginnen Sie mit der bekannten Spiegelung an der $x$-Achse.</li><li>Wie kann man andere Achsen auf die $x$-Achse drehen?</li><li>Nutzen Sie: Drehen → Spiegeln → Zurückdrehen.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Grundidee:</h4>
+<p>Die Spiegelung an der $x$-Achse kennen wir: $z \mapsto \overline{z}$. Alle anderen Achsenspiegelungen lassen sich darauf zurückführen!</p>
+<h4>Spiegelung an der $y$-Achse:</h4>
+<p>Die Funktion $w=f(z)=-\overline{z}$ beschreibt die
+  Achsenspiegelung an der $y$-Achse.</p>
+<h4>Spiegelung an Ursprungsgeraden:</h4>
+<p>Für alle Achsen, die durch den Ursprung verlaufen, lässt sich 
+  die Spiegelung als Spiegelung an der $x$-Achse mit anschliessender
+  Drehung realisieren.
+  <ul><li>Die Spiegelung an der $y$-Achse entspricht einer Spiegelung an
+    der $x$-Achse mit anschliessender Drehung um $180^\circ$. Daher
+    erhalten wir als Funktion die Verkettung der Spiegelung mit einer
+    Multiplikation einer Zahl, deren Betrag 1 und deren Argument/Winkel 
+    $180^\circ$ ist: $a=1\cdot\cis (180^\circ)=-1$
+    \[z \mapsto \overline{z} \mapsto (-1) \cdot\overline{z}\]</li><li>Für die 1. Winkelhalbierende ergibt sich dann eine Spiegelung
+    an der $x$-Achse mit einer Drehung um $90^\circ$. Wir
+    multiplizieren daher mit $a=1\cdot\cis (90^\circ)=i$
+    \[z \mapsto \overline{z} \mapsto i\cdot\overline{z}\]</li></ul></p>
+<h4>Spiegelung an Geraden parallel zur $x$-Achse:</h4>
+<p>Eine Spiegelung an einer Geraden parallel zur $x$-Achse
+  bzw. $y$-Achse ergibt
+  sich durch eine Verkettung einer Spiegelung an der $x$-Achse bzw. $y$-Achse mit
+  einer Verschiebung, senkrecht zu dieser Achse.
+  <ul><li>Die Spiegelung an der Geraden $y=2$ lässt sich realisieren
+    durch
+      \[z \mapsto \overline{z} \mapsto \overline{z}+4i\]</li><li>Die Spiegelung an der Geraden $x=3$ lässt sich realisieren
+    durch
+      \[z \mapsto -\overline{z} \mapsto -\overline{z}+6\]</li></ul></p>
+<p>Allgemein lässt sich die Spiegelung an einer beliebigen
+      Achse realisieren durch die Spiegelung an der $x$-Achse mit
+      Drehung und anschliessender Verschiebung.</p></div></div><aside class="merksatz"><strong>Achtung Fehler!</strong><p>Punkt 1: Spiegelung an der y~Achse</p><p>Punkt 3: +6 statt +3</p></aside></div></article></div></aside></div><nav class="zeitstrahl klein" style="--weg-zweig-tief:3;--weg-kachel-zahl:11;--weg-kasten-zahl:4" aria-label="Weg durch die Station"><div class="feld"><div class="strecke"><div class="abschnitt"><div class="kopf"><span class="nr">1</span><span class="wort">Darstellung von komplexen Funktionen</span></div><div class="reihe"><span class="strich rand" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../vergleich-mit-reellen-funktionen/index.html" title="Vergleich mit reellen Funktionen"><span>Vergleich mit reellen Funktionen</span></a></div><span class="strich rand" aria-hidden="true"></span></div></div><span class="strich zwischen" aria-hidden="true"></span><div class="abschnitt"><div class="kopf"><span class="nr">2</span><span class="wort">Lineare komplexe Funktionen</span></div><div class="reihe"><span class="strich rand" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../definition-erkundung/index.html" title="Definition &amp; Erkundung"><span>Definition &amp; Erkundung</span></a></div><span class="strich" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../geometrische-deutung/index.html" title="Geometrische Deutung"><span>Geometrische Deutung</span></a><div class="aeste einspaltig" style="--sp:1"><a class="halt zweig frei" href="../bezug-zur-sek-i/index.html" title="Bezug zur Sek I"><span>Bezug zur Sek I</span></a></div></div><span class="strich rand" aria-hidden="true"></span></div></div><span class="strich zwischen" aria-hidden="true"></span><div class="abschnitt"><div class="kopf"><span class="nr">3</span><span class="wort">Quadratische komplexe Funktionen</span></div><div class="reihe"><span class="strich rand" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../bild-des-verschobenen-einheitskreis/index.html" title="Bild des verschobenen Einheitskreis"><span>Bild des verschobenen Einheitskreis</span></a></div><span class="strich" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../bild-des-einheitskreises/index.html" title="Bild des Einheitskreises"><span>Bild des Einheitskreises</span></a><div class="aeste einspaltig" style="--sp:1"><a class="halt zweig hilfe" href="../ortslinien-von-kreisen/index.html" title="Ortslinien von Kreisen"><span>Ortslinien von Kreisen</span></a></div></div><span class="strich" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../erkundungen/index.html" title="Erkundungen"><span>Erkundungen</span></a></div><span class="strich rand" aria-hidden="true"></span></div></div><span class="strich zwischen" aria-hidden="true"></span><div class="abschnitt"><div class="kopf"><span class="nr">4</span><span class="wort">Spiegelungen mit komplexen Funktionen</span></div><div class="reihe"><span class="strich rand" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../kreisspiegelung/index.html" title="Kreisspiegelung"><span>Kreisspiegelung</span></a><div class="aeste einspaltig" style="--sp:1"><a class="halt zweig hilfe" href="../verallgemeinerung/index.html" title="Verallgemeinerung"><span>Verallgemeinerung</span></a><a class="halt zweig hilfe" href="../nachweis/index.html" title="Nachweis"><span>Nachweis</span></a></div></div><span class="strich" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" aria-current="page" href="../achsenspiegelung/index.html" title="Achsenspiegelung"><span>Achsenspiegelung</span></a></div><span class="strich rand" aria-hidden="true"></span></div></div></div></div></nav><nav class="wegweiser"><div class="links"><a class="knopf zurueck" href="../kreisspiegelung/index.html" title="Kreisspiegelung"><span class="pfeil">←</span>Etappe 7</a></div><div class="mitte"><a class="knopf heim" href="../../index.html"><span class="pfeil">⌂</span>Startseite</a></div><div class="rechts"><a class="knopf weiter" href="../abschluss/index.html" title="Rückschau, Übersicht und Prüfung">Abschluss<span class="pfeil">→</span></a></div></nav>
+</main>
+<footer>Komplexe Zahlen · Station II</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+<script defer src="https://www.youtube.com/iframe_api"></script>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

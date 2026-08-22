@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe III.1 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="beweis">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">III.1</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe III.1</span></h2><div class="aufgabenblatt"><p>Untersuchen Sie die folgenden Iteratoren auf Fixpunkte und Zyklen:</p>
+<ul><li>$f(z)=3i\cdot z$</li><li>$f(z)=\left( \frac{1}{2}+\frac{1}{2}i\right) \cdot z$</li><li>$f(z)=i\cdot z+5i$</li></ul><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Fixpunkte erfüllen $f(z) = z$. Lösen Sie diese Gleichung.</li><li>Was passiert bei $|a| &lt; 1$, $|a| = 1$, $|a| &gt; 1$?</li><li>Für $f(z) = az + b$: Der Fixpunkt ist $z = \frac{b}{1-a}$ (falls $a \neq 1$).</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Analyse von $f(z) = 3i \cdot z$:</h4>
+<p><strong>Schritt 1: Fixpunkte</strong>
+\[f(z) = z \Rightarrow 3iz = z \Rightarrow z(3i - 1) = 0 \Rightarrow z = 0\]</p>
+<p><strong>Schritt 2: Dynamik</strong>
+<ul><li>$|3i| = 3 &gt; 1$ → expandierende Abbildung</li><li>$\arg(3i) = 90°$ → Drehung um $90°$ pro Iteration</li><li>Kombination: Drehung um $90°$ mit Streckung um Faktor 3</li></ul></p>
+<p><strong>Verhalten:</strong> Alle Startwerte ausser $z = 0$ divergieren spiralförmig. Keine Zyklen möglich.</p>
+<h4>Analyse von $f(z) = \left(\frac{1}{2} + \frac{1}{2}i\right) \cdot z$:</h4>
+<p><strong>Schritt 1: Fixpunkte</strong>
+Analog: nur $z = 0$</p>
+<p><strong>Schritt 2: Dynamik</strong>
+<ul><li>$\left|\frac{1}{2} + \frac{1}{2}i\right| = \frac{1}{2}\sqrt{1+1} = \frac{\sqrt{2}}{2} &lt; 1$</li><li>$\arg\left(\frac{1}{2} + \frac{1}{2}i\right) = 45°$</li></ul></p>
+<p><strong>Verhalten:</strong> Alle Startwerte konvergieren spiralförmig gegen 0. Keine Zyklen.</p>
+<h4>Analyse von $f(z) = i \cdot z + 5i$:</h4>
+<p><strong>Schritt 1: Fixpunkte</strong>
+\[iz + 5i = z \Rightarrow 5i = z - iz = z(1-i) \Rightarrow z = \frac{5i}{1-i}\]</p>
+<p>Berechnung:
+\[z = \frac{5i}{1-i} \cdot \frac{1+i}{1+i} = \frac{5i(1+i)}{1+1} = \frac{5i + 5i^2}{2} = \frac{5i - 5}{2} = -2.5 + 2.5i\]</p>
+<p><strong>Schritt 2: Dynamik</strong>
+<ul><li>$|i| = 1$ → weder Expansion noch Kontraktion</li><li>$\arg(i) = 90°$ → Drehung um $90°$</li></ul></p>
+<p><strong>Verhalten:</strong> 
+<ul><li>Der Fixpunkt $z = -2.5 + 2.5i$ bleibt fest</li><li>Alle anderen Punkte rotieren um den Fixpunkt</li><li>Nach 4 Iterationen: $i^4 = 1$ → Zyklen der Länge 4</li></ul></p>
+<p>Jeder Punkt ausser dem Fixpunkt liegt auf einem Zyklus der Länge 4.</p></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-3/zyklus/index.html">Etappe 5 · Zyklus</a> <span class="zeit">bei 5:08</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

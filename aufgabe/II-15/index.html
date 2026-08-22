@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe II.15 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="zugang">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">II.15</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe II.15</span></h2><div class="aufgabenblatt"><p>Welche unmittelbaren Folgerungen lassen sich aus der
+    Abstandsgleichung der Inversion für den Bildpunkt $w$ ziehen, wenn
+    $|z|&gt;1$, $|z|=1$, $|z|&lt;1$ ist? Stimmt das mit dem, was wir von der
+    Kreisspiegelung kennen, überein?</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Die Inversion am Einheitskreis: $w = \frac{1}{\overline{z}}$.</li><li>Berechnen Sie $|w|$ in Abhängigkeit von $|z|$.</li><li>Was bedeutet $|w| \cdot |z| = 1$ geometrisch?</li><li>Vergleichen Sie mit der Konstruktion der Kreisspiegelung.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Herleitung der Abstandsbeziehung:</h4>
+<p>Für die Inversion $w = \frac{1}{\overline{z}}$ gilt:
+\[|w| = \left|\frac{1}{\overline{z}}\right| = \frac{1}{|\overline{z}|} = \frac{1}{|z|}\]</p>
+<p>Daraus folgt die fundamentale Beziehung:
+\[|w| \cdot |z| = 1\]</p>
+<h4>Folgerungen:</h4>
+<p><strong>Fall 1: $|z| &gt; 1$ (ausserhalb des Einheitskreises)</strong> 
+\[|w| = \frac{1}{|z|} &lt; 1\]
+Der Bildpunkt liegt innerhalb des Einheitskreises.</p>
+<p><strong>Fall 2: $|z| = 1$ (auf dem Einheitskreis)</strong>
+\[|w| = \frac{1}{|z|} = 1\]
+Der Bildpunkt liegt wieder auf dem Einheitskreis (Fixpunkte).</p>
+<p><strong>Fall 3: $|z| &lt; 1$ (innerhalb des Einheitskreises)</strong>
+\[|w| = \frac{1}{|z|} &gt; 1\]
+Der Bildpunkt liegt ausserhalb des Einheitskreises.</p>
+<h4>Geometrische Interpretation:</h4>
+<ul><li>Punkte ausserhalb ↔ Punkte innerhalb</li><li>Je näher am Ursprung, desto weiter weg das Bild</li><li>Je weiter vom Ursprung, desto näher am Ursprung das Bild</li><li>Der Einheitskreis ist die Menge aller Fixpunkte</li></ul>
+<h4>Übereinstimmung mit der Kreisspiegelung:</h4>
+<p>Dies stimmt exakt mit der geometrischen Konstruktion der Kreisspiegelung überein:
+<ul><li>Für einen Kreis mit Radius $r = 1$</li><li>Punkt $P$ und Bildpunkt $P'$ erfüllen: $|OP| \cdot |OP'| = r^2 = 1$</li><li>Die Punkte liegen auf demselben Strahl vom Mittelpunkt aus</li></ul></p>
+<p>Die komplexe Funktion $w = \frac{1}{\overline{z}}$ ist also die algebraische Beschreibung der geometrischen Kreisspiegelung am Einheitskreis.</p></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-2/ortslinien-von-kreisen/index.html">Hilfe 1 · Ortslinien von Kreisen</a> <span class="zeit">bei 5:56</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

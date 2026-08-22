@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe I.15 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="fach">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">I.15</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe I.15</span></h2><div class="aufgabenblatt"><p>Stellen Sie die n verschiedenen Lösungen der Gleichung $w^n=z$ für
+  $z \neq 0$ in allgemeiner Form dar. Worin unterscheidet sich die
+  Lage der Lösungen in der komplexen Zahlenebene?</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Die $n$ Lösungen haben alle denselben Betrag $\sqrt[n]{|z|}$.</li><li>Die Argumente unterscheiden sich um $\frac{360°}{n}$.</li><li>Die Lösungen bilden ein regelmässiges $n$-Eck.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Herleitung:</h4>
+<p>Sei $z = |z| \cdot \text{cis}(\alpha)$ mit $z \neq 0$.</p>
+<p>Aus $w^n = z$ folgt mit de Moivre:
+<ul><li>Betrag: $|w|^n = |z|$, also $|w| = \sqrt[n]{|z|}$</li><li>Argument: $n \cdot \arg(w) = \alpha + k \cdot 360°$ für $k \in \mathbb{Z}$</li></ul></p>
+<h4>Die $n$ verschiedenen Lösungen:</h4>
+<p>\[w_{k+1} = \sqrt[n]{|z|} \cdot \text{cis}\left(\frac{\alpha}{n} + k \cdot \frac{360°}{n}\right) \quad \text{mit } k = 0, 1, \ldots, n-1\]</p></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-1/wurzelziehen/index.html">Etappe 8 · Wurzelziehen</a> <span class="zeit">bei 5:36</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

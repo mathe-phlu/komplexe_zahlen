@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe I.5 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="fach">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">I.5</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe I.5</span></h2><div class="aufgabenblatt"><p>Warum sind die anderen Zahlbereiche $(\mathbb{N},+,\cdot)$ und
+    $(\mathbb{Z},+,\cdot)$ keine Körper?</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Prüfen Sie: Gibt es zu jeder Zahl ein additives Inverses?</li><li>Prüfen Sie: Gibt es zu jeder Zahl (ausser 0) ein multiplikatives Inverses?</li><li>Geben Sie konkrete Gegenbeispiele an.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Körperaxiome:</h4>
+<p>Ein Körper $(K, +, \cdot)$ muss folgende Eigenschaften erfüllen:
+<ul><li>Kommutativität, Assoziativität und neutrale Elemente für beide Operationen</li><li>Existenz von inversen Elementen.</li><li>Distributivgesetz: $a \cdot (b + c) = a \cdot b + a \cdot c$</li></ul></p>
+<h4>Problem bei $(\mathbb{N}, +, \cdot)$:</h4>
+<ul><li>Keine additiven Inversen: Zu $2 \in \mathbb{N}$ gibt es kein $n \in \mathbb{N}$ mit $2 + n = 0$</li><li>Keine multiplikativen Inversen: Zu $2 \in \mathbb{N}$ gibt es kein $n \in \mathbb{N}$ mit $2 \cdot n = 1$</li><li>Sogar das neutrale Element der Addition ($0$) fehlt in $\mathbb{N}$ (je nach Definition)</li></ul>
+<h4>Problem bei $(\mathbb{Z}, +, \cdot)$:</h4>
+<ul><li>Additive Inverse existieren: Zu jedem $n \in \mathbb{Z}$ ist $-n \in \mathbb{Z}$</li><li>Aber: Keine multiplikativen Inversen! Zu $2 \in \mathbb{Z}$ gibt es kein $z \in \mathbb{Z}$ mit $2 \cdot z = 1$</li><li>Das Inverse $\frac{1}{2}$ liegt nicht in $\mathbb{Z}$</li></ul>
+<h4>Fazit:</h4>
+<p>In $(\mathbb{N},+, \cdot)$ existieren keine inversen Elemente bezüglich der Addition und der Multiplikation. In $(\mathbb{Z},+,\cdot)$ existieren keine inversen Elemente bezüglich der Multiplikation.</p></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-1/exkurs-koerpertheorie/index.html">Bonus 1 · Exkurs: Körpertheorie</a> <span class="zeit">bei 1:04</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

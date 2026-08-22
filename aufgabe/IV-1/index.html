@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aufgabe IV.1 · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=6e22da57">
+<body data-farbe="aktion">
+<div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">IV.1</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
+<main>
+<h2 class="etappentitel"><span class="stand">Aufgabe IV.1</span></h2><div class="aufgabenblatt"><div class="neben">
+   Werten Sie die Exponentialreihe $\exp(z)$ an der Stelle $z=iy$
+    aus (also für eine imaginäre Zahl).
+    </div><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Setzen Sie $z = iy$ in die Exponentialreihe ein.</li><li>Berechnen Sie die Potenzen von $i$ systematisch.</li><li>Sortieren Sie nach Real- und Imaginärteil.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><h4>Systematisches Vorgehen:</h4>
+<p><strong>Schritt 1: Einsetzen in die Exponentialreihe</strong>
+\begin{align*}
+\exp(iy) &amp;= \sum_{n=0}^{\infty} \frac{(iy)^n}{n!}\\
+&amp;= 1 + iy + \frac{(iy)^2}{2!} + \frac{(iy)^3}{3!} + \frac{(iy)^4}{4!} + \frac{(iy)^5}{5!} + ...
+\end{align*}</p>
+<p><strong>Schritt 2: Potenzen von $i$ berechnen</strong></p>
+<p>$$i^0 = 1,\; i^1 = i,\; i^2 = -1,\; i^3 = -i,\; i^4 = 1, \; i^5 = i, ... $$</p>
+<p><strong>Schritt 3: Einsetzen der Potenzen</strong>
+\begin{align*}
+\exp(iy) &amp;= 1 + iy - \frac{y^2}{2!} - i\frac{y^3}{3!} + \frac{y^4}{4!} + i\frac{y^5}{5!} - \frac{y^6}{6!} - i\frac{y^7}{7!} + ...
+\end{align*}</p>
+<p><strong>Schritt 4: Nach Real- und Imaginärteil sortieren</strong>
+\begin{align*}
+\exp(iy) &amp;= \underbrace{\left(1 - \frac{y^2}{2!} + \frac{y^4}{4!} - \frac{y^6}{6!} + ...\right)}_{\text{Realteil}}\\
+&amp;\quad + i\underbrace{\left(y - \frac{y^3}{3!} + \frac{y^5}{5!} - \frac{y^7}{7!} + ...\right)}_{\text{Imaginärteil}}
+\end{align*}</p>
+<p><strong>Schritt 5: Identifikation der Reihen</strong>
+<ul><li>Realteil: Das ist die Taylorreihe von $\cos(y)$</li><li>Imaginärteil: Das ist die Taylorreihe von $\sin(y)$</li></ul></p>
+<h4>Ergebnis - Die Euler-Formel:</h4>
+<p>\[\boxed{e^{iy} = \cos(y) + i\sin(y) = \text{cis}(y)}\]</p></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-4/sin-cos-exp/index.html">Etappe 3 · Sin, Cos &amp; Exp</a> <span class="zeit">bei 1:50</span></p>
+</main>
+<footer>Komplexe Zahlen</footer>
+<script src="../../gemeinsam/seite.js?f=6e22da57"></script>
+
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
+  displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
+  macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
+          zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
+          Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
+          glqq:'\\text{„}',grqq:'\\text{“}'}},
+  options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
+<script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
+</body>
+</html>

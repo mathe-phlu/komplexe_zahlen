@@ -1,0 +1,1149 @@
+@font-face{font-family:'Fira Sans';font-style:normal;font-weight:400;font-display:swap;
+  src:url(fremd/fira-400-latin-ext.woff2) format('woff2');
+  unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Fira Sans';font-style:normal;font-weight:400;font-display:swap;
+  src:url(fremd/fira-400-latin.woff2) format('woff2');
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Fira Sans';font-style:normal;font-weight:500;font-display:swap;
+  src:url(fremd/fira-500-latin-ext.woff2) format('woff2');
+  unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Fira Sans';font-style:normal;font-weight:500;font-display:swap;
+  src:url(fremd/fira-500-latin.woff2) format('woff2');
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Patrick Hand';font-style:normal;font-weight:400;font-display:swap;
+  src:url(fremd/patrick-400-latin-ext.woff2) format('woff2');
+  unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Patrick Hand';font-style:normal;font-weight:400;font-display:swap;
+  src:url(fremd/patrick-400-latin.woff2) format('woff2');
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+
+/* ============================================================
+   LARS — Gestaltung der Lernlandschaften
+
+   Folgt Kasper und Pia, damit Material, Sortieraktivitaeten und
+   Pruefungen wie aus einem Guss aussehen. Farben, Schriften und Masse
+   sind aus PIA/pruefungen/gemeinsam/pruefung.css uebernommen, das
+   seinerseits KASPER/projekte/daten_und_zufall/ausgabe folgt.
+
+   Die vier Stationsfarben tragen dieselben Namen wie die Argumente der
+   Aufgabenbox im LaTeX-Skript (`\begin{AufgabeZ}[][aktion][beweis]`) —
+   deshalb braucht es zwischen Skript und Seite keine Uebersetzung:
+     I   Komplexe Zahlen     fach    blau  · Begriffe
+     II  Komplexe Funktionen zugang  gruen · Darstellungen
+     III Komplexe Folgen     beweis  ocker · Begruenden
+     IV  Komplexe Potenzen   aktion  lila  · Strategien
+
+   Regeln aus KASPER/referenzen/GESTALTUNG.md, die hier gelten:
+   - Patrick Hand immer mit font-weight:400 und einen Tick groesser.
+     Sie hat nur einen Schnitt; bei 700 rechnet der Browser einen
+     fetten aus, und das sieht nachgezogen aus.
+   - Keine gesperrten Versalien in Patrick Hand.
+   - Kaum Rundungen, kaum Schatten.
+   - Kein Farbwert ausserhalb von :root.
+   ============================================================ */
+
+/* Die @font-face-Regeln stehen in fremd/schriften.css und werden beim
+   Bauen vorangestellt. Erzeugt von werkzeuge/schriften_holen.py — dort
+   steht auch, warum sie nicht von Hand geschrieben werden. */
+
+:root{
+  --papier:#f8f4ec; --creme:#f6ecdf; --karte:#fffefb;
+  --tinte:#2d2924;  --matt:#6c6357;  --linie:#e4d9c7;
+  --fach:#0065A9; --zugang:#007D57; --beweis:#E09E5A; --aktion:#9867A5;
+  --richtig:#2E7D32; --falsch:#C0392B;
+  --braun:#935100;
+  --druck:'Fira Sans','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --hand:'Patrick Hand',cursive;
+  --akzent:var(--braun);
+  --spalte:min(70rem,100% - 2.5rem);
+}
+[data-farbe="fach"]  {--akzent:var(--fach)}
+[data-farbe="zugang"]{--akzent:var(--zugang)}
+[data-farbe="beweis"]{--akzent:var(--beweis)}
+[data-farbe="aktion"]{--akzent:var(--aktion)}
+
+*{box-sizing:border-box}
+/* **Die Fusszeile steht unten am Fenster**, auch wenn die Seite kurz
+   ist. Vorher klebte sie direkt unter dem Inhalt, und darunter blieb
+   eine leere Flaeche — das sah aus, als fehle etwas. */
+body{margin:0;font:16px/1.65 var(--druck);color:var(--tinte);
+     background:var(--papier);min-height:100vh;display:flex;
+     flex-direction:column}
+body > main{flex:1 0 auto}
+body > footer{flex:0 0 auto}
+img{max-width:100%;height:auto}
+
+/* ---------- Kopf: schmale Zeile, wie bei Kasper und Pia ---------- */
+header.zeile{display:flex;align-items:center;gap:14px;padding:8px 18px;
+     border-bottom:1px solid var(--linie);background:var(--karte);
+     position:sticky;top:0;z-index:10}
+header.zeile .marke{width:5px;height:26px;background:var(--akzent);
+     border-radius:3px;flex:0 0 auto}
+header.zeile h1{font-family:var(--hand);font-weight:400;font-size:21px;margin:0}
+header.zeile nav{margin-left:auto;display:flex;gap:16px;font-size:14px}
+header.zeile nav a{color:var(--matt);text-decoration:none}
+header.zeile nav a:hover{color:var(--akzent)}
+
+/* ---------- Wimmelbild: nur auf Einstiegsseiten ---------- */
+.streifen{height:132px;background:url(kopfstreifen.png) center/cover;
+     border-bottom:1px solid var(--linie);position:relative;overflow:hidden}
+.streifen .grund{position:absolute;right:0;top:0;bottom:0;width:min(620px,72%);
+     background:linear-gradient(90deg,rgba(255,255,255,0) 0%,
+                rgba(255,255,255,.72) 34%,rgba(255,255,255,.95) 62%,#fff 100%)}
+.streifen h1{position:absolute;right:30px;bottom:10px;margin:0;
+     font-family:var(--hand);font-weight:400;font-size:44px;color:var(--tinte)}
+
+main{width:var(--spalte);margin:0 auto;padding:26px 0 90px}
+h2{font-family:var(--hand);font-weight:400;font-size:30px;margin:34px 0 12px}
+h3{font-family:var(--hand);font-weight:400;font-size:23px;margin:26px 0 8px}
+h4{font-size:15px;margin:16px 0 4px;color:var(--matt)}
+/* `\subparagraph` kommt in MA01.07 dazu, unter `\paragraph`.
+   Bewusst wie h4 gehalten und nicht in Patrick Hand: Innerhalb
+   einer Aufgabe sind das Zwischenmarken («Ergebnis:»,
+   «Generisches Beispiel:»), keine Ueberschriften der Seite. Die
+   Handschrift traegt die Gliederung darueber — h1 bis h3. */
+h5{font-size:14px;margin:12px 0 3px;color:var(--matt);font-weight:600}
+p{margin:.7em 0}
+a{color:var(--akzent)}
+
+/* ---------- Kapitel ---------- */
+section.kapitel{margin:0 0 40px;scroll-margin-top:60px}
+section.kapitel > h2{display:flex;align-items:baseline;gap:12px}
+section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
+     color:var(--matt);letter-spacing:.02em}
+
+/* ---------- Aufgabenbox: die tcolorbox aus dem Skript ----------
+   Im Skript: farbiger Titelbalken, Linie links und unten, Stiftsymbol,
+   QR-Code auf das GeoGebra-Applet. Hier dasselbe, nur dass aus dem
+   QR-Code ein Knopf wird — auf dem Bildschirm braucht niemand einen
+   QR-Code, um dahin zu kommen, wo er schon ist. */
+.aufgabe{scroll-margin-top:64px;background:var(--karte);border-left:3px solid var(--akzent);
+     border-bottom:3px solid var(--akzent);margin:22px 0}
+.aufgabe > .kopf{display:flex;align-items:center;gap:10px;
+     background:var(--akzent);color:#fff;padding:5px 14px}
+.aufgabe > .kopf .stift{font-size:15px;opacity:.9}
+.aufgabe > .kopf h3{font-family:var(--hand);font-weight:400;font-size:19px;
+     margin:0;color:#fff}
+.aufgabe > .kopf .zusatz{margin-left:auto;font-size:13.5px;opacity:.92}
+.aufgabe > .rumpf{padding:12px 16px 14px}
+.aufgabe .merksatz{border-left:2px solid var(--linie);background:var(--creme);
+     padding:7px 12px;margin:12px 0;font-size:15px}
+
+/* ---------- Aufklappen: Starthilfe, dann Loesung ----------
+   Die Reihenfolge ist der Entscheid vom 21.08.2026: erst die Hilfe,
+   dann die Loesung. Beides steht im Skript, beides war bisher nur
+   gesammelt als PDF zu haben. */
+.stufen{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.stufen{align-items:flex-start}
+.stufen details.stufe{border:0;padding:0}
+.stufen details.stufe > summary{font:inherit;font-size:14px;padding:5px 13px;
+     border:1px solid var(--linie);background:var(--karte);cursor:pointer;
+     color:var(--tinte);list-style:none;display:inline-block}
+.stufen details.stufe > summary::-webkit-details-marker{display:none}
+.stufen details.stufe > summary::before{content:'▸ ';color:var(--matt)}
+.stufen details.stufe[open] > summary{background:var(--akzent);color:#fff;
+     border-color:var(--akzent)}
+.stufen details.stufe[open] > summary::before{content:'▾ ';color:#fff}
+/* Geschlossen steht der Aufklapper als Knopf in der Reihe; geoeffnet
+   nimmt er eine ganze Zeile und rutscht ans Ende, damit die uebrigen
+   Knoepfe beieinander bleiben. Kein absoluter Umbruch — der wuerde den
+   Text darunter verdecken. */
+.stufen details.stufe{flex:0 0 auto}
+.stufen details.stufe[open]{flex:1 0 100%;order:9}
+.stufen details.stufe .faltung{margin-top:10px;padding:12px 2px 2px;
+     border-top:1px dashed var(--linie)}
+.stufen button, .knopf{font:inherit;font-size:14px;padding:5px 13px;
+     border:1px solid var(--linie);background:var(--karte);cursor:pointer;
+     color:var(--tinte);text-decoration:none;display:inline-block}
+.stufen button:hover, .knopf:hover{border-color:var(--akzent);color:var(--akzent)}
+.stufen button[aria-expanded="true"]{background:var(--akzent);color:#fff;
+     border-color:var(--akzent)}
+/* **`.faltung` wird auf zwei Arten geoeffnet.** Ursprünglich hing sie
+   an einem Knopf, der ihr `.offen` gab. In den Aufgaben steckt sie
+   inzwischen in einem `<details>` — und dort wurde sie nie sichtbar,
+   weil das Aufklappen die Klasse nicht setzt. Starthilfe, Lösung und
+   GeoGebra liessen sich deshalb aufklappen, zeigten aber nichts. */
+.faltung{display:none;margin-top:12px;padding-top:12px;
+     border-top:1px dashed var(--linie)}
+.faltung.offen, details[open] > .faltung{display:block}
+.faltung > h4:first-child{margin-top:0}
+
+/* ---------- Video mit Marken ----------
+   Die Aufgaben stehen unter dem Video, nicht darauf. Wer eine bestimmte
+   Aufgabe sucht, sieht sie in der Liste, statt sie durch Ziehen am
+   Zeitstrahl zu suchen. Auf dem Telefon ist ein eingeblendetes
+   Aufgabenbild ohnehin nicht lesbar. */
+.videoblock{margin:22px 0}
+.rahmen{position:relative;padding-top:56.25%;background:var(--tinte)}
+.rahmen iframe, .rahmen video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.marken{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.marken button{font:inherit;font-size:13.5px;padding:4px 11px;
+     border:1px solid var(--linie);background:var(--karte);cursor:pointer;
+     color:var(--tinte)}
+.marken button:hover{border-color:var(--akzent);color:var(--akzent)}
+.marken .zeit{color:var(--matt);font-size:12.5px;margin-left:6px}
+.marken button.haelt::after{content:'⏸';margin-left:6px;opacity:.5;font-size:11px}
+
+/* ---------- Einbettung: GeoGebra ---------- */
+.applet{margin:18px 0;border:1px solid var(--linie);background:var(--karte)}
+.applet .leiste{display:flex;align-items:center;gap:10px;padding:5px 12px;
+     border-bottom:1px solid var(--linie);font-size:13.5px;color:var(--matt)}
+.applet .leiste a{margin-left:auto}
+.applet iframe{display:block;width:100%;border:0;height:min(78vh,620px)}
+
+/* ---------- Bildpunkte und Bilder ---------- */
+figure{margin:16px 0}
+figure img{display:block}
+figcaption{font-size:13.5px;color:var(--matt);margin-top:5px}
+.zeichnung.fehlt{border:1px dashed var(--falsch);color:var(--falsch);
+     padding:14px;font-size:14px}
+
+/* ---------- Kachelbahn statt Landkarte ----------
+   Der Lernpfad behaelt das Durchkacheln — Reihenfolge, Fortschritt,
+   das Naechste wird frei —, aber nicht die von Hand gesetzten
+   Positionen auf einem Hintergrundbild. Die trugen didaktisch nichts
+   und zerfallen auf dem Telefon. */
+.bahn{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+     gap:14px;margin:20px 0}
+.station{background:var(--karte);border:1px solid var(--linie);
+     border-top:4px solid var(--akzent);padding:12px 14px;
+     text-decoration:none;color:var(--tinte);display:block}
+.station:hover{border-color:var(--akzent)}
+.station .nr{font-size:12.5px;color:var(--matt)}
+.station .titel{font-family:var(--hand);font-weight:400;font-size:19px;
+     margin:2px 0 4px;display:block}
+.station .was{font-size:13.5px;color:var(--matt)}
+
+/* ---------- Zuordnen: Kaertchen in Faecher ---------- */
+.zuordnen{background:var(--karte);border:1px solid var(--linie);padding:14px;
+     margin:22px 0}
+
+
+
+
+
+
+
+
+/* ---------- Fusszeile ---------- */
+footer{border-top:1px solid var(--linie);background:var(--karte);
+     padding:14px 18px;font-size:13px;color:var(--matt)}
+
+/* ---------- Schmale Geraete ---------- */
+@media (max-width:640px){
+  .streifen{height:104px}
+  .streifen h1{font-size:30px;right:18px}
+  main{padding:18px 0 70px}
+  h2{font-size:25px}
+}
+
+/* ---------- Druck ---------- */
+@media print{
+  header.zeile, .marken, .stufen{display:none}
+  .faltung{display:block}
+  body{background:#fff}
+}
+
+/* ---------- aus dem Skript uebernommene Satzformen ---------- */
+.spalten{columns:2;column-gap:26px}
+/* **Der obere Rand gilt nur in der ersten Spalte.** Bei mehrspaltigem
+   Satz sitzt der Aussenabstand einer Liste vor der ersten Spalte; die
+   zweite beginnt oben am Kasten. Dadurch standen (a) und (b) tiefer
+   als (c) und (d) daneben. */
+.spalten > ul, .spalten > ol{margin-top:0}
+.spalten > ul > li:first-child, .spalten > ol > li:first-child{margin-top:0}
+.neben{display:inline-block;vertical-align:top;max-width:100%}
+.marke{color:var(--matt)}
+.kapitaelchen{font-variant:small-caps}
+.zusammen{white-space:nowrap}
+.ton-fach{color:var(--fach)} .ton-zugang{color:var(--zugang)}
+.ton-beweis{color:var(--beweis)} .ton-aktion{color:var(--aktion)}
+u{text-decoration-color:var(--akzent);text-underline-offset:2px}
+details{border-bottom:1px solid var(--linie);padding:6px 0}
+details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size:17px}
+@media (max-width:640px){.spalten{columns:1}}
+
+/* ============================================================
+   Navigation nach der Vorlage der Powerpoint-Navigationsdatei
+   (NavigationMA02.02-H26.pptx, Folie 2 «Material», Folie 3 «Station»).
+   Dort sind die Karten leicht gerundet und tragen einen weichen
+   Schatten — eine bewusste Abweichung von Kaspers «keine Rundungen»,
+   damit die Seite an die Moodle-Navigation anschliesst, aus der die
+   Studierenden herkommen.
+   ============================================================ */
+
+/* `stretch` statt `start`: Die vier Stationskarten schliessen unten
+   buendig mit der Loesungsband-Karte ab. Standen sie kuerzer, hing die
+   linke Spalte tiefer als die rechte. */
+.material{display:grid;grid-template-columns:minmax(200px,1fr) 3fr;gap:22px;
+     align-items:stretch;margin:24px 0}
+.material .ganze{display:grid;gap:14px}
+
+/* -- kleine Karte mit Symbol -- */
+.karte{background:var(--karte);border:1px solid var(--linie);border-radius:10px;
+     padding:14px;text-decoration:none;color:var(--tinte);display:block;
+     box-shadow:0 1px 3px rgba(45,41,36,.07);text-align:center}
+.karte:hover{border-color:var(--akzent);box-shadow:0 2px 8px rgba(45,41,36,.12)}
+/* **Die Symbole tragen die Farbe ihrer Station.** Vorher waren sie
+   fest eingefaerbt: drei blau, eines schwarz — auf der gruenen Station
+   sahen dann alle vier falsch aus. Die Zeichnungen werden deshalb
+   nicht als Bild gelegt, sondern als **Maske**; die Farbe kommt aus
+   `--akzent`. Der Alphakanal der Vorlagen traegt die Form, das gilt
+   fuer die einzelnen Zeichnungen wie fuer die Ausschnitte aus den
+   Bogen. */
+.karte .sym{display:block;height:66px;margin:0 auto 8px;width:88px;
+     background-color:var(--akzent);
+     -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+     -webkit-mask-position:center;mask-position:center;
+     -webkit-mask-size:contain;mask-size:contain}
+.karte .name{font-family:var(--hand);font-weight:400;font-size:18px;display:block}
+.karte .was{font-size:13px;color:var(--matt);display:block;margin-top:2px}
+.karte.quer{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px}
+.karte.quer .sym{margin:0;width:46px;height:40px;flex:0 0 auto}
+.karte.quer .name{font-size:17px;line-height:1.15}
+.karte.quer .was{margin-top:1px;font-size:12.5px;line-height:1.25}
+.karte.quer > span:not(.sym){min-width:0}
+.karte.quer .beschriftung{display:block;min-width:0}
+
+/* -- Stationskarte mit Portraet -- */
+.stationen{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+     gap:16px}
+/* Alle vier Karten gleich gebaut: Kopfhoehe fest, Bild fuellt den Rest.
+   Sonst schiebt ein laengerer Titel wie «Komplexe Funktionen» das
+   Portraet nach unten und die Reihe wird unruhig — das war der Fehler
+   der ersten Fassung. */
+.stationskarte{background:var(--akzent);border-radius:10px;overflow:hidden;
+     text-decoration:none;display:grid;grid-template-rows:auto 1fr;
+     box-shadow:0 1px 3px rgba(45,41,36,.10)}
+.stationskarte:hover{box-shadow:0 3px 12px rgba(45,41,36,.20)}
+.stationskarte .kopfteil{height:112px;display:flex;flex-direction:column;
+     align-items:center;justify-content:center;padding:10px 10px 6px;gap:2px}
+.stationskarte .nr{color:#fff;opacity:.85;font-size:11.5px;letter-spacing:.09em;
+     text-align:center}
+.stationskarte .titel{font-family:var(--hand);font-weight:400;font-size:24px;
+     color:#fff;text-align:center;line-height:1.12}
+.stationskarte figure{margin:0;height:100%;min-height:190px}
+/* Weniger Farbe: Mit `opacity:.88` lag der volle Akzent hinter dem
+   Portraet, und die vier Karten leuchteten gegeneinander. Ein helleres
+   Bild laesst die Farbe traeger durchscheinen. */
+.stationskarte img{width:100%;height:100%;object-fit:cover;object-position:top;
+     display:block;mix-blend-mode:luminosity;opacity:.62}
+
+/* -- Kopf einer Stationsseite -- */
+.stationskopf{background:var(--akzent);color:#fff;display:flex;align-items:center;
+     gap:16px;padding:12px 20px;position:relative;overflow:hidden}
+.stationskopf .wort{font-size:11.5px;letter-spacing:.09em;opacity:.85;
+     position:absolute;top:9px;left:22px}
+.stationskopf .roemisch{font-family:var(--hand);font-weight:400;font-size:30px;
+     line-height:1;padding-top:14px}
+.stationskopf h1{font-family:var(--hand);font-weight:400;font-size:27px;margin:0;
+     padding-top:14px;color:#fff}
+.stationskopf .wechsel{margin-left:auto;display:flex;gap:7px;padding-top:10px}
+.stationskopf .wechsel a{width:34px;height:32px;display:grid;place-items:center;
+     border:1px solid rgba(255,255,255,.55);border-radius:5px;color:#fff;
+     text-decoration:none;font-size:13px}
+.stationskopf .wechsel a[aria-current="page"]{background:#fff;color:var(--akzent);
+     border-color:#fff}
+.stationskopf .kopf-portraet{width:74px;height:52px;object-fit:cover;
+     border-radius:4px;margin-left:14px;mix-blend-mode:luminosity;opacity:.9}
+
+/* -- Werkzeugreihe einer Station -- */
+.werkzeuge{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+     gap:16px;margin:24px 0 14px}
+/* Gleich breite Spalten statt Fliesssatz: Bei fuenf Karten wurden sonst
+   die mit dem laengsten Namen am schmalsten, und «Station auf einer
+   Seite» brach auf drei Zeilen. */
+.werkzeuge-klein{display:grid;gap:12px;margin-bottom:30px;
+     grid-template-columns:repeat(auto-fit,minmax(196px,1fr))}
+.karte.offen{opacity:.45;pointer-events:none}
+.karte.offen .was::after{content:' — noch offen'}
+
+/* Ausschnitte aus den Symbolbogen, Werte aus den srcRect der Folien */
+.sym.sym-skript-komplett{-webkit-mask-image:url(symbole/bogen-a.png?f=83ae9820);mask-image:url(symbole/bogen-a.png?f=83ae9820);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:6.26% 47.19%;mask-position:6.26% 47.19%}
+.sym.sym-loesungsband{-webkit-mask-image:url(symbole/bogen-a.png?f=83ae9820);mask-image:url(symbole/bogen-a.png?f=83ae9820);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:34.58% 45.99%;mask-position:34.58% 45.99%}
+.sym.sym-lernziele{-webkit-mask-image:url(symbole/bogen-a.png?f=83ae9820);mask-image:url(symbole/bogen-a.png?f=83ae9820);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:64.65% 45.95%;mask-position:64.65% 45.95%}
+.sym.sym-stationsseite{-webkit-mask-image:url(symbole/bogen-b.png?f=83ae9820);mask-image:url(symbole/bogen-b.png?f=83ae9820);-webkit-mask-size:422.2% 321.1%;mask-size:422.2% 321.1%;-webkit-mask-position:93.74% 42.20%;mask-position:93.74% 42.20%}
+.sym.sym-skript{-webkit-mask-image:url(symbole/skript.png?f=83ae9820);mask-image:url(symbole/skript.png?f=83ae9820)}
+.sym.sym-playliste{-webkit-mask-image:url(symbole/playliste.png?f=83ae9820);mask-image:url(symbole/playliste.png?f=83ae9820)}
+.sym.sym-buch{-webkit-mask-image:url(symbole/buch.png?f=83ae9820);mask-image:url(symbole/buch.png?f=83ae9820)}
+.sym.sym-lernpfad{-webkit-mask-image:url(symbole/lernpfad.png?f=83ae9820);mask-image:url(symbole/lernpfad.png?f=83ae9820)}
+.sym.sym-loesungen{-webkit-mask-image:url(symbole/loesungen.png?f=83ae9820);mask-image:url(symbole/loesungen.png?f=83ae9820)}
+
+@media (max-width:760px){
+  .material{grid-template-columns:1fr}
+  .stationskopf h1{font-size:22px}
+  .stationskopf .kopf-portraet{display:none}
+}
+
+/* -- Zuordnungsflaeche: Felder liegen auf dem Hintergrundbild -- */
+
+
+
+.einstieg{margin:0 0 24px}
+.abschluss{opacity:.9}
+
+/* ============================================================
+   Buch: Kapitelliste und ein Kapitel
+   Das H5P-Buch zeigt immer genau ein Kapitel. Alles untereinander
+   ergibt eine Schriftrolle, in der niemand etwas wiederfindet.
+   ============================================================ */
+.buch{display:grid;grid-template-columns:minmax(190px,240px) minmax(0,1fr);
+     gap:26px;align-items:start;margin:20px 0}
+.kapitelliste{position:sticky;top:60px;background:var(--karte);
+     border:1px solid var(--linie);border-radius:10px;padding:12px 6px 12px 0}
+.kapitelliste .marke{font-family:var(--hand);font-size:16px;color:var(--matt);
+     padding:0 0 6px 16px}
+.kapitelliste ol{list-style:none;margin:0;padding:0;counter-reset:kap}
+.kapitelliste li{counter-increment:kap}
+.kapitelliste a{display:block;padding:6px 12px 6px 16px;text-decoration:none;
+     color:var(--tinte);font-size:14.5px;line-height:1.3;
+     border-left:3px solid transparent}
+.kapitelliste a::before{content:counter(kap) ' ';color:var(--matt);font-size:12.5px}
+.kapitelliste a:hover{background:var(--papier)}
+.kapitelliste a[aria-current="true"]{border-left-color:var(--akzent);
+     background:var(--papier);color:var(--akzent)}
+.kapitelbereich{min-width:0}
+.blaettern{display:flex;gap:10px;margin:30px 0 0;padding-top:14px;
+     border-top:1px solid var(--linie)}
+.blaettern .weiter{margin-left:auto}
+.blaettern button[disabled]{opacity:.35;cursor:default}
+@media (max-width:820px){
+  .buch{grid-template-columns:1fr}
+  .kapitelliste{position:static}
+}
+
+/* ---------- Video: Marken und Einblendungen ---------- */
+.markenleiste{display:flex;align-items:flex-start;gap:12px;margin:10px 0 0}
+.markenleiste .marken{flex:1 1 auto;margin:0}
+.markenleiste .alle-zeigen{flex:0 0 auto;font-size:13px}
+.marken button[aria-current="true"]{background:var(--akzent);color:#fff;
+     border-color:var(--akzent)}
+.einblendungen{margin-top:4px}
+.einblendung[hidden]{display:none}
+
+/* ---------- Kaertchen zuordnen ----------
+   Aufbau und Masse aus PIA/pruefungen/gemeinsam/pruefung.css, damit
+   Sortieren hier aussieht und sich anfuehlt wie bei Kasper und Pia. */
+.kartenbuehne{display:grid;grid-template-columns:minmax(190px,1fr) minmax(0,1.5fr);
+     gap:14px;align-items:start;margin:14px 0}
+.kartenmarke,.kartenfeldkopf{font-family:var(--hand);font-weight:400;font-size:16px;
+     color:var(--matt);margin-bottom:5px}
+.kartenvorrat{background:var(--creme);border:1px solid var(--linie);
+     border-radius:12px;padding:9px 10px}
+.kartenblatt{display:flex;flex-wrap:wrap;gap:7px;min-height:74px;
+     border-radius:8px;padding:3px}
+.kartenfelder{display:flex;flex-direction:column;gap:10px}
+.kartenfeld{background:var(--papier);border:1px solid var(--linie);
+     border-radius:12px;padding:9px 10px}
+.kartenablage{min-height:60px;border:1px dashed var(--linie);border-radius:8px;
+     padding:5px;display:flex;flex-wrap:wrap;gap:6px;background:var(--karte)}
+.kartenblatt.drueber,.kartenablage.drueber{border-color:var(--akzent);
+     background:var(--creme);border-style:solid}
+.kk{background:var(--karte);border:1px solid var(--linie);border-radius:8px;
+     padding:5px;font-size:14.5px;line-height:1.35;cursor:grab;
+     box-shadow:0 1px 3px rgba(0,0,0,.13);touch-action:none;
+     user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.kk figure{margin:0}
+.kk img{display:block;max-width:132px;height:auto}
+.kk:hover{border-color:var(--akzent)}
+/* Ohne pointer-events:none findet elementFromPoint immer die gezogene
+   Karte selbst und nie das Feld darunter — dann laesst sich nichts
+   ablegen. Diese eine Zeile ist der Unterschied zwischen «man kann
+   Karten schieben» und «man kann zuordnen». */
+.kk.zieht{cursor:grabbing;box-shadow:0 6px 18px rgba(0,0,0,.24);
+     transform:rotate(-1.2deg);pointer-events:none}
+.kartenablage .kk{box-shadow:none;border-color:var(--akzent)}
+.zuordnen .vorlage{margin:12px 0}
+.zuordnen .vorlage img{max-width:min(100%,560px)}
+@media (max-width:820px){.kartenbuehne{grid-template-columns:1fr}}
+
+/* ---------- Bühne für den Originalinhalt ----------
+   Hier laeuft der Code aus dem H5P-Paket selbst. Er bringt sein eigenes
+   Aussehen mit; wir geben ihm nur den Platz und den Rahmen der Seite. */
+.h5p-buehne{background:var(--karte);border:1px solid var(--linie);
+     margin:18px 0 40px;min-height:420px}
+.h5p-buehne .h5p-iframe-wrapper{background:var(--karte)}
+.h5p-fehlt{padding:24px;color:var(--falsch)}
+.h5p-buehne.h5p-fest,
+.h5p-buehne.h5p-waechst{min-height:300px}
+.nachsatz{margin-top:34px;font-size:13.5px;color:var(--matt)}
+.nachsatz a{color:var(--matt)}
+
+/* ============================================================
+   Der interaktive Zugang: Landkarte und Etappen
+   Tritt an die Stelle von H5P-Buch und H5P-Game-Map.
+   ============================================================ */
+
+/* ---------- Landkarte ----------
+   Der Hintergrund ist die gezeichnete Karte; die Kacheln liegen mit
+   Prozentkoordinaten darauf und skalieren mit. Anklickbar ist die
+   Kachel, nicht ein Punkt darauf — ein Kreis von zwoelf Pixeln ist auf
+   dem Telefon nicht zu treffen. */
+.landkarte{position:relative;width:100%;margin:18px 0 30px;
+     background:var(--karte);border:1px solid var(--linie)}
+.landkarte .grund{display:block;width:100%;height:auto}
+.landkarte .feld{position:absolute;display:flex;align-items:center;
+     justify-content:center;text-decoration:none;border-radius:8px;
+     border:2px solid transparent;transition:border-color .12s,background .12s}
+.landkarte .feld .wort{position:absolute;left:50%;top:100%;
+     transform:translate(-50%,4px);white-space:nowrap;font-size:12.5px;
+     background:var(--karte);border:1px solid var(--linie);border-radius:6px;
+     padding:2px 7px;color:var(--tinte);opacity:0;pointer-events:none;
+     transition:opacity .12s}
+.landkarte .feld:hover{border-color:var(--akzent);
+     background:rgba(255,255,255,.35)}
+.landkarte .feld:hover .wort,
+.landkarte .feld:focus-visible .wort{opacity:1}
+.landkarte .feld .hut{position:absolute;inset:0;border-radius:6px}
+.landkarte .feld-kaertchen:hover{border-color:var(--beweis)}
+.landkarte .feld-unterlage:hover{border-color:var(--matt)}
+
+/* ---------- Etappe: Video links, Arbeit rechts ---------- */
+.etappe{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);
+     gap:24px;align-items:start;margin:18px 0 0}
+.film{position:sticky;top:60px}
+.etappe .rahmen{position:relative;padding-top:56.25%;background:var(--tinte);
+     border:1px solid var(--linie)}
+.etappe .rahmen iframe,.etappe .rahmen video{position:absolute;inset:0;
+     width:100%;height:100%;border:0}
+.dazu{margin-top:12px}
+.arbeit{min-width:0}
+.arbeit .marken{list-style:none;margin:0 0 14px;padding:0;display:flex;
+     flex-wrap:wrap;gap:6px}
+/* **Die Sprungstellen tragen Nummer und Zeit, keinen Titel.** Der
+   Titel steht darunter auf dem Reiter; oben noch einmal derselbe Text
+   machte die Zeile lang und die Zeit schwer zu finden. */
+.arbeit .marken button{font:inherit;font-size:13px;padding:4px 10px 4px 5px;
+     border:1px solid var(--linie);background:var(--karte);cursor:pointer;
+     color:var(--tinte);border-radius:16px;display:inline-flex;
+     align-items:center;gap:7px}
+.arbeit .marken .nummer{display:grid;place-items:center;width:20px;height:20px;
+     border-radius:50%;background:var(--akzent);color:#fff;
+     font-size:11.5px;font-weight:500;flex:0 0 auto}
+.arbeit .marken button:hover{border-color:var(--akzent)}
+.arbeit .marken button[aria-current="true"]{background:var(--akzent);color:#fff;
+     border-color:var(--akzent)}
+.arbeit .marken button[aria-current="true"] .nummer{background:#fff;
+     color:var(--akzent)}
+.arbeit .marken .zeit{color:var(--matt);font-size:12px;
+     font-variant-numeric:tabular-nums}
+.arbeit .marken button[aria-current="true"] .zeit{color:rgba(255,255,255,.85)}
+.tafel{background:var(--karte);border:1px solid var(--linie);
+     border-left:3px solid var(--akzent);border-radius:0 8px 8px 0;
+     padding:12px 15px;margin-bottom:14px}
+.tafel[hidden]{display:none}
+.tafel > h3{font-family:var(--hand);font-weight:400;font-size:19px;
+     margin:0 0 8px;display:flex;align-items:baseline;gap:10px}
+.tafel > h3 .zeit{margin-left:auto;font-family:var(--druck);font-size:12.5px;
+     color:var(--matt)}
+.tafel img{max-width:100%}
+.ruhig{color:var(--matt);font-size:14.5px;background:var(--creme);
+     border-radius:8px;padding:14px 16px}
+.stufe{border:0;padding:0;margin-top:10px}
+.stufe > summary{font:inherit;font-size:13.5px;padding:4px 11px;
+     border:1px solid var(--linie);border-radius:6px;background:var(--karte);
+     cursor:pointer;list-style:none;display:inline-block}
+.stufe > summary::-webkit-details-marker{display:none}
+.stufe > summary::before{content:'▸ ';color:var(--matt)}
+.stufe[open] > summary{background:var(--akzent);color:#fff;border-color:var(--akzent)}
+.stufe[open] > summary::before{content:'▾ ';color:#fff}
+.stufe .faltung{margin-top:8px;padding-top:8px;
+     border-top:1px dashed var(--linie)}
+.applet-falt .faltung iframe{width:100%;height:min(62vh,520px);border:0;
+     border:1px solid var(--linie)}
+
+/* ---------- Wegweiser ---------- */
+
+@media (max-width:900px){
+  .etappe{grid-template-columns:1fr}
+  .film{position:static}
+  .landkarte .feld .wort{display:none}
+}
+
+/* ---------- Gezeichnete Landkarte ----------
+   Aus den Formen der PowerPoint gesetzt, nicht als Bild eingebunden:
+   scharf in jeder Groesse, ohne Beiwerk, immer der Stand der Vorlage.
+   Titelbalken und Pfeile fallen weg — der Titel steht im Seitenkopf,
+   und die Reihenfolge sagen die Kapitelnummern. Statt der Pfeile
+   verbinden duenne Linien die Kacheln: Sie zeigen den Weg. */
+.kartenfeld-aussen{display:grid;grid-template-columns:minmax(120px,150px) 1fr;
+     gap:16px;align-items:start;margin:14px 0 26px}
+.randspalte{display:flex;flex-direction:column;gap:10px}
+.randfeld{display:flex;align-items:center;justify-content:center;text-align:center;
+     min-height:64px;padding:8px 10px;border-radius:8px;background:var(--akzent);
+     color:#fff;text-decoration:none;font-size:13.5px;line-height:1.2}
+.randfeld:hover{box-shadow:0 3px 10px rgba(45,41,36,.25)}
+.randfeld.offen{background:var(--karte);color:var(--matt);
+     border:1.5px dashed var(--linie)}
+
+.landkarte.gezeichnet{position:relative;width:100%;aspect-ratio:1333/775;
+     background:var(--karte);border:1px solid var(--linie);border-radius:10px;
+     overflow:hidden}
+/* Die Linien liegen ueber den Kapitelrahmen, aber unter den Kacheln —
+   sonst verdeckt der Rahmen den Weg, der durch ihn hindurchfuehrt. */
+.landkarte.gezeichnet .wege{position:absolute;inset:0;width:100%;height:100%;
+     pointer-events:none;z-index:2}
+/* Mit `non-scaling-stroke` gilt die Strichstaerke in Bildpunkten, nicht
+   in Koordinaten des Feldes — 0,35 waere unsichtbar gewesen. */
+.landkarte.gezeichnet .wege line{stroke:var(--akzent);stroke-width:1.6;
+     vector-effect:non-scaling-stroke;stroke-dasharray:5 4;opacity:.42;
+     stroke-linecap:round}
+.kartenblick .landkarte.gezeichnet .wege line{stroke-width:1;stroke-dasharray:3 3}
+.landkarte.gezeichnet .form{position:absolute;display:flex;align-items:center;
+     justify-content:center;text-align:center;padding:3px 4px;
+     font-size:clamp(6px,.92vw,12px);line-height:1.14;overflow:hidden;
+     hyphens:auto;word-break:break-word}
+.landkarte.gezeichnet .form > span{display:block;max-width:100%}
+.landkarte.gezeichnet .g-roundRect{border-radius:8px;background:var(--akzent);
+     color:#fff;z-index:3}
+.landkarte.gezeichnet .g-roundRect.umrandet{background:var(--karte);
+     color:var(--akzent);border:1.5px dashed var(--akzent)}
+.landkarte.gezeichnet .g-roundRect.umrandet.leer{border:1px solid var(--linie);
+     background:var(--papier);border-radius:12px;z-index:1}
+.landkarte.gezeichnet .g-ellipse{border-radius:50%;border:1.5px solid var(--akzent);
+     color:var(--akzent);background:var(--karte);font-weight:500;z-index:3}
+.landkarte.gezeichnet .g-rect{color:var(--akzent);font-family:var(--hand);
+     font-weight:400;font-size:clamp(8px,1.25vw,17px);z-index:3}
+.landkarte.gezeichnet a.kachel{text-decoration:none;cursor:pointer;
+     transition:transform .1s,box-shadow .1s}
+.landkarte.gezeichnet a.kachel:hover,
+.landkarte.gezeichnet a.kachel:focus-visible{transform:scale(1.05);
+     box-shadow:0 3px 10px rgba(45,41,36,.28);z-index:5}
+
+/* ---------- Die Landkarte auf der Etappenseite ----------
+   Immer im Blick, aber nicht im Weg. Die Schrift muss hier deutlich
+   kleiner sein — bei voller Groesse klebte sie an den Raendern. */
+.kartenblick{margin-top:14px;border:0;padding:0}
+.kartenblick > summary{font:inherit;font-size:13.5px;padding:5px 12px;
+     border:1px solid var(--linie);border-radius:6px;background:var(--karte);
+     cursor:pointer;list-style:none;display:inline-block;color:var(--matt)}
+.kartenblick > summary::-webkit-details-marker{display:none}
+.kartenblick > summary::before{content:'▸ ';}
+.kartenblick[open] > summary::before{content:'▾ ';}
+.kartenblick .kartenfeld-aussen{grid-template-columns:1fr;margin:10px 0 0}
+.kartenblick .randspalte{display:none}
+.kartenblick .landkarte.gezeichnet .form{font-size:clamp(4px,.58vw,8px);
+     padding:1px 2px;line-height:1.08}
+.kartenblick .landkarte.gezeichnet .g-rect{font-size:clamp(5px,.8vw,11px)}
+.kartenblick .landkarte.gezeichnet a[aria-current="page"]{outline:2.5px solid var(--tinte);
+     outline-offset:1px;z-index:6}
+
+@media (max-width:760px){
+  .kartenfeld-aussen{grid-template-columns:1fr}
+  .randspalte{flex-direction:row;flex-wrap:wrap}
+  .randfeld{flex:1 1 130px;min-height:44px}
+}
+
+/* ---------- Wegweiser: eine ruhige Reihe ----------
+   Gleiche Hoehe und aehnliche Breite, weil die Beschriftungen kurz
+   sind («Etappe 3», «Hilfe 1»). Der volle Titel steht im Anfasser. */
+
+/* ---------- Video: Vorschaubild statt sofortiger Einbettung ----------
+   In Safari und Firefox bleibt eine YouTube-Einbettung manchmal
+   schwarz — dieselben Videos laufen in Chrome und Edge. Wer nur einen
+   schwarzen Kasten sieht, hat keinen Ausweg; daneben steht deshalb
+   immer ein Weg zu YouTube, der ueberall funktioniert. Nebenbei wird
+   beim Seitenaufruf nichts an Google gesendet. */
+/* Faellt auch das Standbild aus (manche Blocker halten i.ytimg.com
+   an), bleibt ein ruhiger Kasten mit Knopf statt einer kaputten
+   Bildstelle. */
+.rahmen.vorschau{cursor:pointer;
+     background:var(--tinte) linear-gradient(160deg,#3a3a3a,#1e1e1e)}
+.rahmen.vorschau .standbild{position:absolute;inset:0;width:100%;height:100%;
+     object-fit:cover;display:block}
+.rahmen.vorschau .starten{position:absolute;left:50%;top:50%;
+     transform:translate(-50%,-50%);width:68px;height:48px;border:0;
+     border-radius:12px;background:rgba(0,0,0,.72);cursor:pointer;
+     display:grid;place-items:center;transition:background .12s}
+.rahmen.vorschau:hover .starten{background:#c00}
+.rahmen.vorschau .dreieck{width:0;height:0;border-left:19px solid #fff;
+     border-top:12px solid transparent;border-bottom:12px solid transparent;
+     margin-left:4px}
+.ausweichen{font-size:13px;color:var(--matt);margin:8px 0 0}
+.ausweichen a{color:var(--akzent)}
+
+/* ---------- Mehrere Einblendungen auf derselben Zeit ----------
+   Sie stehen in einem Kasten; hier wird zwischen ihnen geblaettert.
+   Einzeln behandelt sprang die Anzeige sofort zur letzten, und die
+   davor sah niemand. */
+.blaetter{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.blaetter button{font:inherit;font-size:12.5px;padding:3px 10px;border-radius:6px;
+     border:1px solid var(--linie);background:var(--papier);cursor:pointer;
+     color:var(--matt)}
+.blaetter button[aria-current="true"]{background:var(--akzent);color:#fff;
+     border-color:var(--akzent)}
+.blatt[hidden]{display:none}
+.blatt > h4{margin:0 0 6px;font-family:var(--hand);font-weight:400;font-size:16px;
+     color:var(--tinte)}
+
+/* ============================================================
+   Der Weg durch die Station
+
+   Cremefarbener Grund wie die ganze Seite, darauf weisse Kaesten —
+   einer je Abschnitt —, und darin unmittelbar die Kacheln.
+
+   **Jeder Kasten ist gleich gebaut:** oben die Kacheln des Weges,
+   darunter die Abzweigungen. Deshalb sind alle Kaesten gleich hoch.
+   Vorher waren sie verschieden tief, je nachdem wie viele
+   Abzweigungen daranhingen — das machte die Reihe unruhig.
+
+   Drei Sorten Kachel, und sie bedeuten etwas:
+     satt gefuellt           der Weg
+     hell gefuellt           Hilfestellung
+     weiss, gestrichelt      freiwillig
+
+   Alle drei tragen die **Farbe ihrer Station**: blau in Station I,
+   gruen in II, orange in III, lila in IV. Die helle Fuellung wird
+   deshalb nicht als fester Wert hingeschrieben, sondern aus dem
+   Akzent gemischt.
+
+   Die Masse sind fest, damit die Striche von Kachel zu Kachel auf
+   **einer** Hoehe durchlaufen — auch ueber die Kastengrenzen hinweg.
+   ============================================================ */
+:root{
+  --weg-kachel-h:46px;      /* Hoehe einer Kachel — drei Zeilen
+                               muessen hineinpassen, «Warum
+                               komplexe Zahlen?» braucht sie */
+  --weg-kachel-b:104px;     /* Breite einer Kachel */
+  --weg-kopf-h:22px;        /* Hoehe der Abschnittsueberschrift */
+  --weg-luft:9px;           /* Abstand zwischen Ueberschrift und Reihe */
+  --weg-rand:10px;          /* Innenrand des Kastens, oben und unten */
+  --weg-innen:12px;         /* Innenrand des Kastens, links und rechts */
+  --weg-ast:12px;           /* Laenge des Astes zu einer Abzweigung */
+}
+
+.zeitstrahl{margin:16px 0 26px;
+     width:calc(100vw - 2.5rem);
+     margin-left:calc(50% - 50vw + 1.25rem)}
+.zeitstrahl .obenreihe{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.zeitstrahl .obenreihe .randfeld{min-height:34px;padding:6px 14px;font-size:13px;
+     border-radius:8px}
+
+/* **Eine Zeile, immer.** Sie wird auf die Fensterbreite gerechnet
+   (seite.js), statt umzubrechen oder zum Schieben zu zwingen. Beides
+   war unruhig: Beim Verkleinern sprangen Kaesten in die naechste
+   Zeile, und Schieben verdeckt die Haelfte des Weges. */
+.zeitstrahl .feld{overflow:hidden}
+/* Die Sollbreite ist die der **breitesten** Station (zugang.py rechnet
+   sie aus). Dadurch faellt in jeder Station derselbe Massstab an und
+   die Kacheln sind ueberall gleich gross. Was an Platz uebrig bleibt,
+   nehmen die Kaesten und die Striche auf, nicht die Kacheln. */
+.zeitstrahl .strecke{display:flex;flex-wrap:nowrap;align-items:flex-start;
+     transform-origin:left top;width:max-content;
+     min-width:calc(var(--weg-kachel-zahl) * var(--weg-kachel-b)
+                  + (var(--weg-kachel-zahl) - var(--weg-kasten-zahl)) * 18px
+                  + var(--weg-kasten-zahl) * (2 * var(--weg-innen) + 2px)
+                  + (var(--weg-kasten-zahl) - 1) * 24px)}
+.zeitstrahl .abschnitt{flex:0 0 auto;background:var(--karte);
+     border:1px solid var(--linie);border-radius:12px;
+     padding:var(--weg-rand) var(--weg-innen) calc(var(--weg-rand) + 2px);
+     margin-bottom:12px}
+.zeitstrahl .abschnitt .kopf{display:flex;align-items:center;gap:7px;
+     height:var(--weg-kopf-h);margin-bottom:var(--weg-luft)}
+.zeitstrahl .abschnitt .nr{width:20px;height:20px;flex:0 0 auto;border-radius:50%;
+     background:var(--akzent);color:#fff;display:grid;place-items:center;
+     font-size:11.5px;font-weight:500}
+.zeitstrahl .abschnitt .wort{font-family:var(--hand);font-weight:400;
+     font-size:14.5px;color:var(--matt);white-space:nowrap}
+
+/* Eine Reihe je Kasten. Jede Spalte traegt oben ihre Kachel und
+   darunter, was von ihr abzweigt. Alle Spalten sind gleich tief —
+   sonst waeren die Kaesten wieder verschieden hoch. */
+.zeitstrahl .reihe{display:flex;align-items:flex-start}
+.zeitstrahl .stelle{flex:0 0 auto;display:flex;flex-direction:column;
+     align-items:center;min-width:var(--weg-kachel-b);
+     min-height:calc(var(--weg-zweig-tief) * var(--weg-kachel-h)
+                   + (var(--weg-zweig-tief) - 1) * var(--weg-ast))}
+/* Was von einer Kachel abzweigt, haengt an einem kurzen Ast unter ihr —
+   in einer Spalte, oder zu zweit, wenn die Kachel allein im Kasten
+   steht und viel daranhaengt. */
+/* Zwei Spalten Abzweigung wuerden die Stelle breiter machen als ihre
+   Kachel — dann sitzt die Kachel mittig und der Strich trifft sie
+   nicht mehr. Der Fall kommt nur vor, wenn eine Kachel allein im
+   Kasten steht; dann ist rundum Platz, und das Gitter darf ueber die
+   Spalte hinausragen, ohne etwas zu verdecken. */
+.zeitstrahl .stelle:has(.aeste.zweispaltig){position:relative}
+.zeitstrahl .aeste.zweispaltig{position:absolute;top:100%;left:50%;
+     transform:translateX(-50%)}
+.zeitstrahl .aeste{position:relative;display:grid;justify-content:center;
+     grid-template-columns:repeat(var(--sp,1), var(--weg-kachel-b));
+     gap:var(--weg-ast) 8px;margin-top:var(--weg-ast)}
+.zeitstrahl .aeste::before{content:"";position:absolute;
+     left:calc(50% - 1px);top:calc(-1 * var(--weg-ast));
+     width:2px;height:var(--weg-ast);background:var(--akzent);opacity:.55}
+/* Auch die zweite und dritte Abzweigung haengt sichtbar an dem, was
+   ueber ihr steht — sonst schwebt sie frei. Bei zwei Spalten sind das
+   die Kacheln ab der dritten. */
+.zeitstrahl .aeste.einspaltig > .halt:not(:first-child)::before,
+.zeitstrahl .aeste.zweispaltig > .halt:nth-child(n+3)::before{
+     content:"";position:absolute;left:calc(50% - 1px);
+     top:calc(-1 * var(--weg-ast));width:2px;height:var(--weg-ast);
+     background:var(--akzent);opacity:.55}
+
+/* Abgerundete Rechtecke, alle gleich gross. */
+.zeitstrahl .halt{display:grid;place-items:center;text-align:center;
+     hyphens:none;-webkit-hyphens:none;
+     text-decoration:none;line-height:1.14;overflow:hidden;border-radius:8px;
+     width:var(--weg-kachel-b);height:var(--weg-kachel-h);font-size:10.5px;
+     line-height:1.12;padding:2px 5px;position:relative;
+     transition:transform .1s,box-shadow .1s}
+.zeitstrahl .halt.voll{background:var(--akzent);color:#fff;
+     box-shadow:0 1px 2px rgba(45,41,36,.14)}
+/* Aus dem Akzent gemischt, nicht fest gesetzt — sonst waere die Hilfe
+   in jeder Station blau. Die Schrift wird leicht zur Tinte hin
+   abgedunkelt; sonst steht das helle Orange von Station III zu blass
+   auf seinem eigenen Grund. */
+.zeitstrahl .halt.hilfe{background:color-mix(in srgb, var(--akzent) 24%, #fff);
+     color:color-mix(in srgb, var(--akzent) 72%, var(--tinte))}
+.zeitstrahl .halt.frei{background:var(--karte);color:var(--akzent);
+     border:1.5px dashed var(--akzent)}
+.zeitstrahl .halt:hover{transform:translateY(-1px);
+     box-shadow:0 3px 10px rgba(45,41,36,.24)}
+/* **Wo bin ich?** Ein schwarzer Rand allein reichte nicht — er ging
+   zwischen den vielen Kacheln unter. Jetzt steht ein Zeiger darueber,
+   und der Ring hat aussen einen hellen Saum, damit er auch auf
+   dunklem Grund traegt. */
+.zeitstrahl .halt[aria-current="page"]{
+     box-shadow:0 0 0 2.5px var(--karte), 0 0 0 5px var(--tinte)}
+.zeitstrahl .halt[aria-current="page"]::after{content:"";position:absolute;
+     left:50%;top:-11px;transform:translateX(-50%);
+     border:5px solid transparent;border-top:6px solid var(--tinte);
+     border-bottom:0}
+
+/* Der Strich laeuft von Kachel zu Kachel — innerhalb eines Kastens und
+   ueber seine Grenze hinweg, immer auf derselben Hoehe. */
+.zeitstrahl .strich.rand{flex:1 1 0;min-width:0}
+/* Am aeusseren Ende des ganzen Weges hat der Strich nichts zu suchen. */
+.zeitstrahl .abschnitt:first-child .strich.rand:first-child,
+.zeitstrahl .abschnitt:last-child .strich.rand:last-child{background:none}
+.zeitstrahl .strich{flex:0 0 18px;height:2px;
+     background:var(--akzent);opacity:.55;align-self:flex-start;
+     margin-top:calc(var(--weg-kachel-h) / 2 - 1px)}
+/* Zwischen zwei Kaesten soll der Strich **von Kachel zu Kachel** laufen,
+   nicht von Kastenkante zu Kastenkante. Er zieht deshalb ueber den
+   Innenrand und den Rahmen beider Kaesten hinweg. Der Platzhalter
+   behaelt seine Breite, gezeichnet wird breiter. */
+.zeitstrahl .strich.zwischen{align-self:flex-start;flex:1 1 24px;
+     min-width:24px;
+     background:none;position:relative;z-index:2;
+     margin-top:calc(var(--weg-rand) + var(--weg-kopf-h) + var(--weg-luft)
+                     + var(--weg-kachel-h) / 2 - 1px)}
+/* **Überlappen, nicht aneinanderstossen.** Der Strich besteht aus drei
+   Stücken: zwei in den Kästen, eines dazwischen. Stossen sie genau
+   aneinander, bleibt durch die Skalierung des ganzen Weges an jeder
+   Kastenkante ein Rundungsspalt von einem Pixel — und der ist auf dem
+   cremefarbenen Grund gut zu sehen. Vier Pixel Übergriff kosten
+   nichts: Es ist dieselbe Farbe auf derselben Höhe. */
+.zeitstrahl .strich.zwischen::after{content:"";position:absolute;top:0;
+     left:calc(-1 * var(--weg-innen) - 4px);
+     right:calc(-1 * var(--weg-innen) - 4px);
+     height:2px;background:var(--akzent);opacity:.55}
+
+/* ---------- Der schmale Weg auf den Etappenseiten ---------- */
+.zeitstrahl.klein{--weg-kachel-h:38px;--weg-kachel-b:80px;--weg-kopf-h:18px;
+     --weg-luft:7px;--weg-rand:8px;
+     margin:26px 0 0;padding-top:14px;border-top:1px solid var(--linie);
+     width:calc(100vw - 2.5rem);margin-left:calc(50% - 50vw + 1.25rem)}
+.zeitstrahl.klein .abschnitt{padding:var(--weg-rand) 9px calc(var(--weg-rand) + 2px);
+     margin-bottom:9px}
+.zeitstrahl.klein .abschnitt .wort{font-size:12px}
+.zeitstrahl.klein .abschnitt .nr{width:16px;height:16px;font-size:10px}
+.zeitstrahl.klein .halt{font-size:9.5px;padding:2px 5px;border-radius:7px}
+.zeitstrahl.klein .strich{width:12px}
+.zeitstrahl.klein .strich.zwischen{flex:1 1 16px}
+.zeitstrahl.klein{--weg-ast:9px;--weg-innen:9px}
+
+/* ============================================================
+   Zaehlweise der Aufgabenlisten
+
+   Im Skript steht durchweg \begin{enumerate}[(a)]. Die eckige
+   Klammer sagt, wie gezaehlt wird — sie ist kein Text. Hier stehen
+   die Formen, die im Modul wirklich vorkommen.
+   ============================================================ */
+ol.klammer-a, ol.punkt-a, ol.klammer-i, ol.klammer-1{
+     list-style:none;padding-left:0;counter-reset:pos}
+ol.klammer-a > li, ol.punkt-a > li,
+ol.klammer-i > li, ol.klammer-1 > li{
+     counter-increment:pos;position:relative;padding-left:2.1em}
+ol.klammer-a > li::before, ol.punkt-a > li::before,
+ol.klammer-i > li::before, ol.klammer-1 > li::before{
+     position:absolute;left:0;top:0;color:var(--matt)}
+ol.klammer-a > li::before{content:"(" counter(pos, lower-alpha) ")"}
+ol.punkt-a   > li::before{content:counter(pos, lower-alpha) ")"}
+ol.klammer-i > li::before{content:"(" counter(pos, lower-roman) ")"}
+ol.klammer-1 > li::before{content:"(" counter(pos) ")"}
+
+/* ============================================================
+   Wegweiser
+
+   Er steht **unter** der Landkarte: links zurueck, rechts weiter, in
+   der Mitte hinunter zu Hilfe und Bonus. Vorher stand er zwischen
+   Aufgaben und Karte und war dort im Weg.
+
+   Der Pfeil nach unten ist der wichtigste von den dreien. Wer sich
+   immer nur nach rechts durchklickt, findet Hilfe und Bonus sonst
+   nie — sie stehen dann bloss auf der Karte und werden uebersehen.
+   ============================================================ */
+/* **Auf der Breite des Weges**, nicht des Textes. Die Landkarte
+   darueber laeuft ueber die ganze Seite; standen die Pfeile am
+   Textrand, zeigten sie nicht auf die Enden des Weges. */
+.wegweiser{display:flex;align-items:flex-start;gap:12px;
+     width:calc(100vw - 2.5rem);margin-left:calc(50% - 50vw + 1.25rem);
+     margin-top:16px;margin-bottom:10px;
+     padding-top:14px;border-top:1px solid var(--linie)}
+.wegweiser .links{flex:1 1 0;display:flex;justify-content:flex-start}
+.wegweiser .mitte{flex:0 1 auto;display:flex;flex-wrap:wrap;gap:8px;
+     justify-content:center}
+.wegweiser .rechts{flex:1 1 0;display:flex;justify-content:flex-end}
+.wegweiser .knopf{border-radius:8px;min-height:40px;min-width:112px;
+     display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.wegweiser .weiter{background:var(--akzent);color:#fff;border-color:var(--akzent)}
+.wegweiser .beiseite{border-style:dashed;min-width:96px}
+.wegweiser .pfeil{font-size:15px;line-height:1}
+
+/* Welche Etappe ist das? Die Nummer steht in der Ueberschrift, damit
+   sie beim Lesen mitkommt — nicht in einer eigenen Zeile weiter unten. */
+.etappentitel .stand{display:block;font-weight:500;font-size:12.5px;
+     letter-spacing:.08em;text-transform:uppercase;color:var(--akzent);
+     margin-bottom:2px}
+
+/* Bemerkungen zu einer Einblendung — sie stehen unter der Tafel und
+   gelten fuer alle Blaetter darin, nicht fuer eines allein. */
+.tafel .nachsatz{margin-top:12px;padding-top:10px;
+     border-top:1px solid var(--linie);font-size:14px;color:var(--matt)}
+.tafel .nachsatz p{margin:.3em 0}
+.tafel h3.nurzeit{justify-content:flex-end}
+
+/* Die Unterlagen neben dem Einfuehrungsvideo. */
+.unterlagen h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+     color:var(--matt);font-weight:500;margin:0 0 10px}
+.unterlagen .ablage{display:flex;flex-direction:column;gap:1px;
+     background:var(--karte);border:1px solid var(--linie);border-radius:10px;
+     padding:11px 14px;margin-bottom:8px;text-decoration:none;color:var(--tinte)}
+.unterlagen .ablage:hover{border-color:var(--akzent)}
+.unterlagen .was{font-weight:500}
+.unterlagen .wozu{font-size:13px;color:var(--matt)}
+
+/* **Breite Formeln laufen nicht mehr aus dem Kasten.** In den Lösungen
+   stehen `align*`-Bloecke, die breiter sind als die Spalte neben dem
+   Video. Sie bekommen einen eigenen Schieber, statt ueber den Rand
+   hinauszustehen — dort waren sie nicht mehr zu lesen. */
+mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;
+     max-width:100%;padding-bottom:3px}
+/* Neben dem Video ist kein Platz fuer zwei Spalten. Was im Skript
+   nebeneinander steht, steht hier untereinander — sonst quetschen sich
+   zwei Minipages in eine Spalte von 290 Pixeln. */
+.arbeit .neben{display:block;width:100%;max-width:100%;min-width:0;
+     overflow-x:auto;margin-bottom:4px}
+.arbeit mjx-container{max-width:100%}
+/* Auch **Formeln im Fliesstext** koennen breiter sein als die Spalte —
+   MathJax bricht sie nicht um. Der Schieber sitzt an der Liste oder am
+   Absatz, nicht am einzelnen Punkt: Sonst wuerden die Aufzaehlungs-
+   zeichen mit abgeschnitten, die ausserhalb des Textfelds sitzen. */
+.arbeit .faltung ol, .arbeit .faltung ul, .arbeit .faltung p,
+.arbeit .blatt > p{overflow-x:auto;overflow-y:hidden}
+/* Starthilfe und Lösung sind Beiwerk zur Aufgabe, nicht die Aufgabe.
+   Sie stehen kleiner — sonst liest sich die aufgeklappte Tafel wie ein
+   zweiter Aufgabentext und man verliert, wonach eigentlich gefragt war. */
+.arbeit .faltung{font-size:13.5px;line-height:1.5}
+.arbeit .faltung h4{font-size:13.5px;margin:.9em 0 .3em}
+.arbeit .faltung li{margin:.22em 0}
+.arbeit .faltung mjx-container{font-size:96%}
+
+/* ============================================================
+   Starthilfe · Lösung · GeoGebra
+
+   Nebeneinander, und immer nur eine offen. Untereinander wuchs die
+   Tafel mit jedem Aufklappen, und wer die Lösung ansah, hatte die
+   Starthilfe noch darüber stehen.
+   ============================================================ */
+.arbeit .stufen{margin-top:12px}
+.arbeit .stufen .reiter{display:flex;flex-wrap:wrap;gap:6px}
+.arbeit .stufen .reiter button{font:inherit;font-size:13px;padding:5px 12px;
+     border:1px solid var(--linie);background:var(--karte);cursor:pointer;
+     color:var(--tinte);border-radius:7px}
+.arbeit .stufen .reiter button:hover{border-color:var(--akzent)}
+.arbeit .stufen .reiter button[aria-expanded="true"]{background:var(--akzent);
+     color:#fff;border-color:var(--akzent)}
+.arbeit .stufen > .faltung{margin-top:10px;padding-top:10px;
+     border-top:1px dashed var(--linie);display:block}
+.arbeit .stufen > .faltung[hidden]{display:none}
+.arbeit .stufen .applet iframe{width:100%;height:min(58vh,460px);border:0;
+     border-radius:8px;background:var(--karte);margin-bottom:8px}
+
+/* Der Weg nach Hause steht auf jeder Seite, in der Mitte des
+   Wegweisers — nicht am Rand, wo er mit «zurück» und «weiter»
+   verwechselt würde. */
+.wegweiser .heim{min-width:auto;color:var(--matt);border-style:solid;
+     background:transparent;border-color:transparent}
+.wegweiser .heim:hover{color:var(--akzent);border-color:var(--linie)}
+.wegweiser .heim .pfeil{font-size:14px}
+
+/* ============================================================
+   Was in der Station steckt
+
+   Vier Kacheln allein auf einer leeren Fläche verraten nichts darüber,
+   worum es in der Station geht. Die Abschnitte tun das — ohne die
+   Landkarte vorwegzunehmen, die im interaktiven Buch steht.
+   ============================================================ */
+.ueberblick{margin:34px 0 8px}
+.ueberblick h2{font-family:var(--hand);font-weight:400;font-size:22px;
+     margin:0 0 4px}
+/* **Eine Liste, keine Reihe von Kacheln.** Nebeneinander sahen die vier
+   Abschnitte aus wie eine Zuordnung zu den vier Kacheln darüber — als
+   gehörte «Lineare komplexe Funktionen» zur «Playliste». Untereinander
+   und ohne Kasten kann dieser Eindruck gar nicht erst entstehen: Das
+   ist sichtbar ein Inhaltsverzeichnis. */
+.ueberblick ol{list-style:none;margin:0;padding:0;
+     border-top:1px solid var(--linie)}
+.ueberblick li{display:flex;align-items:baseline;gap:14px;
+     padding:11px 2px;border-bottom:1px solid var(--linie)}
+.ueberblick .nr{flex:0 0 auto;width:22px;height:22px;border-radius:50%;
+     background:var(--akzent);color:#fff;display:grid;place-items:center;
+     font-size:12px;font-weight:500;align-self:center}
+.ueberblick .wort{flex:1 1 auto;line-height:1.35}
+.ueberblick .wieviel{flex:0 0 auto;font-size:12.5px;color:var(--matt);
+     white-space:nowrap}
+
+/* Kacheln, die auf der Folie ausserhalb aller Abschnitte stehen —
+   bei MA02.02 ist das «Rück- & Ausblick» in Station IV. Sie gehören
+   zur Station, aber nicht auf den Weg. */
+.zeitstrahl .obenreihe{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.zeitstrahl .obenreihe .randfeld{font-size:12.5px;padding:5px 12px;
+     border:1.5px dashed var(--akzent);border-radius:8px;
+     background:var(--karte);color:var(--akzent);text-decoration:none}
+.zeitstrahl .obenreihe .randfeld:hover{background:var(--akzent);color:#fff}
+
+/* ============================================================
+   Eine Seite je Aufgabe
+
+   Das Ziel der Lösungsverweise im Skript. Die Aufgabe steht hier für
+   sich, mit denselben drei Reitern wie im interaktiven Buch — und mit
+   einem Weg zurück ins Video, den ein PDF nie geben könnte.
+   ============================================================ */
+.aufgabenblatt{background:var(--karte);border:1px solid var(--linie);
+     border-left:3px solid var(--akzent);border-radius:0 10px 10px 0;
+     padding:18px 22px;margin:6px 0 18px}
+.aufgabenblatt .stufen{margin-top:16px}
+.aufgabenblatt .reiter{display:flex;flex-wrap:wrap;gap:6px}
+.aufgabenblatt .reiter button{font:inherit;font-size:14px;padding:6px 14px;
+     border:1px solid var(--linie);background:var(--papier);cursor:pointer;
+     color:var(--tinte);border-radius:7px}
+.aufgabenblatt .reiter button:hover{border-color:var(--akzent)}
+.aufgabenblatt .reiter button[aria-expanded="true"]{background:var(--akzent);
+     color:#fff;border-color:var(--akzent)}
+.aufgabenblatt > .stufen > .faltung{margin-top:12px;padding-top:12px;
+     border-top:1px dashed var(--linie);display:block}
+.aufgabenblatt > .stufen > .faltung[hidden]{display:none}
+.aufgabenblatt .applet iframe{width:100%;height:min(62vh,520px);border:0;
+     border-radius:8px;background:var(--papier);margin-bottom:8px}
+.fundort{font-size:14px;color:var(--matt)}
+.fundort a{color:var(--akzent)}
+.fundort .zeit{font-variant-numeric:tabular-nums}
+
+/* Das Verzeichnis — zugleich der digitale Lösungsband. */
+.aufgabenliste{margin:20px 0 10px}
+.aufgabengruppe h2{font-family:var(--hand);font-weight:400;font-size:21px;
+     margin:26px 0 6px;color:var(--akzent)}
+.aufgabengruppe ul{list-style:none;margin:0;padding:0;
+     border-top:1px solid var(--linie)}
+.aufgabengruppe li{border-bottom:1px solid var(--linie)}
+.aufgabengruppe a{display:flex;gap:14px;align-items:baseline;
+     padding:9px 2px;text-decoration:none;color:var(--tinte)}
+.aufgabengruppe a:hover{background:var(--karte)}
+.aufgabengruppe .nr{flex:0 0 auto;min-width:52px;font-weight:500;
+     color:var(--akzent);font-variant-numeric:tabular-nums}
+.aufgabengruppe .wort{flex:1 1 auto;font-size:14.5px;color:var(--matt)}
+
+/* Der Kopf einer Aufgabenseite trägt Wörter, keine römischen Ziffern —
+   die Knöpfe des Stationswechsels sind dafür zu eng. */
+.stationskopf .wechsel.wortweise{display:flex;gap:8px;flex-wrap:nowrap}
+.stationskopf .wechsel.wortweise a{width:auto;padding:5px 12px;
+     white-space:nowrap;font-size:13px;font-family:var(--druck)}
+
+/* ---------- Tabellen ----------
+   In einem Statistikmodul ist die Tabelle kein Sonderfall, sondern die
+   haeufigste Darstellungsform: 234 Stueck stehen in den Aufgaben und
+   Loesungen von MA01.07. Gebaut werden sie von `bauen/tabellen.py`.
+
+   **Der Schieber gehoert an die Tabelle, nicht an die Seite** (Falle
+   F6). Neben dem Video sind knapp 290 Pixel Platz; eine Tabelle mit
+   zwoelf Spalten passt dort nicht und darf trotzdem nicht die ganze
+   Seite waagrecht verschiebbar machen. */
+.tabelle{overflow-x:auto;margin:12px 0;-webkit-overflow-scrolling:touch}
+.tabelle table{border-collapse:collapse;font-size:14.5px;
+     background:var(--karte);margin:0}
+.tabelle td{padding:4px 9px;vertical-align:middle}
+.tabelle td.l{text-align:left} .tabelle td.c{text-align:center}
+.tabelle td.r{text-align:right}
+/* Die Striche stehen so, wie sie im Skript stehen — `|` wird zum Rand,
+   `||` zum doppelten, `\hline` und `\cline` zum oberen Rand der
+   folgenden Zeile. Nicht vereinheitlicht: Wo das Skript eine Tabelle
+   ohne Rahmen setzt, ist das eine Aussage. */
+.tabelle td.sl{border-left:1px solid var(--linie)}
+.tabelle td.sr{border-right:1px solid var(--linie)}
+.tabelle td.so{border-top:1px solid var(--linie)}
+.tabelle td.su{border-bottom:1px solid var(--linie)}
+.tabelle td.sl2{border-left:3px double var(--linie)}
+.tabelle td.sr2{border-right:3px double var(--linie)}
+.tabelle td.so2{border-top:3px double var(--linie)}
+/* Formeln in Zellen sollen die Zeile nicht auseinandertreiben. */
+.tabelle mjx-container{margin:0 !important}
+
+/* ---------- Was sonst noch aus dem Skript kommt ---------- */
+/* `\colorbox` und `tcolorbox` hinterlegen ein Stueck. Die Farbe wird
+   gemischt wie in den Tabellen — `zugang!20` traegt damit die Farbe
+   des Kapitels und ist nicht in jedem Kapitel dieselbe. */
+.hinterlegt{padding:1px 5px;border-radius:3px}
+.kasten{border:1px solid var(--linie);border-radius:6px;
+     padding:8px 12px;margin:12px 0;font-size:15px}
+/* `description`: Stichwort und Erklaerung, nicht Aufzaehlung. */
+dl{margin:10px 0}
+/* Das Stichwort einer `description` ist eine Ueberschrift ihrer
+   Erklaerung — es traegt deshalb die Handschrift. */
+dl dt{font-family:var(--hand);font-weight:400;font-size:17px;margin-top:10px}
+dl dd{margin:2px 0 0 18px}
+blockquote{margin:12px 0;padding:2px 0 2px 14px;
+     border-left:2px solid var(--linie);color:var(--matt)}
+/* `wrapfigure` laesst den Text um ein Bild fliessen. Auf schmalem
+   Schirm nicht — dort steht das Bild fuer sich. */
+.umflossen{float:left;max-width:40%;margin:0 16px 8px 0}
+.umflossen img{max-width:100%}
+@media (max-width:620px){ .umflossen{float:none;max-width:100%;margin:8px 0} }
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.94em;
+     background:var(--creme);padding:1px 4px;border-radius:3px}
+
+/* Die Prüfung steht in einer zweiten Reihe unter den vier Kacheln —
+   nicht als fünfte. Skript, Playliste, Buch und «Station auf einer
+   Seite» sind Material; die Prüfung ist der Leistungsnachweis. */
+.pruefungsreihe{margin:14px 0 0;display:grid;
+     grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.pruefungsreihe .karte.quer{border-style:dashed;border-color:var(--akzent)}
+.pruefungsreihe .karte.quer:hover{border-style:solid}
+
+/* ============================================================
+   Abschluss einer Station
+
+   Der Weg muss irgendwo enden. Vorher hörte er bei der letzten Etappe
+   einfach auf. Drei Schritte: zurückschauen, ordnen, zeigen, was man
+   kann. Die Sortierkärtchen entstehen in KASPER und kommen später als
+   vierter Schritt dazu.
+   ============================================================ */
+.abschluss{margin:10px 0 4px}
+.abschluss .schritt{background:var(--karte);border:1px solid var(--linie);
+     border-left:3px solid var(--akzent);border-radius:0 10px 10px 0;
+     padding:16px 20px;margin-bottom:14px}
+.abschluss .schritt h2{font-family:var(--hand);font-weight:400;font-size:21px;
+     margin:0 0 8px;color:var(--akzent)}
+.abschluss .schritt p{margin:.4em 0}
+.abschluss .knopf.haupt{background:var(--akzent);color:#fff;
+     border-color:var(--akzent)}
+
+/* Der Browserhinweis steht auf der ersten Seite. Wer erst auf der
+   dritten erfährt, dass die Videos einen bestimmten Browser brauchen,
+   hat vorher zweimal geglaubt, es sei kaputt. */
+.browserhinweis{max-width:62ch;margin:30px 0 0;padding:12px 16px;
+     background:var(--karte);border:1px solid var(--linie);
+     border-left:3px solid var(--akzent);border-radius:0 8px 8px 0;
+     font-size:14px;color:var(--matt)}
+.browserhinweis strong{color:var(--tinte)}
