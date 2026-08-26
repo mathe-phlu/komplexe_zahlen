@@ -43,6 +43,61 @@ function mischen(liste){
 }
 
 /* ============================================================
+   Sich selbst setzen — nur für den Prüfstand
+
+   Jeder Baustein bekommt weiter unten ein `setzen(wie)`. Damit kann
+   `pruefstand/richtigkeit.html` eine Aufgabe zweimal durchspielen:
+   einmal mit der richtigen Antwort (muss die volle Punktzahl geben)
+   und einmal mit einer bewusst falschen (darf keinen Punkt geben).
+
+   Drei Regeln, an denen das steht oder fällt:
+
+   1  GESETZT WIRD AUS DEM AUFGABENBAU, NICHT AUS DER ANZEIGE. Die
+      Anzeige rundet auf drei Stellen; wer sie zurückliest, prüft die
+      Rundung statt die Sache. Deshalb `o.soll` und nicht `soll()`.
+
+   2  GESCHRIEBEN WIRD MIT VOLLER GENAUIGKEIT, aber durch dasselbe
+      Feld und dieselben Ereignisse, die ein Mensch auslöst. So läuft
+      die Prüfung durch den echten Leser - und es fällt auf, wenn eine
+      richtige Antwort in einer Schreibweise steht, die er nicht liest.
+
+   3  FALSCH HEISST SICHER FALSCH. Der Abstand muss grösser sein als
+      die Toleranz (Regel 1: das Grössere von 0,01 und einem halben
+      Prozent) und darf bei mehrwertigen Funktionen nicht zufällig auf
+      einem anderen gültigen Zweig landen.
+
+   Wo sich «falsch» nicht bauen lässt, gibt setzen() `false` zurück.
+   Der Prüfstand zählt diese Fälle und nennt sie - stillschweigend
+   übergehen wäre eine Lücke, die aussieht wie ein bestandener Test.
+   ============================================================ */
+
+/* Voller Genauigkeit, aber lesbar - nicht die gerundete Anzeige. */
+function genau(x){
+  if (x === null || !isFinite(x)) return '0';
+  return String(Math.round(x * 1e9) / 1e9);
+}
+function komplexText(z){
+  if (Math.abs(z.im) < 1e-12) return genau(z.re);
+  return genau(z.re) + (z.im < 0 ? ' - ' : ' + ') + genau(Math.abs(z.im)) + 'i';
+}
+/* Sicher ausserhalb der Toleranz - auch bei grossen Werten, wo die
+   Toleranz mitwächst. */
+function daneben(v){
+  return v + Math.max(1, Math.abs(v) * 0.3) + 0.7;
+}
+/* Durch dasselbe Feld und dieselben Ereignisse wie von Hand. */
+function schreiben(f, text){
+  f.eingabe.value = text;
+  f.eingabe.dispatchEvent(new Event('input', { bubbles: true }));
+  f.eingabe.dispatchEvent(new Event('blur', { bubbles: true }));
+}
+/* Einen Index wählen, der nicht der richtige ist. */
+function andererIndex(anzahl, ausser){
+  for (let k = 0; k < anzahl; k++) if (k !== ausser) return k;
+  return -1;
+}
+
+/* ============================================================
    Der Bauhelfer: was eine Aufgabe an Eingaben aufstellen kann
    ============================================================ */
 function Bau(aufgabe, wurzel){
@@ -162,7 +217,17 @@ function Bau(aufgabe, wurzel){
             gefuellt: () => w.value !== '',
             pruefen: () => w.value !== '' && parseInt(w.value, 10) === s.richtig,
             gegeben: () => w.value === '' ? '—' : s.optionen[w.value],
-            soll: () => s.optionen[s.richtig] });
+            soll: () => s.optionen[s.richtig],
+            sollRoh: { art: 'wahl', felder: [s.name],
+                       richtigTexte: [s.optionen[s.richtig]] },
+            setzen: (wie) => {
+              const k = wie === 'richtig' ? s.richtig
+                                          : andererIndex(s.optionen.length, s.richtig);
+              if (k < 0) return false;
+              w.value = String(k);
+              w.dispatchEvent(new Event('change', { bubbles: true }));
+              return true;
+            } });
           return;
         }
 
@@ -186,7 +251,20 @@ function Bau(aufgabe, wurzel){
             return Z.nahe(x, s.soll);
           },
           gegeben: () => f.roh(),
-          soll: () => art === 'komplex' ? Z.normalform(s.soll, 3) : Z.zahlText(s.soll, 3)
+          soll: () => art === 'komplex' ? Z.normalform(s.soll, 3) : Z.zahlText(s.soll, 3),
+          sollRoh: art === 'komplex'
+            ? { art: 'komplex', felder: [s.name], soll: s.soll }
+            : { art: art === 'winkel' ? 'winkel' : 'zahl', felder: [s.name], soll: s.soll },
+          setzen: (wie) => {
+            if (art === 'komplex'){
+              schreiben(f, wie === 'richtig' ? komplexText(s.soll)
+                : komplexText(Z.K(daneben(s.soll.re), daneben(s.soll.im))));
+            } else {
+              schreiben(f, genau(wie === 'richtig' ? s.soll
+                : art === 'winkel' ? s.soll + 37 : daneben(s.soll)));
+            }
+            return true;
+          }
         });
       });
       K().appendChild(z);
@@ -215,7 +293,13 @@ function Bau(aufgabe, wurzel){
           return o.raster ? Z.abgelesenGleich(w, o.soll, o.raster) : Z.gleich(w, o.soll);
         },
         gegeben: () => f.roh(),
-        soll: () => Z.normalform(o.soll, 3)
+        soll: () => Z.normalform(o.soll, 3),
+        sollRoh: { art: 'komplex', felder: [o.name], soll: o.soll, raster: o.raster },
+        setzen: (wie) => {
+          schreiben(f, wie === 'richtig' ? komplexText(o.soll)
+            : komplexText(Z.K(daneben(o.soll.re), daneben(o.soll.im))));
+          return true;
+        }
       });
       return B;
     },
@@ -235,7 +319,16 @@ function Bau(aufgabe, wurzel){
           return o.raster ? Z.abgelesenGleich(w, o.soll, o.raster) : Z.gleich(w, o.soll);
         },
         gegeben: () => fr.roh() + ' + ' + fi.roh() + 'i',
-        soll: () => Z.normalform(o.soll, 3)
+        soll: () => Z.normalform(o.soll, 3),
+        sollRoh: { art: 'komplexZwei', felder: [o.name + '.re', o.name + '.im'],
+                   soll: o.soll, raster: o.raster },
+        setzen: (wie) => {
+          const z = wie === 'richtig' ? o.soll
+                  : Z.K(daneben(o.soll.re), daneben(o.soll.im));
+          schreiben(fr, genau(z.re));
+          schreiben(fi, genau(z.im));
+          return true;
+        }
       });
       return B;
     },
@@ -256,7 +349,18 @@ function Bau(aufgabe, wurzel){
         pruefen: () => { const x = f.wert();
                          return x ? Z.istPotenzWert(x, o.basis, o.exponent) : false; },
         gegeben: () => f.roh(),
-        soll: () => Z.normalform(Z.hoch(o.basis, o.exponent), 3) + ' (Hauptwert)'
+        soll: () => Z.normalform(Z.hoch(o.basis, o.exponent), 3) + ' (Hauptwert)',
+        sollRoh: { art: 'potenz', felder: [o.name], basis: o.basis, exponent: o.exponent },
+        /* Mehrwertig: Ein Versatz träfe womöglich einen anderen gültigen
+           Zweig. Bei a^(1/n) haben alle n Werte DENSELBEN Betrag, also
+           ist ein anderer Betrag sicher keiner davon. */
+        setzen: (wie) => {
+          const h = Z.hoch(o.basis, o.exponent);
+          if (wie === 'richtig'){ schreiben(f, komplexText(h)); return true; }
+          if (Z.betrag(h) < 1e-9){ schreiben(f, '1 + 1i'); return true; }
+          schreiben(f, komplexText(Z.K(h.re * 3 + 1, h.im * 3 + 1)));
+          return true;
+        }
       });
       return B;
     },
@@ -270,7 +374,17 @@ function Bau(aufgabe, wurzel){
         pruefen: () => { const x = f.wert();
                          return x ? Z.istLogarithmusWert(x, o.von) : false; },
         gegeben: () => f.roh(),
-        soll: () => Z.normalform(Z.ln(o.von), 3) + ' (Hauptwert)'
+        soll: () => Z.normalform(Z.ln(o.von), 3) + ' (Hauptwert)',
+        sollRoh: { art: 'log', felder: [o.name], von: o.von },
+        /* Alle Logarithmuswerte teilen den Realteil und unterscheiden
+           sich nur um 2πk im Imaginärteil. Ein anderer Realteil ist
+           deshalb sicher keiner davon. */
+        setzen: (wie) => {
+          const l = Z.ln(o.von);
+          schreiben(f, wie === 'richtig' ? komplexText(l)
+            : komplexText(Z.K(l.re + 2, l.im)));
+          return true;
+        }
       });
       return B;
     },
@@ -286,7 +400,12 @@ function Bau(aufgabe, wurzel){
       teile.push({ name: o.name, p: o.p, art: 'zahl',
         gefuellt: () => !!f.roh(),
         pruefen: () => Z.nahe(f.wert(), o.soll),
-        gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 3)
+        gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 3),
+        sollRoh: { art: 'zahl', felder: [o.name], soll: o.soll },
+        setzen: (wie) => {
+          schreiben(f, genau(wie === 'richtig' ? o.soll : daneben(o.soll)));
+          return true;
+        }
       });
       return B;
     },
@@ -298,7 +417,14 @@ function Bau(aufgabe, wurzel){
       teile.push({ name: o.name, p: o.p, art: 'winkel',
         gefuellt: () => !!f.roh(),
         pruefen: () => Z.winkelGleich(f.wert(), o.soll),
-        gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 2) + '°'
+        gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 2) + '°',
+        sollRoh: { art: 'winkel', felder: [o.name], soll: o.soll },
+        /* Zyklisch: 37° daneben ist in beiden Richtungen weit genug
+           von der Schranke von einem Grad entfernt. */
+        setzen: (wie) => {
+          schreiben(f, genau(wie === 'richtig' ? o.soll : o.soll + 37));
+          return true;
+        }
       });
       return B;
     },
@@ -310,7 +436,12 @@ function Bau(aufgabe, wurzel){
       teile.push({ name: o.name, p: o.p, art: 'zahl',
         gefuellt: () => !!f.roh(),
         pruefen: () => Z.nahe(f.wert(), o.soll),
-        gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 3)
+        gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 3),
+        sollRoh: { art: 'zahl', felder: [o.name], soll: o.soll },
+        setzen: (wie) => {
+          schreiben(f, genau(wie === 'richtig' ? o.soll : daneben(o.soll)));
+          return true;
+        }
       });
       return B;
     },
@@ -325,7 +456,14 @@ function Bau(aufgabe, wurzel){
         gefuellt: () => !!(fr.roh() || fg.roh()),
         pruefen: () => Z.polarGleich(fr.wert(), fg.wert(), o.sollR, o.sollG),
         gegeben: () => fr.roh() + '·cis(' + fg.roh() + '°)',
-        soll: () => Z.zahlText(o.sollR,3) + '·cis(' + Z.zahlText(o.sollG,2) + '°)'
+        soll: () => Z.zahlText(o.sollR,3) + '·cis(' + Z.zahlText(o.sollG,2) + '°)',
+        sollRoh: { art: 'polar', felder: [o.name + '.r', o.name + '.phi'],
+                   sollR: o.sollR, sollG: o.sollG },
+        setzen: (wie) => {
+          schreiben(fr, genau(wie === 'richtig' ? o.sollR : daneben(o.sollR)));
+          schreiben(fg, genau(wie === 'richtig' ? o.sollG : o.sollG + 37));
+          return true;
+        }
       });
       return B;
     },
@@ -354,7 +492,22 @@ function Bau(aufgabe, wurzel){
             return treffer[k];
           },
           gegeben: () => felder.map(f => f.r.roh()+'∠'+f.g.roh()).join('  '),
-          soll: () => Z.zahlText(s.r,3) + '·cis(' + Z.zahlText(s.g,2) + '°)'
+          soll: () => Z.zahlText(s.r,3) + '·cis(' + Z.zahlText(s.g,2) + '°)',
+          /* Die ganze Schar, nicht nur der eigene Wert: Die Zuordnung
+             ist erst über alle Zeilen zusammen entscheidbar. */
+          sollRoh: { art: 'polarMenge', k: k,
+                     felder: o.soll.map((x, j) => [o.name + '.' + j + '.r',
+                                                   o.name + '.' + j + '.phi']),
+                     soll: o.soll },
+          /* Jeder Teil füllt SEINE Zeile. Werden alle Teile gesetzt,
+             steht die ganze Schar da; wird nur einer gesetzt, bekommt
+             auch nur er seinen Punkt - genau das soll die Zuordnung
+             leisten. */
+          setzen: (wie) => {
+            schreiben(felder[k].r, genau(wie === 'richtig' ? s.r : daneben(s.r)));
+            schreiben(felder[k].g, genau(wie === 'richtig' ? s.g : s.g + 37));
+            return true;
+          }
         });
       });
       return B;
@@ -388,7 +541,41 @@ function Bau(aufgabe, wurzel){
           return g.length === richtig.length && richtig.every(r => g.indexOf(r) >= 0);
         },
         gegeben: () => gewaehlt().map(k => o.optionen[k]).join(', ') || '—',
-        soll: () => richtig.map(k => o.optionen[k]).join(', ')
+        soll: () => richtig.map(k => o.optionen[k]).join(', '),
+        /* Bei Mehrfachauswahl meldet der Ereignisstrom jeden Klick
+           einzeln, nicht die Menge - daraus lässt sich der Endstand
+           nicht zurücklesen. Deshalb kein sollRoh: Nach einem Absturz
+           gilt so ein Teil als nicht nachweisbar und die Aufgabe als
+           offen. Lieber noch einmal lösen als zu Unrecht gutschreiben. */
+        sollRoh: o.mehrfach ? null
+          : { art: 'wahl', felder: [o.name], richtigTexte: [o.optionen[richtig[0]]] },
+        setzen: (wie) => {
+          const kaesten = Array.from(w.querySelectorAll('input'));
+          kaesten.forEach(i => { i.checked = false; });
+          let ziel;
+          if (wie === 'richtig') ziel = richtig;
+          else if (!o.mehrfach){
+            const k = andererIndex(o.optionen.length, richtig[0]);
+            if (k < 0) return false;
+            ziel = [k];
+          } else {
+            /* Mehrfachauswahl: eine falsche Menge ist eine, die sich in
+               der Länge unterscheidet. Erst versuchen, eine Möglichkeit
+               dazuzunehmen, die nicht dazugehört; geht das nicht, weil
+               schon alle richtig sind, eine weglassen. Bleibt beides
+               unmöglich (eine einzige Möglichkeit, und die stimmt),
+               gibt es keine falsche Antwort - das meldet der Prüfstand. */
+            const zusatz = o.optionen.map((t,k) => k).find(k => richtig.indexOf(k) < 0);
+            if (zusatz !== undefined) ziel = richtig.concat([zusatz]);
+            else if (richtig.length > 1) ziel = richtig.slice(1);
+            else return false;
+          }
+          ziel.forEach(k => {
+            const i = kaesten.find(x => parseInt(x.value,10) === k);
+            if (i){ i.checked = true; i.dispatchEvent(new Event('change', { bubbles: true })); }
+          });
+          return true;
+        }
       });
       return B;
     },
@@ -406,7 +593,18 @@ function Bau(aufgabe, wurzel){
       teile.push({ name: o.name, p: o.p, art: 'bildwahl',
         gefuellt: () => gewaehlt !== null,
         pruefen: () => gewaehlt === o.richtig,
-        gegeben: () => gewaehlt || '—', soll: () => o.richtig
+        gegeben: () => gewaehlt || '—', soll: () => o.richtig,
+        sollRoh: { art: 'bildwahl', felder: [o.name], soll: o.richtig },
+        setzen: (wie) => {
+          const ziele = Array.from(r.querySelectorAll('.ziel'))
+            .map(z => z.getAttribute('data-ziel'));
+          const ziel = wie === 'richtig' ? o.richtig : ziele.find(z => z !== o.richtig);
+          if (!ziel) return false;
+          gewaehlt = ziel;
+          ZE.hervorheben(r, ziel);
+          AUF.M.bildklick(o.name, ziel);
+          return true;
+        }
       });
       return B;
     },
@@ -440,7 +638,49 @@ function Bau(aufgabe, wurzel){
           ? o.pruefer(Array.from(gewaehlt))
           : (gewaehlt.size === o.richtig.length && o.richtig.every(x => gewaehlt.has(x))),
         gegeben: () => Array.from(gewaehlt).sort().join(', ') || '—',
-        soll: () => o.sollText || (o.richtig || []).slice().sort().join(', ')
+        soll: () => o.sollText || (o.richtig || []).slice().sort().join(', '),
+        /* Der Ereignisstrom meldet hier die GANZE Menge bei jedem
+           Klick, nicht den einzelnen Punkt - der letzte Eintrag ist
+           also der Endstand und damit zurücklesbar. */
+        sollRoh: (o.mengen || o.richtig)
+          ? { art: 'menge', felder: [o.name],
+              mengen: o.mengen || [o.richtig] }
+          : null,
+        /* Manche punktwahl-Aufgaben haben einen eigenen Prüfer statt
+           einer festen Menge («geben Sie EINEN Zyklus an»). Dann lässt
+           sich eine falsche Antwort nicht ausrechnen - also wird sie
+           gesucht und am Prüfer selbst nachgewiesen. */
+        setzen: (wie) => {
+          const alle = Array.from(r.querySelectorAll('.ziel'))
+            .map(z => z.getAttribute('data-ziel'));
+          const nimm = (menge) => {
+            gewaehlt.clear();
+            menge.forEach(x => gewaehlt.add(x));
+            alle.forEach(z => {
+              const t = r.querySelector('.ziel[data-ziel="'+z+'"] .treffer');
+              if (t) t.setAttribute('opacity', gewaehlt.has(z) ? '0.3' : '0');
+            });
+            /* Dieselbe Meldung wie ein echter Klick. Ohne sie stünde im
+               Ereignisstrom nichts, und die Nachwertung sähe ein leeres
+               Feld - der Prüfstand prüfte dann etwas anderes als die
+               Prüfung tut. (Am 26.08.2026 genau so aufgefallen.) */
+            AUF.M.bildklick(o.name, Array.from(gewaehlt).join('+'));
+          };
+          const gut = o.richtig || o.beispiel;
+          if (wie === 'richtig'){
+            if (!gut) return false;    // weder Sollwert noch Beispiel
+            nimm(gut);
+            return true;
+          }
+          for (const z of alle){
+            nimm([z]);
+            const ok = o.pruefer ? o.pruefer([z])
+              : (gut && gut.length === 1 && gut[0] === z);
+            if (!ok) return true;
+          }
+          nimm([]);
+          return false;
+        }
       });
       return B;
     },
@@ -524,7 +764,39 @@ function Bau(aufgabe, wurzel){
             return g.length === e.richtig.length && e.richtig.every(x => g.indexOf(x) >= 0);
           },
           gegeben: () => Array.from(gewaehlt[e.schluessel]).sort().join(', ') || '—',
-          soll: () => e.sollText || (e.richtig || []).slice().sort().join(', ')
+          soll: () => e.sollText || (e.richtig || []).slice().sort().join(', '),
+          sollRoh: (e.mengen || e.richtig)
+            ? { art: 'menge', felder: [o.name + '.' + e.schluessel],
+                mengen: e.mengen || [e.richtig] }
+            : null,
+          setzen: (wie) => {
+            const alle = Array.from(rahmen.querySelectorAll('.ziel'))
+              .map(z => z.getAttribute('data-ziel'));
+            const menge = gewaehlt[e.schluessel];
+            const nimm = (liste) => {
+              menge.clear();
+              liste.forEach(x => menge.add(x));
+              alle.forEach(z => {
+                const g = rahmen.querySelector('.ziel[data-ziel="'+z+'"]');
+                if (g) markierungenSetzen(g, z);
+              });
+              AUF.M.bildklick(o.name + '.' + e.schluessel, Array.from(menge).join('+'));
+            };
+            const gut = e.richtig || e.beispiel;
+            if (wie === 'richtig'){
+              if (!gut) return false;   // weder Sollwert noch Beispiel
+              nimm(gut);
+              return true;
+            }
+            for (const z of alle){
+              nimm([z]);
+              const ok = e.pruefer ? e.pruefer([z])
+                : (gut && gut.length === 1 && gut[0] === z);
+              if (!ok) return true;
+            }
+            nimm([]);
+            return false;
+          }
         });
       });
       return B;
@@ -552,7 +824,19 @@ function Bau(aufgabe, wurzel){
         gefuellt: () => gewaehlt !== null,
         pruefen: () => gewaehlt === o.richtig,
         gegeben: () => gewaehlt === null ? '—' : 'Bild ' + (gewaehlt+1),
-        soll: () => 'Bild ' + (o.richtig+1)
+        soll: () => 'Bild ' + (o.richtig+1),
+        sollRoh: { art: 'wahl', felder: [o.name],
+                   richtigTexte: ['Bild ' + (o.richtig+1)] },
+        setzen: (wie) => {
+          const k = wie === 'richtig' ? o.richtig
+                                      : andererIndex(o.flaechen.length, o.richtig);
+          if (k < 0) return false;
+          gewaehlt = k;
+          rahmen.forEach((x,j) => x.classList.toggle('gewaehlt', j === k));
+          AUF.M.auswahl(o.name, 'Bild ' + (k+1));
+          if (o.beiWahl) o.beiWahl(k);
+          return true;
+        }
       });
       return B;
     },
@@ -591,7 +875,31 @@ function Bau(aufgabe, wurzel){
             const drin = Object.keys(b).filter(k => b[k] === f.id);
             return drin.length ? drin.join(', ') : '—';
           },
-          soll: () => soll.join(', ')
+          soll: () => soll.join(', '),
+          /* Der Ereignisstrom meldet je Karte, wo sie zuletzt lag.
+             Daraus lässt sich die Belegung vollständig zurückbauen. */
+          sollRoh: { art: 'karten', felder: o.karten.map(k => k.id),
+                     feld: f.id, soll: soll },
+          /* Erst räumen, dann legen. Ohne das Räumen blockiert eine
+             zuvor falsch abgelegte Karte den Platz, und die richtige
+             kommt nicht mehr hinein - das Feld bliebe falsch, obwohl
+             «richtig» gesetzt wurde. (Genau so beim ersten Lauf am
+             25.08.2026 aufgefallen: S1 A2 gab 1,5 statt 2 Punkten.) */
+          setzen: (wie) => {
+            const b = fl.belegung();
+            Object.keys(b).filter(id => b[id] === f.id)
+                          .forEach(id => fl.legen(id, null));
+            if (wie === 'richtig'){
+              soll.forEach(id => fl.legen(id, f.id));
+              return true;
+            }
+            /* Falsch heisst: in diesem Feld liegt etwas, das nicht
+               hineingehört. Eine Karte reicht dafür. */
+            const fremd = o.karten.map(k => k.id).find(id => soll.indexOf(id) < 0);
+            if (fremd === undefined) return false;
+            fl.legen(fremd, f.id);
+            return true;
+          }
         });
       });
       return B;
@@ -627,7 +935,17 @@ function Bau(aufgabe, wurzel){
           pruefen: () => auswahlen[k].value !== '' &&
                          parseInt(auswahlen[k].value,10) === o.richtig[k],
           gegeben: () => auswahlen[k].value === '' ? '—' : o.rechts[auswahlen[k].value],
-          soll: () => o.rechts[o.richtig[k]]
+          soll: () => o.rechts[o.richtig[k]],
+          sollRoh: { art: 'zuordnung', felder: [o.name + '.' + k],
+                     richtigTexte: [o.rechts[o.richtig[k]]] },
+          setzen: (wie) => {
+            const j = wie === 'richtig' ? o.richtig[k]
+                                        : andererIndex(o.rechts.length, o.richtig[k]);
+            if (j < 0) return false;
+            auswahlen[k].value = String(j);
+            auswahlen[k].dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+          }
         });
       });
       return B;
@@ -796,5 +1114,10 @@ function nebenblatt(aufgabeId, beschriftung){
 }
 
 window.PIA = { Bau: Bau, el: el, zufall: zufall, wuerfel: wuerfel,
-               mischen: mischen, nebenblatt: nebenblatt, SCHWELLE: SCHWELLE };
+               mischen: mischen, nebenblatt: nebenblatt, SCHWELLE: SCHWELLE,
+               /* Von `nachwerten.js` gebraucht: Die Zuordnung mehrerer
+                  Werte zu mehreren Sollwerten soll nach einem Absturz
+                  GENAU SO laufen wie in der Prüfung - eine zweite
+                  Fassung davon würde irgendwann auseinanderlaufen. */
+               zuordnenGreedy: zuordnenGreedy };
 })();

@@ -50,6 +50,21 @@
   --papier:#f8f4ec; --creme:#f6ecdf; --karte:#fffefb;
   --tinte:#2d2924;  --matt:#6c6357;  --linie:#e4d9c7;
   --fach:#0065A9; --zugang:#007D57; --beweis:#E09E5A; --aktion:#9867A5;
+  /* Die fuenfte Schwerpunktfarbe. Sie stand bisher nur in
+     `Karteikarten/Farben.tex` und in den Zeichnungen, nicht hier —
+     gebraucht wurde sie erst, als MA01.03 seine Kapitel einzeln
+     einfaerbte: Kapitel 5 und 7 haben ihren Schwerpunkt in der
+     Didaktik (Phasen des Begriffsverstaendnisses, praeformale
+     Beweise). Der Wert stammt aus dem Skript, nicht von hier. */
+  --didaktik:#A6083D;
+  /* **Die hellen Fassungen der fuenf Fachfarben** — fuer die Kaertchen
+     der Sortierflaeche. Rike, 23.08.: «Farbhintergrund nicht die
+     dunklen, sondern etwas hellere Varianten der Farben.» Zwanzig
+     Prozent Farbe auf dem Papierton; als feste Werte und nicht als
+     `color-mix`, weil die Leinwand sie ausrechnen koennen muss, wenn
+     sie das Blatt als Bild zeichnet. */
+  --kk-fach:#CCDFE7; --kk-zugang:#CCE3D7; --kk-beweis:#F9EAD8;
+  --kk-aktion:#EADFE7; --kk-didaktik:#EDCCD2;
   --richtig:#2E7D32; --falsch:#C0392B;
   --braun:#935100;
   --druck:'Fira Sans','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -61,6 +76,15 @@
 [data-farbe="zugang"]{--akzent:var(--zugang)}
 [data-farbe="beweis"]{--akzent:var(--beweis)}
 [data-farbe="aktion"]{--akzent:var(--aktion)}
+[data-farbe="didaktik"]{--akzent:var(--didaktik)}
+
+/* **Nur fuer Vorleseprogramme.** Diese Regel fehlte im Material — sie
+   stand nur in `navigation.css`. Ohne sie standen die Woerter «zurueck»,
+   «Startseite», «weiter» und «Abschluss» sichtbar neben ihren Pfeilen
+   und schoben das Band auseinander. Genau das hat Rike am 25.08.2026
+   als «die Umsetzung ist nicht gut» gesehen. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+     overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 *{box-sizing:border-box}
 /* **Die Fusszeile steht unten am Fenster**, auch wenn die Seite kurz
@@ -117,15 +141,30 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
    QR-Code auf das GeoGebra-Applet. Hier dasselbe, nur dass aus dem
    QR-Code ein Knopf wird — auf dem Bildschirm braucht niemand einen
    QR-Code, um dahin zu kommen, wo er schon ist. */
-.aufgabe{scroll-margin-top:64px;background:var(--karte);border-left:3px solid var(--akzent);
-     border-bottom:3px solid var(--akzent);margin:22px 0}
-.aufgabe > .kopf{display:flex;align-items:center;gap:10px;
-     background:var(--akzent);color:#fff;padding:5px 14px}
-.aufgabe > .kopf .stift{font-size:15px;opacity:.9}
-.aufgabe > .kopf h3{font-family:var(--hand);font-weight:400;font-size:19px;
-     margin:0;color:#fff}
-.aufgabe > .kopf .zusatz{margin-left:auto;font-size:13.5px;opacity:.92}
-.aufgabe > .rumpf{padding:12px 16px 14px}
+/* **Die Aufgabe traegt dieselbe Form wie die Kaesten des Skripts.**
+   Rike, 24.08.2026: «Aufgaben bitte auch so im Kasten setzen, wie sie
+   im Skript erscheinen. Vielleicht lassen wir bei den Einblendungen
+   dann den Kapitel-Farbstrich am linken Rand weg, weil sonst zu
+   farbenfroh.» Also: eckig, Reiter oben links mit schraeg
+   angeschnittener Kante, blass getoenter Grund — und KEIN Balken mehr
+   an der Seite. Zwei Bauformen fuer dasselbe waren eine zu viel. */
+.aufgabe{scroll-margin-top:64px;position:relative;margin:22px 0 14px;
+     border:2px solid var(--akzent);background:color-mix(in srgb,var(--akzent) 6%,#fff)}
+.aufgabe > .kopf{position:absolute;top:-2px;left:-2px;
+     display:flex;align-items:baseline;gap:0;max-width:calc(100% + 4px);
+     font-family:var(--hand);font-weight:400;font-size:16px;line-height:1.35;
+     color:var(--akzent);white-space:nowrap}
+.aufgabe > .kopf .stift{display:none}
+.aufgabe > .kopf h3{margin:0;font:inherit;color:#fff;
+     background:var(--akzent);padding:2px 22px 3px 12px;
+     clip-path:polygon(0 0, 100% 0, calc(100% - 13px) 100%, 0 100%)}
+.aufgabe > .kopf .zusatz{padding:2px 12px 3px 6px;font-size:.92em;
+     overflow:hidden;text-overflow:ellipsis}
+.aufgabe > .rumpf{padding:26px 16px 14px}
+/* Wo der Reiter darueber den Namen schon traegt, faellt der Kopf weg —
+   sonst stuende «Aufgabe 5.2» zweimal untereinander. */
+.aufgabe.ohne-kopf > .kopf{display:none}
+.aufgabe.ohne-kopf > .rumpf{padding-top:14px}
 .aufgabe .merksatz{border-left:2px solid var(--linie);background:var(--creme);
      padding:7px 12px;margin:12px 0;font-size:15px}
 
@@ -156,6 +195,18 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
      border:1px solid var(--linie);background:var(--karte);cursor:pointer;
      color:var(--tinte);text-decoration:none;display:inline-block}
 .stufen button:hover, .knopf:hover{border-color:var(--akzent);color:var(--akzent)}
+
+/* **Der Weg zurück zur Startseite — ohne Rand, mit Häuschen.** Rike,
+   25.08.2026: «Startseite-Button sieht nicht so aus, wie wir es
+   gewohnt waren: ohne Rand und mit Häuschen.» Vorher war es ein
+   gerahmter Knopf mit einem Aufwärtspfeil; ein Rahmen macht daraus
+   eine Handlung, und das ist es nicht — es ist ein Ausstieg, so wie
+   das Häuschen am Weg. */
+.heimweg{margin:28px 0 0}
+.heimweg a{display:inline-flex;align-items:center;gap:8px;
+     text-decoration:none;color:var(--matt);font-size:15px}
+.heimweg a .haus{font-size:18px;line-height:1}
+.heimweg a:hover{color:var(--akzent)}
 .stufen button[aria-expanded="true"]{background:var(--akzent);color:#fff;
      border-color:var(--akzent)}
 /* **`.faltung` wird auf zwei Arten geoeffnet.** Ursprünglich hing sie
@@ -185,11 +236,17 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
 .marken button.haelt::after{content:'⏸';margin-left:6px;opacity:.5;font-size:11px}
 
 /* ---------- Einbettung: GeoGebra ---------- */
+/* Ein Platz, der auf etwas wartet — ruhiger als ein Fehler, aber
+   sichtbar genug, dass niemand ihn für einen Fehler hält. */
+.applet.wartet{border-style:dashed;background:var(--papier)}
+.applet.wartet .leiste{color:var(--matt);justify-content:center;
+     padding:22px 12px;font-size:14px}
 .applet{margin:18px 0;border:1px solid var(--linie);background:var(--karte)}
 .applet .leiste{display:flex;align-items:center;gap:10px;padding:5px 12px;
      border-bottom:1px solid var(--linie);font-size:13.5px;color:var(--matt)}
 .applet .leiste a{margin-left:auto}
 .applet iframe{display:block;width:100%;border:0;height:min(78vh,620px)}
+
 
 /* ---------- Bildpunkte und Bilder ---------- */
 figure{margin:16px 0}
@@ -225,9 +282,459 @@ figcaption{font-size:13.5px;color:var(--matt);margin-top:5px}
 
 
 
+/* ---------- Bezug zur Schulpraxis ----------
+   Fliesstext, kein Aufgabenblatt: Er will gelesen werden, also
+   bekommt er eine Zeilenlaenge, die zum Lesen taugt — nicht die
+   Breite der Seite. */
+.schulpraxis{max-width:min(68ch,100%);margin:0 auto;font-size:16.5px;
+     line-height:1.7}
+.schulpraxis h4{font-family:var(--hand);font-weight:400;font-size:22px;
+     margin:1.8em 0 .5em;color:var(--akzent)}
+.schulpraxis p{margin:.9em 0}
+
+/* Der Schulbuchausschnitt: Abbildung und Quelle. Im Druck ein Kasten,
+   hier eine Abbildung — und die Seite laesst sich gross ansehen, was
+   auf Papier nicht geht. */
+.schulpraxis .episode{margin:1.6em 0;padding:14px;background:var(--karte);
+     border:1px solid var(--linie);border-radius:10px;text-align:center}
+.schulpraxis .episode img{max-width:100%;height:auto;border-radius:4px}
+.schulpraxis .episode p{font-size:13.5px;color:var(--matt);margin:.6em 0 0}
+
+/* **Hier kann das Netz mehr als das Papier.** Im Skript steht «Halten
+   Sie hier kurz inne …», und im naechsten Absatz steht die Antwort —
+   das Auge hat sie gelesen, bevor der Kopf angehalten hat. Hier steht
+   die Frage, und die Antwort kommt auf Klick. */
+.schulpraxis .frage-block{margin:1.8em 0}
+.schulpraxis .frage{background:color-mix(in srgb, var(--akzent) 8%, #fff);
+     border-left:3px solid var(--akzent);border-radius:0 8px 8px 0;
+     padding:12px 16px}
+.schulpraxis .frage p:first-child{margin-top:0}
+.schulpraxis .frage p:last-child{margin-bottom:0}
+.schulpraxis .antwort{margin-top:10px}
+.schulpraxis .antwort > summary{display:inline-block;cursor:pointer;
+     font-size:14.5px;padding:4px 14px;border:1px solid var(--linie);
+     border-radius:999px;background:var(--karte);color:var(--matt);
+     list-style:none}
+.schulpraxis .antwort > summary::-webkit-details-marker{display:none}
+.schulpraxis .antwort > summary::before{content:'▸ '}
+.schulpraxis .antwort[open] > summary::before{content:'▾ '}
+.schulpraxis .antwort > summary:hover{border-color:var(--akzent);
+     color:var(--akzent)}
+.schulpraxis .antwort[open] > summary{margin-bottom:.6em}
+
+/* ---------- Der Gedankengang über der Schulpraxis ----------
+   Rike am 22.08.: «Ich finde irgendwie die reine lineare
+   Downscroll-Geschichte etwas langweilig bei den Praxisgeschichten.»
+   Und am 23.08.: «Ich fände es gut, wenn oben bei dem Gedankengang
+   immer der Teil gehighlightet wird, der gerade dran ist.»
+
+   Die Schritte sind die Zwischentitel des Kapitelteils — sie waren
+   immer da, nur nicht als Übersicht sichtbar. Jeder hat eine Stelle
+   im Text, also ist jeder anklickbar, und beim Lesen wandert die
+   Auszeichnung mit (`seite.js`). */
+.gedankengang{background:color-mix(in srgb, var(--akzent) 7%, #fff);
+     border-radius:10px;padding:14px 18px;margin:0 0 22px}
+.gedankengang > h3{font-family:var(--hand);font-weight:400;font-size:18px;
+     color:var(--akzent);margin:0 0 8px}
+.gedankengang .vorspann{margin:0 0 10px;font-size:15px}
+.gedankengang ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.gedankengang li{margin:0}
+.gedankengang a{display:flex;gap:10px;align-items:baseline;
+     text-decoration:none;color:inherit;border-radius:8px;
+     padding:6px 9px;transition:background .12s}
+.gedankengang a:hover{background:color-mix(in srgb, var(--akzent) 13%, #fff)}
+.gedankengang .nr{flex:none;width:21px;height:21px;border-radius:50%;
+     background:color-mix(in srgb, var(--akzent) 30%, #fff);
+     color:color-mix(in srgb, var(--akzent) 80%, var(--tinte));
+     display:grid;place-items:center;font-size:12px;font-weight:600;
+     transform:translateY(3px);transition:background .12s,color .12s}
+.gedankengang .wort{font-size:14.5px;font-weight:600;line-height:1.35}
+.gedankengang .satz{display:block;font-size:13px;color:var(--matt);
+     line-height:1.4;margin-top:2px}
+/* **Wo bin ich?** Dieselbe Frage wie auf dem Weg, dieselbe Antwort:
+   der Schritt, in dem man gerade liest, wird satt. */
+.gedankengang a[aria-current="true"]{
+     background:color-mix(in srgb, var(--akzent) 15%, #fff)}
+.gedankengang a[aria-current="true"] .nr{background:var(--akzent);color:#fff}
+.gedankengang a[aria-current="true"] .wort{color:var(--akzent)}
+@media (min-width:920px){
+  .gedankengang ol{grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+  .gedankengang a{flex-direction:row;align-items:flex-start;height:100%}
+}
+
+/* ---------- Zwei Spalten: links der Fall, rechts die Analyse ----------
+   Rike am 23.08.: «Ich überlege, ob es schlauer wäre, wenn das ganze
+   Setting zwei Spalten hat. Die rechte Hälfte ist der Text und im
+   linken tauchen die Bilder auf, so dass ich das daneben immer noch
+   sehe.»
+
+   Die Schulbuchausschnitte sind die **Fälle**, an denen die
+   Argumentation hängt; der Text daneben ist die Analyse. Die
+   Bildspalte klebt, solange ihr Abschnitt läuft — man liest die
+   Analyse und hat den Fall vor Augen, ohne hin- und herzuscrollen.
+
+   Unter 900 Pixeln stapelt sich alles wieder: Dort ist für zwei
+   Spalten kein Platz, und ein Bild neben drei Wörtern ist schlechter
+   als eines darüber. */
+.schulpraxis.zweispaltig .teil{display:grid;
+     grid-template-columns:minmax(0,42%) minmax(0,1fr);
+     gap:28px;align-items:start;margin-bottom:8px}
+.schulpraxis.zweispaltig .faelle{position:sticky;top:18px;
+     display:grid;gap:14px;max-height:calc(100vh - 40px);overflow:auto}
+.schulpraxis.zweispaltig .faelle .episode{margin:0;max-width:100%}
+.schulpraxis.zweispaltig .wortlaut{min-width:0}
+.schulpraxis.zweispaltig .wortlaut > :first-child{margin-top:0}
+/* Der Einstieg hat keinen Zwischentitel; ohne Fall daneben soll sein
+   Text die ganze Breite haben. */
+.schulpraxis.zweispaltig .teil:has(.faelle:empty){grid-template-columns:1fr}
+.schulpraxis.zweispaltig .teil:has(.faelle:empty) .faelle{display:none}
+@media (max-width:900px){
+  .schulpraxis.zweispaltig .teil{grid-template-columns:1fr;gap:0}
+  .schulpraxis.zweispaltig .faelle{position:static;max-height:none;
+       overflow:visible;margin-bottom:14px}
+}
+
+/* ---------- Zwei Kapitel nebeneinander ----------
+   Rike am 23.08.: «Können wir irgendwie schlauer deutlich machen, dass
+   Kapitel 10 und 11 parallel liegen und entweder 10 oder 11 gemacht
+   wird?»
+
+   In der Leiste stehen sie als Gabelung: zusammengefasst, mit einem
+   «oder» dazwischen. Dieselbe Bildsprache wie die Abzweigungen auf dem
+   Weg — man sieht, dass hier eine Wahl ist. */
+.wechsel .gabelung{display:inline-flex;align-items:center;gap:0;
+     border:1px dashed currentColor;border-radius:999px;padding:0 3px;
+     opacity:.92}
+.wechsel .gabelung > a{border:0;background:none}
+.wechsel .gabelung .oder{font-size:10px;letter-spacing:.04em;
+     text-transform:lowercase;opacity:.75;padding:0 2px;
+     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.gabelhinweis{background:color-mix(in srgb, var(--akzent) 8%, #fff);
+     border-left:3px solid var(--akzent);border-radius:0 8px 8px 0;
+     padding:10px 15px;margin:20px 0 0;font-size:14.5px}
+
+/* Zum Nachschlagen — ruhig unter den Kacheln, kein vierter Eingang. */
+.nachschlagen{margin:26px 2px 0;font-size:14px;color:var(--matt);
+     text-align:center}
+.nachschlagen a{color:var(--matt);text-decoration-color:var(--linie)}
+.nachschlagen a:hover{color:var(--akzent)}
+
+/* ---------- Die Arbeitsblattseite ----------
+   Rike am 23.08.: Zu den GeoGebra-Arbeitsblättern, «wo das Bild aus dem
+   Skript dynamisch dargestellt wird», braucht es je eine HTML-Seite —
+   «vermutlich braucht es nur Überschrift und eingebettetes GeoGebra».
+
+   Genau so: Das Applet bekommt die volle Breite und ein Seitenverhältnis,
+   in dem sich arbeiten lässt. Ein Buch mit mehreren Blättern zeigt sie
+   untereinander, jedes mit seiner Überschrift. */
+.arbeitsblatt{margin-top:18px}
+.arbeitsblatt .blatt{margin-bottom:26px}
+.arbeitsblatt .blatt > h3{font-family:var(--hand);font-weight:400;
+     font-size:20px;color:var(--akzent);margin:0 0 9px}
+.arbeitsblatt .applet{border:1px solid var(--linie);border-radius:10px;
+     overflow:hidden;background:var(--karte);aspect-ratio:4/3;
+     max-height:78vh}
+.arbeitsblatt .applet iframe{width:100%;height:100%;border:0;display:block}
+/* Auf dem Arbeitsblatt gilt dieselbe Rechnung wie auf der Buehne. */
+.arbeitsblatt .applet[style*="--gg-b"]{aspect-ratio:var(--gg-b) / var(--gg-h);
+     width:min(100%, calc(var(--gg-b) * 1px));height:auto;margin-inline:auto}
+.arbeitsblatt .ruhig{margin:7px 0 0;font-size:13.5px}
+/* Fremdes Material — und wo es nicht mehr antwortet, wird das gesagt.
+   Ein Verweis ins Leere ohne Erklaerung ist das Schlechteste. */
+.arbeitsblatt .blatt.fremd .warnung{background:color-mix(in srgb,
+     var(--didaktik) 9%, #fff);border-left:3px solid var(--didaktik);
+     border-radius:0 8px 8px 0;padding:12px 16px;margin:0 0 14px;
+     font-size:14.5px}
+
+/* ---------- Die Übungsseite ----------
+   Rike am 23.08.: «Zu den Übungen brauchen wir eine Übungsseite. Diese
+   sollte jeweils eine Liste mit allen Aufgaben haben, die es gibt, und
+   bei Klick darauf sollte die Seite aufploppen, die auch kommt, wenn
+   man den Link im Skript anklickt.»
+
+   Aufgeklappt wird an Ort und Stelle, nicht auf eine andere Seite
+   gesprungen: Wer eine Aufgabe zumacht, ist wieder in der Liste. Die
+   eigene Seite jeder Aufgabe bleibt daneben erreichbar — auf sie zeigt
+   das Skript. */
+.uebungsseite{margin-top:18px}
+.uebungsseite > .merk{color:var(--matt);font-size:14px;margin:0 0 14px}
+.aufgabenfach{border:1px solid var(--linie);border-radius:10px;
+     background:var(--karte);margin-bottom:9px;overflow:hidden}
+.aufgabenfach > summary{display:flex;gap:14px;align-items:baseline;
+     cursor:pointer;padding:11px 15px;list-style:none}
+.aufgabenfach > summary::-webkit-details-marker{display:none}
+.aufgabenfach > summary::before{content:'▸';color:var(--matt);flex:none;
+     font-size:13px;transform:translateY(-1px)}
+.aufgabenfach[open] > summary::before{content:'▾'}
+.aufgabenfach > summary:hover{background:var(--creme)}
+.aufgabenfach[open] > summary{background:var(--creme);
+     border-bottom:1px solid var(--linie)}
+.aufgabenfach > summary .nr{flex:none;font-family:var(--hand);font-size:19px;
+     color:var(--akzent);min-width:2.6em}
+.aufgabenfach > summary .wort{color:var(--tinte);font-size:14.5px;
+     line-height:1.4}
+/* ---------- Der Abschluss: drei Knöpfe, dann ordnen ----------
+   Rike, 24.08.2026: «Lass uns überlegen, ob wir nicht drei Button
+   machen — und nicht für alle einen Streifen. Darunter dann Ordnung
+   machen.» Vorher stand jedes Ziel in einem eigenen Abschnitt mit
+   Überschrift, Erklärsatz und Knopf; drei davon untereinander sind
+   eine halbe Bildschirmhöhe, bevor die eigentliche Arbeit anfängt. */
+/* Rike, 25.08.2026: «Meilenstein- und Prüfungs-Buttons etc. auf dem
+   Abschluss kleiner nebeneinander.» Also nicht die Reihe füllen,
+   sondern nur so breit wie ihre Aufschrift — der Erklärsatz steht im
+   `title`, nicht darunter. */
+/* **Nebeneinander, nicht untereinander.** Rike, 25.08.2026 — dreimal
+   nachgeschaerft: kleiner, gleich hoch, etwas mehr Info, «aber
+   nebeneinander». `flex:1 1 0` teilt die Reihe gleichmaessig auf,
+   `nowrap` verhindert das Umbrechen; erst unter 620 Pixeln stapeln sie,
+   weil dort nichts anderes mehr lesbar waere. */
+.abschlussknoepfe{display:flex;flex-wrap:nowrap;gap:16px;margin:0 0 26px;
+     align-items:stretch}
+.abschlussknopf{flex:1 1 0;min-width:0;
+     display:flex;flex-direction:column;justify-content:center;gap:3px;
+     padding:11px 18px;border-radius:10px;text-decoration:none;
+     background:var(--karte);border:1.5px solid var(--linie);
+     color:var(--tinte);transition:border-color .1s, transform .1s,
+     box-shadow .1s}
+.abschlussknopf b{font-family:var(--hand);font-weight:400;font-size:18px;
+     color:var(--akzent);line-height:1.2}
+.abschlussknopf span{display:block;font-size:12.5px;color:var(--matt);
+     line-height:1.35}
+.abschlussknopf:hover{border-color:var(--akzent);transform:translateY(-1px);
+     box-shadow:0 3px 12px rgba(45,41,36,.14)}
+.abschlussknopf.haupt{background:var(--akzent);border-color:var(--akzent)}
+.abschlussknopf.haupt b{color:#fff}
+.abschlussknopf.haupt span{color:rgba(255,255,255,.88)}
+@media (max-width:620px){
+  .abschlussknoepfe{flex-wrap:wrap}
+  .abschlussknopf{flex:1 1 100%}
+}
+
+/* ---------- Die Übungsseite: Knöpfe statt Liste ----------
+   Rike, 25.08.2026: «Wir machen gar nicht so eine lange Liste. Jede
+   Übungsseite besteht nur aus Buttons mit den Aufgabennummern.» Die
+   Nummer allein, gross genug zum Treffen — und nach Abschnitten
+   geordnet, damit man sieht, wohin eine Aufgabe gehört. */
+/* Vorspann und Zwischentexte kommen aus dem Skript — dieselben Saetze,
+   die auf dem Papier ueber dem Uebungsblock stehen. */
+.uebungsseite .uebungsvorspann{margin:0 0 22px;max-width:52em}
+.uebungsseite .uebungstext{margin:0 0 11px;max-width:52em;font-size:14.5px;
+     color:var(--matt)}
+.uebungsseite .uebungstext p{margin:.35em 0}
+.uebungsseite .uebungsgruppe{margin:0 0 22px}
+.uebungsseite .uebungsgruppe h3{display:flex;align-items:center;gap:9px;
+     font-family:var(--hand);font-weight:400;font-size:19px;margin:0 0 9px}
+.uebungsseite .uebungsgruppe h3 .nr{flex:0 0 auto;width:22px;height:22px;
+     border-radius:50%;display:grid;place-items:center;font-family:var(--druck);
+     font-size:12px;background:var(--akzent);color:#fff}
+.uebungsseite .knopfreihe{display:flex;flex-wrap:wrap;gap:7px}
+.uebungsseite .aufgabenknopf{display:grid;place-items:center;
+     min-width:58px;padding:9px 12px;border-radius:9px;
+     font-family:var(--druck);font-size:15px;font-variant-numeric:tabular-nums;
+     text-decoration:none;
+     background:color-mix(in srgb, var(--akzent) 14%, #fff);
+     color:color-mix(in srgb, var(--akzent) 88%, var(--tinte));
+     border:1.5px solid color-mix(in srgb, var(--akzent) 40%, #fff);
+     transition:background .1s, border-color .1s, transform .1s}
+.uebungsseite .aufgabenknopf:hover{background:var(--akzent);color:#fff;
+     border-color:var(--akzent);transform:translateY(-1px)}
+/* **Was im Weg schon stand, sieht man.** Rike: «Bei Aufgaben, die im
+   Skript schon vorher aufgetaucht sind, werden sie hier nochmals
+   aufgeführt mit dem Hinweis, dass diese ggf. schon vorher bearbeitet
+   wurden.» Eine feine Schraffur sagt das, ohne einen zweiten Text zu
+   brauchen — der Hinweis darüber erklärt sie einmal. */
+.uebungsseite .aufgabenknopf.schon{
+     background:repeating-linear-gradient(-45deg,
+       color-mix(in srgb, var(--akzent) 9%, #fff) 0 5px,
+       #fff 5px 10px);
+     border-style:dashed}
+.uebungsseite .aufgabenknopf.schon:hover{background:var(--akzent);color:#fff}
+.uebungsseite .uebungshinweis{font-size:13px;margin:0 0 18px}
+
+.aufgabenfach .aufgabenblatt{padding:14px 16px 4px}
+.aufgabenfach .aufgabenblatt > :first-child{margin-top:0}
+.aufgabenfach .fundort{margin:4px 0 12px;font-size:13.5px}
+
+/* ---------- Eine Etappe, die aus dem Skript kommt ----------
+   Der vierte Abschnitt von Kapitel 7 in MA01.03 hat drei Kacheln auf
+   der Landkarte und keine Videos; er steht nur im Skript (ARBEITSLISTE
+   1.8). Links der gesetzte Text, rechts die Aufgaben — dieselbe
+   Aufteilung wie bei einer Etappe mit Video, nur ohne Film.
+
+   Die Kaesten des Skripts tragen dieselbe Sprache wie die uebrigen:
+   heller Grund, ein Strich in der Kapitelfarbe, die Ueberschrift in
+   der Handschrift. Wer «Beispiel», «Satz» und «Beweisidee» im Skript
+   kennt, erkennt sie hier wieder. */
+.etappe.aus-skript{grid-template-areas:"film arbeit";
+     grid-template-rows:auto}
+.skripttext{grid-area:film;min-width:0}
+
+/* **Eine Skript-Etappe ohne rechte Spalte nimmt die ganze Seite — in
+   zwei Spalten.** Rike, 25.08.2026, auf «Oberfläche»: «Text hier zu
+   lang. Können wir zwei Spalten machen und die ganze Seite benutzen?
+   Wir haben rechts eh nichts zum Einblenden.» Und auf die Rückfrage,
+   ob das überall gelten soll: «ja, für alle solchen Etappen».
+
+   Wo es etwas einzublenden gibt, bleibt alles wie bisher — dann ist
+   die rechte Spalte nicht leer, sondern die Arbeit. Nur wo sie fehlt,
+   stand der Text bisher in einer schmalen Spalte neben nichts.
+
+   Kästen, Bilder und abgesetzte Formeln dürfen nicht mitten
+   durchgeschnitten werden; Absätze dürfen es. Deshalb steht
+   `break-inside` nur an den Kästen. */
+.etappe.aus-skript:not(:has(> .arbeit)){
+     grid-template-columns:1fr;grid-template-areas:"film"}
+.etappe.aus-skript:not(:has(> .arbeit)) > .skripttext{
+     columns:2;column-gap:44px;column-rule:1px solid var(--linie)}
+.etappe.aus-skript:not(:has(> .arbeit)) > .skripttext > figure,
+.etappe.aus-skript:not(:has(> .arbeit)) > .skripttext > aside,
+.etappe.aus-skript:not(:has(> .arbeit)) > .skripttext > .neben,
+.etappe.aus-skript:not(:has(> .arbeit)) > .skripttext > table,
+.etappe.aus-skript:not(:has(> .arbeit)) > .skripttext > mjx-container{
+     break-inside:avoid}
+/* Eine Überschrift zieht ihren Absatz mit — sonst steht sie als
+   letzte Zeile einer Spalte allein. */
+.etappe.aus-skript:not(:has(> .arbeit)) > .skripttext > h3,
+.etappe.aus-skript:not(:has(> .arbeit)) > .skripttext > h4{
+     break-after:avoid}
+@media (max-width:860px){
+  .etappe.aus-skript:not(:has(> .arbeit)) > .skripttext{columns:1}
+}
+.skripttext > :first-child{margin-top:0}
+.beispiel, .lehrsatz, .beweis, .querverweis,
+.definition, .lernziele, .hinweiskasten{
+     background:color-mix(in srgb, var(--akzent) 6%, #fff);
+     border-left:3px solid var(--akzent);border-radius:0 8px 8px 0;
+     padding:12px 16px;margin:16px 0}
+.beispiel > h4, .lehrsatz > h4, .beweis > h4, .querverweis > h4,
+.definition > h4, .lernziele > h4{
+     font-family:var(--hand);font-weight:400;font-size:18px;
+     color:var(--akzent);margin:0 0 6px}
+.beispiel > :last-child, .lehrsatz > :last-child,
+.beweis > :last-child, .querverweis > :last-child,
+.definition > :last-child, .lernziele > :last-child,
+.hinweiskasten > :last-child{margin-bottom:0}
+/* **Die Definition traegt kraeftiger.** Sie ist die Festlegung, auf die
+   sich alles Spaetere beruft — anders als der Satz, der etwas
+   behauptet, und anders als das Beispiel, das etwas zeigt. Darum als
+   einzige mit vollem Rahmen statt nur einer Kante. */
+.definition{background:color-mix(in srgb, var(--akzent) 8%, #fff);
+     border:1px solid color-mix(in srgb, var(--akzent) 35%, #fff);
+     border-left:3px solid var(--akzent);border-radius:0 8px 8px 0}
+/* Die Lernziele stehen am Kapitelanfang und schauen voraus, nicht
+   zurueck — darum ruhig, ohne Farbfläche. */
+.lernziele{background:var(--creme)}
+/* Der Hinweiskasten hat im Skript kein Titelfeld; ohne Ueberschrift
+   waere ein farbiger Balken zu laut. */
+.hinweiskasten{background:var(--creme);border-left-color:var(--linie);
+     font-size:14.5px}
+/* Der Beweis steht etwas zurueck: Er traegt das Argument, nicht die
+   Aussage. Gestrichelt wie die freiwilligen Kacheln auf dem Weg. */
+.beweis{background:var(--creme);border-left-style:dashed}
+/* Ein Querverweis auf ein anderes Modul ist kein Inhalt dieser Seite. */
+.querverweis{background:var(--creme);border-left-color:var(--linie)}
+.querverweis > h4{color:var(--matt)}
+
+/* ---------- Die Rueckschau am Abschluss ----------
+   Rike am 22.08.: An den Abschluss gehoeren nicht die Karteikarten,
+   sondern die Reflexion aus der Ergebnissicherung. Zwei, drei Fragen
+   zum Innehalten — «Wahr oder falsch?» mit Begruendung, dazu
+   Ankreuzfragen.
+
+   Dieselbe Sprache wie die Frage im Bezug zur Schulpraxis: ein heller
+   Kasten mit einem Strich in der Kapitelfarbe, die Antwort dahinter
+   auf Klick. Wer beides sieht, erkennt es wieder. */
+.reflexion{display:grid;gap:16px;margin-top:4px}
+
+/* **Wahr oder falsch — als Knopfreihe.** Rike, 25.08.2026, zu MA01.03:
+   «Aber so, dass sie nicht viel Platz einnehmen: oben einen Teil mit
+   "Wahr-Falsch", und man kann mit Buttons die einzelnen Fragen
+   aufploppen.»
+
+   Zu ist jede Frage eine Zahl von der Grösse eines Knopfes; offen
+   rutscht sie unter die Reihe und nimmt die ganze Breite. `name` macht
+   die Gruppe ausschliessend — das braucht kein Skript, und es kann nie
+   mehr als eine offen sein. */
+.wfreihe{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;
+     margin-top:10px}
+.wf{flex:0 0 auto;margin:0}
+.wf > summary{
+     list-style:none;cursor:pointer;
+     min-width:34px;padding:6px 12px;text-align:center;
+     border:1px solid var(--linie);border-radius:6px;
+     background:var(--karte);font-weight:600;
+     font-variant-numeric:tabular-nums}
+.wf > summary::-webkit-details-marker{display:none}
+.wf > summary:hover{border-color:var(--akzent)}
+/* Zu ist die Frage eine Zahl. Offen ist sie die Ueberschrift ihres
+   eigenen Kastens — und eine Ueberschrift steht links und heisst
+   «Frage 3», nicht «3». Ein breiter Balken mit einer einzelnen Ziffer
+   darin sieht aus wie ein Fehler. */
+.wf > summary .wort{display:none}
+.wf[open]{flex:1 0 100%;order:9}
+.wf[open] > summary{
+     background:var(--akzent);color:#fff;border-color:var(--akzent);
+     text-align:left;border-radius:6px 6px 0 0}
+.wf[open] > summary .nr{display:none}
+.wf[open] > summary .wort{display:inline}
+.wf .inhalt{
+     border:1px solid var(--linie);border-top:none;
+     border-radius:0 0 6px 6px;background:var(--karte);
+     padding:14px 16px;margin-top:-1px}
+.wf .inhalt > :first-child{margin-top:0}
+.wf .inhalt > :last-child{margin-bottom:0}
+.reflexionsfrage .frage{background:color-mix(in srgb, var(--akzent) 8%, #fff);
+     border-left:3px solid var(--akzent);border-radius:0 8px 8px 0;
+     padding:12px 16px}
+.reflexionsfrage .frage p:first-child{margin-top:0}
+.reflexionsfrage .frage p:last-child{margin-bottom:0}
+.reflexionsfrage .ankreuzen{list-style:none;margin:11px 0 0;padding:0 0 0 4px;
+     display:grid;gap:7px}
+.reflexionsfrage .ankreuzen li{display:flex;gap:9px;align-items:baseline}
+.reflexionsfrage .ankreuzen input{flex:none;margin:0;
+     accent-color:var(--akzent);transform:translateY(1px)}
+.reflexionsfrage .ankreuzen label{cursor:pointer}
+.reflexionsfrage .ankreuzen label p{margin:0}
+.reflexionsfrage .antwort{margin-top:11px}
+.reflexionsfrage .antwort > summary{display:inline-block;cursor:pointer;
+     font-size:14.5px;padding:4px 14px;border:1px solid var(--linie);
+     border-radius:999px;background:var(--karte);color:var(--matt);
+     list-style:none}
+.reflexionsfrage .antwort > summary::-webkit-details-marker{display:none}
+.reflexionsfrage .antwort > summary::before{content:'▸ '}
+.reflexionsfrage .antwort[open] > summary::before{content:'▾ '}
+.reflexionsfrage .antwort > summary:hover{border-color:var(--akzent);
+     color:var(--akzent)}
+.reflexionsfrage .antwort[open] > summary{margin-bottom:.6em}
+.reflexionsfrage .antwort ul{margin:.4em 0 0;padding-left:1.3em}
+
 /* ---------- Fusszeile ---------- */
 footer{border-top:1px solid var(--linie);background:var(--karte);
      padding:14px 18px;font-size:13px;color:var(--matt)}
+/* Links, wo man ist; rechts, von wem und wann — und der Weg zur
+   Pinnwand. Auf schmalen Geraeten untereinander statt gequetscht. */
+.seitenfuss{display:flex;flex-wrap:wrap;gap:6px 18px;
+     align-items:baseline;justify-content:space-between;
+     max-width:var(--spalte);margin:0 auto}
+.seitenfuss .wo b{color:var(--tinte);font-weight:500;letter-spacing:.02em}
+.seitenfuss .wer{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+/* **Sichtbar, aber nicht laut.** Wer sucht, findet ihn; wer arbeitet,
+   wird nicht abgelenkt. Erst beim Darauffahren nimmt er die Farbe der
+   Station an. */
+/* **Die Signatur wird nicht eingefaerbt.** Anders als die Kacheln ist
+   das Logo kein Symbol, sondern eine Marke: Schwarz und Ocker sind
+   vorgegeben. Es steht nur auf der Startseite. */
+.seitenfuss .phlu{height:28px;width:auto;display:block;align-self:center}
+/* **Luft um die Signatur.** Beim ersten Versuch fuellte das Bild die
+   Fusszeile auf den Pixel genau aus — abgeschnitten war nichts, so
+   ausgesehen hat es trotzdem. Wo das Logo steht, wird der Streifen
+   hoeher. */
+footer:has(.phlu){padding:22px 18px}
+.seitenfuss .wer-zeile{display:block;margin-top:3px}
+@media (max-width:640px){ .seitenfuss .phlu{height:24px} }
+.seitenfuss .pinnwand{color:var(--matt);text-decoration:none;
+     border:1px solid var(--linie);border-radius:999px;padding:2px 11px}
+.seitenfuss .pinnwand:hover{color:var(--akzent);border-color:var(--akzent)}
 
 /* ---------- Schmale Geraete ---------- */
 @media (max-width:640px){
@@ -352,10 +859,32 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
      text-decoration:none;font-size:13px}
 .stationskopf .wechsel a[aria-current="page"]{background:#fff;color:var(--akzent);
      border-color:#fff}
+/* Das Wimmelbild im Kopf ist quadratisch, nicht im Portraetformat —
+   es ist eine Marke, kein Gesicht.
+
+   **Und es behaelt seine Farben.** Die Portraets der Namenspatrone
+   liegen mit `luminosity` unter dem Akzent, damit die vier Stationen
+   nicht gegeneinander leuchten. Beim Wimmelbild ist genau das falsch:
+   Seine Vielfarbigkeit IST das Bild — eingefaerbt wird daraus ein
+   grauer Fleck in der Kapitelfarbe (Henrike, 22.08.). */
+.stationskopf .kopf-portraet.quadrat{width:52px;
+     mix-blend-mode:normal;opacity:1;background:#fff}
 .stationskopf .kopf-portraet{width:74px;height:52px;object-fit:cover;
      border-radius:4px;margin-left:14px;mix-blend-mode:luminosity;opacity:.9}
 
 /* -- Werkzeugreihe einer Station -- */
+/* **Der Satz ueber den drei Kacheln.** Er sagt einmal, was sonst
+   jedes Semester gesagt werden muss: Es sind nicht drei verschiedene
+   Stoffe, sondern drei Wege zu demselben. Ruhig gesetzt — er soll den
+   Kacheln nicht die Aufmerksamkeit nehmen. */
+/* **Ein kurzer Satz, mittig — nicht ein langer, der abbricht.**
+   Zuerst stand er linksbuendig auf 52 Zeichen Breite und endete
+   irgendwo auf einem Drittel der Seite: Das sieht nach Versehen aus,
+   nicht nach Absicht. Mittig gesetzt wirkt eine kurze Zeile gewollt,
+   und `balance` sorgt dafuer, dass sie bei schmalem Fenster in zwei
+   gleich lange Zeilen bricht statt in eine lange und ein Wort. */
+.dreiwege{margin:26px auto 18px;color:var(--matt);font-size:15px;
+     text-align:center;max-width:60ch;text-wrap:balance}
 .werkzeuge{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
      gap:16px;margin:24px 0 14px}
 /* Gleich breite Spalten statt Fliesssatz: Bei fuenf Karten wurden sonst
@@ -364,18 +893,31 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 .werkzeuge-klein{display:grid;gap:12px;margin-bottom:30px;
      grid-template-columns:repeat(auto-fit,minmax(196px,1fr))}
 .karte.offen{opacity:.45;pointer-events:none}
-.karte.offen .was::after{content:' — noch offen'}
+/* Nur wo nichts dasteht. Wo die Kachel schon sagt, WORAUF sie
+   wartet («kommt in Kürze»), waere «— noch offen» eine zweite
+   Auskunft ueber dieselbe Sache. */
+.karte.offen .was:empty::after{content:'noch offen'}
 
 /* Ausschnitte aus den Symbolbogen, Werte aus den srcRect der Folien */
-.sym.sym-skript-komplett{-webkit-mask-image:url(symbole/bogen-a.png?f=83ae9820);mask-image:url(symbole/bogen-a.png?f=83ae9820);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:6.26% 47.19%;mask-position:6.26% 47.19%}
-.sym.sym-loesungsband{-webkit-mask-image:url(symbole/bogen-a.png?f=83ae9820);mask-image:url(symbole/bogen-a.png?f=83ae9820);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:34.58% 45.99%;mask-position:34.58% 45.99%}
-.sym.sym-lernziele{-webkit-mask-image:url(symbole/bogen-a.png?f=83ae9820);mask-image:url(symbole/bogen-a.png?f=83ae9820);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:64.65% 45.95%;mask-position:64.65% 45.95%}
-.sym.sym-stationsseite{-webkit-mask-image:url(symbole/bogen-b.png?f=83ae9820);mask-image:url(symbole/bogen-b.png?f=83ae9820);-webkit-mask-size:422.2% 321.1%;mask-size:422.2% 321.1%;-webkit-mask-position:93.74% 42.20%;mask-position:93.74% 42.20%}
-.sym.sym-skript{-webkit-mask-image:url(symbole/skript.png?f=83ae9820);mask-image:url(symbole/skript.png?f=83ae9820)}
-.sym.sym-playliste{-webkit-mask-image:url(symbole/playliste.png?f=83ae9820);mask-image:url(symbole/playliste.png?f=83ae9820)}
-.sym.sym-buch{-webkit-mask-image:url(symbole/buch.png?f=83ae9820);mask-image:url(symbole/buch.png?f=83ae9820)}
-.sym.sym-lernpfad{-webkit-mask-image:url(symbole/lernpfad.png?f=83ae9820);mask-image:url(symbole/lernpfad.png?f=83ae9820)}
-.sym.sym-loesungen{-webkit-mask-image:url(symbole/loesungen.png?f=83ae9820);mask-image:url(symbole/loesungen.png?f=83ae9820)}
+.sym.sym-skript-komplett{-webkit-mask-image:url(symbole/bogen-a.png?f=87f6c245);mask-image:url(symbole/bogen-a.png?f=87f6c245);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:6.26% 47.19%;mask-position:6.26% 47.19%}
+/* Eigenes Zeichen statt Ausschnitt aus dem Bogen: Buch mit
+   Schluessel und Haken (Henrike, 22.08.). Kam wie das
+   Pruefungszeichen mit weiss gefuellten Flaechen und ist
+   freigestellt. */
+.sym.sym-loesungsband{-webkit-mask-image:url(symbole/loesungsband.png?f=87f6c245);mask-image:url(symbole/loesungsband.png?f=87f6c245)}
+.sym.sym-lernziele{-webkit-mask-image:url(symbole/bogen-a.png?f=87f6c245);mask-image:url(symbole/bogen-a.png?f=87f6c245);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:64.65% 45.95%;mask-position:64.65% 45.95%}
+.sym.sym-stationsseite{-webkit-mask-image:url(symbole/bogen-b.png?f=87f6c245);mask-image:url(symbole/bogen-b.png?f=87f6c245);-webkit-mask-size:422.2% 321.1%;mask-size:422.2% 321.1%;-webkit-mask-position:93.74% 42.20%;mask-position:93.74% 42.20%}
+.sym.sym-skript{-webkit-mask-image:url(symbole/skript.png?f=87f6c245);mask-image:url(symbole/skript.png?f=87f6c245)}
+.sym.sym-playliste{-webkit-mask-image:url(symbole/playliste.png?f=87f6c245);mask-image:url(symbole/playliste.png?f=87f6c245)}
+.sym.sym-buch{-webkit-mask-image:url(symbole/buch.png?f=87f6c245);mask-image:url(symbole/buch.png?f=87f6c245)}
+/* Die Werkstatt hat ein eigenes Zeichen — das Buchsymbol passte
+   zum neuen Namen nicht mehr (Henrike, 22.08.). Wie alle Symbole
+   eine Maske: Die Form steckt im Alphakanal, die Farbe kommt aus
+   `--akzent` und wechselt damit mit dem Kapitel (G17). */
+.sym.sym-pruefung{-webkit-mask-image:url(symbole/pruefung.png?f=87f6c245);mask-image:url(symbole/pruefung.png?f=87f6c245)}
+.sym.sym-werkstatt{-webkit-mask-image:url(symbole/werkstatt.png?f=87f6c245);mask-image:url(symbole/werkstatt.png?f=87f6c245)}
+.sym.sym-lernpfad{-webkit-mask-image:url(symbole/lernpfad.png?f=87f6c245);mask-image:url(symbole/lernpfad.png?f=87f6c245)}
+.sym.sym-loesungen{-webkit-mask-image:url(symbole/loesungen.png?f=87f6c245);mask-image:url(symbole/loesungen.png?f=87f6c245)}
 
 @media (max-width:760px){
   .material{grid-template-columns:1fr}
@@ -507,9 +1049,48 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 .landkarte .feld-unterlage:hover{border-color:var(--matt)}
 
 /* ---------- Etappe: Video links, Arbeit rechts ---------- */
-.etappe{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,1fr);
+/* Zwei Spalten, und die Arbeitsspalte reicht ueber beide Zeilen: Das
+   Applet steht unter dem Video, die Aufgabe daneben bleibt stehen. */
+/* **Die Arbeitsspalte rechnet sich ihre Breite aus.** Rike, 24.08.2026,
+   an Aufgabe II.3: «Ich bin dafuer keine feste Breite zu bauen sondern
+   zu schauen wie die benoetigte Breite berechnet werden kann.»
+
+   Vorher stand hier `minmax(300px,1fr)`. Bei 920 px Fensterbreite ergab
+   das 342 px fuer eine Loesung, die 442 braucht — der Text lief aus dem
+   weissen Feld. Sichtbar wurde es erst in der Durchsicht, weil deren
+   Leiste das Fenster schmaler macht; bei 1280 px faellt es nicht auf.
+
+   `min-content` ist genau die gesuchte Rechnung: die Breite, unter die
+   der Inhalt nicht mehr passt — bei Fliesstext das laengste Wort, bei
+   einer Formel die Formel. Der Film bekommt dafuer einen Boden, damit
+   er nicht auf null schrumpft. */
+/* **Das Applet laeuft ueber die ganze Seite.** Rike, 25.08.2026:
+   «Wenn das GeoGebra-Applet unterhalb des Videos UND der daneben
+   liegenden Spalte komplett ueber die ganze Seite laeuft. Dann haben
+   wir einfach ein riesiges, grosses, breites GeoGebra-Applet.»
+
+   Bis hierher stand die Buehne nur unter dem Video, in der linken
+   Spalte — halb so breit, und die Applets, die bloss zum Video
+   gehoeren, hingen ausserdem rechts in der schmalen Spalte. Zwei Orte
+   fuer dasselbe. Jetzt einer, und der ist so breit wie die Seite. */
+.etappe{display:grid;grid-template-columns:minmax(240px,1.35fr) minmax(min-content,1fr);
+     grid-template-areas:"film arbeit" "applet applet";
+     grid-template-rows:auto auto;
      gap:24px;align-items:start;margin:18px 0 0}
+.etappe > .film{grid-area:film}
+.etappe > .arbeit{grid-area:arbeit}
+.etappe > .applet-buehne{grid-area:applet}
+/* **Das Video bleibt stehen, solange es allein steht.** Es klebt oben,
+   damit man beim Lesen der Aufgabe nicht das Bild verliert.
+
+   Sobald aber ein GeoGebra-Feld darunter offen ist, ist Kleben
+   schaedlich: Das Video schiebt sich beim Scrollen ueber das Applet
+   und verdeckt es. Vorher fiel das nicht auf, weil das Applet INNERHALB
+   des klebenden Kastens lag; seit es ein Geschwister ist (damit es im
+   engen Fenster hinter die Aufgabe rutschen kann), liegen sie
+   uebereinander (Henrike, 22.08.). */
 .film{position:sticky;top:60px}
+.etappe:has(.applet-buehne > .faltung:not([hidden])) .film{position:static}
 .etappe .rahmen{position:relative;padding-top:56.25%;background:var(--tinte);
      border:1px solid var(--linie)}
 .etappe .rahmen iframe,.etappe .rahmen video{position:absolute;inset:0;
@@ -536,14 +1117,40 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 .arbeit .marken .zeit{color:var(--matt);font-size:12px;
      font-variant-numeric:tabular-nums}
 .arbeit .marken button[aria-current="true"] .zeit{color:rgba(255,255,255,.85)}
+/* **Kein Farbstreifen mehr an der Tafel.** Rike, 25.08.2026: «Dieses
+   weisse Feld auf der rechten Seite, in dem die Einblendungen
+   passieren, hat immer noch an der linken Stelle so einen blauen
+   Highlightstreifen. Den haette ich gerne weg, weil wir generell schon
+   relativ viel Farbe haben und die Farbe wechselt.»
+
+   Die Kapitelfarbe steht jetzt ohnehin am Kasten darin und am offenen
+   Reiter darueber. Ein dritter Traeger derselben Farbe, dreissig Pixel
+   daneben, sagt nichts Neues. */
 .tafel{background:var(--karte);border:1px solid var(--linie);
-     border-left:3px solid var(--akzent);border-radius:0 8px 8px 0;
-     padding:12px 15px;margin-bottom:14px}
+     border-radius:8px;padding:12px 15px;margin-bottom:14px}
 .tafel[hidden]{display:none}
 .tafel > h3{font-family:var(--hand);font-weight:400;font-size:19px;
      margin:0 0 8px;display:flex;align-items:baseline;gap:10px}
 .tafel > h3 .zeit{margin-left:auto;font-family:var(--druck);font-size:12.5px;
      color:var(--matt)}
+/* Ein Bild, das im Skript selbst verzerrt ist, wird beim Anzeigen
+   geradegebogen: `aspect-ratio` gibt das berichtigte Verhaeltnis vor,
+   `object-fit:fill` zieht das Bild hinein — genau die Verzerrung, nur
+   rueckwaerts. Gemessen steht sie in `bauen/module/bildmasse.json`. */
+img.gerichtet{object-fit:fill;width:100%;height:auto}
+
+/* **Bilder sind so breit, wie das Skript sie haben will.** Die
+   `\includegraphics[width=.3\textwidth]`-Angabe aus dem LaTeX steht
+   jetzt als `--bildbreite` am `<figure>`. Ohne Angabe gilt 0.55 —
+   Rike, 25.08.2026: «Ich wuerde ungefaehr auf 0.5 bzw. 0.6
+   Streckfaktor gehen.»
+
+   Gemessen wird an der Spalte, in der das Bild steht, nicht an der
+   Seite: In der schmalen Arbeitsspalte ist ein Drittel etwas anderes
+   als unter dem Video. */
+figure[style*="--bildbreite"]{width:calc(100% * var(--bildbreite));
+     margin-inline:auto}
+figure[style*="--bildbreite"] img{width:100%;height:auto}
 .tafel img{max-width:100%}
 .ruhig{color:var(--matt);font-size:14.5px;background:var(--creme);
      border-radius:8px;padding:14px 16px}
@@ -563,7 +1170,12 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 /* ---------- Wegweiser ---------- */
 
 @media (max-width:900px){
-  .etappe{grid-template-columns:1fr}
+  /* **Im engen Fenster hinter die Aufgabe.** Gestapelt lautete die
+     Reihenfolge Video → GeoGebra → Aufgabe; ein geoeffnetes Applet
+     schob damit die Aufgabe um bis zu 560 Pixel nach unten. Jetzt
+     zuletzt: erst lesen, dann rechnen. */
+  .etappe{grid-template-columns:1fr;
+     grid-template-areas:"film" "arbeit" "applet"}
   .film{position:static}
   .landkarte .feld .wort{display:none}
 }
@@ -674,12 +1286,29 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
    Sie stehen in einem Kasten; hier wird zwischen ihnen geblaettert.
    Einzeln behandelt sprang die Anzeige sofort zur letzten, und die
    davor sah niemand. */
+/* **Die Reiter tragen die Farbe ihres Inhalts, hell.** Rike,
+   24.08.2026: «Jetzt gefaellt mir das Button-Layout darueber nicht
+   mehr. So wirkt es zu markant und dominant. … Farbe des Buttons an
+   den Inhalt angleichen: Wenn der Kasten unten gelb ist, dann der
+   Button oben auch, und das dann in einer der helleren
+   Schattierungen. Das ist gut. Schlagschatten verworfen.»
+
+   Also: kein Rand, keine Vollfarbe, kein Schatten. Der offene Reiter
+   ist eine blasse Toenung derselben Farbe, die der Kasten darunter
+   traegt; die geschlossenen bleiben unscheinbar. */
 .blaetter{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
-.blaetter button{font:inherit;font-size:12.5px;padding:3px 10px;border-radius:6px;
-     border:1px solid var(--linie);background:var(--papier);cursor:pointer;
-     color:var(--matt)}
-.blaetter button[aria-current="true"]{background:var(--akzent);color:#fff;
-     border-color:var(--akzent)}
+/* `data-farbe` setzt weiter oben schon `--akzent` um. Der Reiter muss
+   die Farbe deshalb nicht selbst kennen — er nimmt einfach die, die an
+   ihm gilt. Traegt er kein `data-farbe`, ist das die Kapitelfarbe, und
+   die ist genau die des Aufgabenkastens darunter. */
+.blaetter button{--kf:var(--akzent);
+     font:inherit;font-size:12.5px;padding:4px 11px;border:0;border-radius:5px;
+     background:transparent;cursor:pointer;color:var(--matt)}
+.blaetter button:hover{background:color-mix(in srgb,var(--kf) 10%,transparent)}
+.blaetter button[aria-current="true"]{
+     background:color-mix(in srgb,var(--kf) 20%,#fff);
+     color:color-mix(in srgb,var(--kf) 75%,var(--tinte));
+     font-weight:500}
 .blatt[hidden]{display:none}
 .blatt > h4{margin:0 0 6px;font-family:var(--hand);font-weight:400;font-size:16px;
      color:var(--tinte)}
@@ -720,9 +1349,48 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
   --weg-ast:12px;           /* Laenge des Astes zu einer Abzweigung */
 }
 
+/* **Hilfe und Bonus in der Verlaengerung der Ueberschrift.** Rike,
+   25.08.2026: «Ganz rechtsbuendig, da wuerde ich den Weg zur Hilfe und
+   den Weg zu den Bonussen auflisten.» Zweimal dasselbe wie die Marken
+   im Band — mit Absicht: Eine 16-Pixel-Marke uebersieht man, eine Zeile
+   mit Namen nicht. */
+/* **Knoepfe, nicht eine Liste.** Rike, 25.08.2026: «Ich wuerde es eher
+   als Buttons setzen, damit ein Wiedererkennungswert zu den Kaestchen
+   ist, die wir an die anderen Buttons kleben.» Und weil an einer Etappe
+   bis zu vier Zweige haengen: «Dann wuerde ich oben zwei und unten zwei
+   einbringen» — das macht `flex-wrap` von selbst, sobald es eng wird. */
+.film > .nebenbei{display:flex;flex-wrap:wrap;justify-content:flex-end;
+     gap:5px;margin:10px 0 0}
+.nebenbei .nebendran{display:inline-flex;align-items:center;gap:6px;
+     padding:4px 10px 4px 7px;border-radius:7px;
+     font-family:var(--druck);font-size:12px;line-height:1.15;
+     text-decoration:none;
+     color:color-mix(in srgb, var(--akzent) 82%, var(--tinte));
+     background:var(--karte);
+     border:1.5px solid color-mix(in srgb, var(--akzent) 55%, #fff);
+     transition:background .1s, border-color .1s}
+/* Der Rueckweg steht vorn und traegt die Kapitelfarbe voll — er ist
+   kein Angebot neben dem Weg, sondern der Weg selbst. */
+.nebenbei .nebendran.heimweg{background:var(--akzent);color:#fff;
+     border-color:var(--akzent);order:-1}
+.nebenbei .nebendran.heimweg .zg{border-color:rgba(255,255,255,.55);
+     background:transparent;color:#fff}
+.nebenbei .nebendran.heimweg:hover{background:var(--akzent);
+     filter:brightness(1.08)}
+/* **Wo man steht, auch wenn es eine Hilfe ist.** */
+.zeitstrahl .wegmarke[aria-current="page"]{background:var(--akzent);
+     color:#fff;border-color:var(--akzent)}
+.nebenbei .nebendran.frei{border-style:dashed}
+.nebenbei .nebendran:hover{
+     background:color-mix(in srgb, var(--akzent) 16%, #fff);
+     border-color:var(--akzent)}
+.nebenbei .nebendran .zg{flex:0 0 auto;display:grid;place-items:center;
+     font-size:11px}
+.nebenbei .nebendran svg{display:block}
+
 .zeitstrahl{margin:16px 0 26px;
-     width:calc(100vw - 2.5rem);
-     margin-left:calc(50% - 50vw + 1.25rem)}
+     width:calc(100vw - 2.5rem - var(--randstreifen,0px));
+     margin-left:calc(50% - 50vw + 1.25rem + var(--randstreifen,0px)/2)}
 .zeitstrahl .obenreihe{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
 .zeitstrahl .obenreihe .randfeld{min-height:34px;padding:6px 14px;font-size:13px;
      border-radius:8px}
@@ -731,7 +1399,11 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
    (seite.js), statt umzubrechen oder zum Schieben zu zwingen. Beides
    war unruhig: Beim Verkleinern sprangen Kaesten in die naechste
    Zeile, und Schieben verdeckt die Haelfte des Weges. */
-.zeitstrahl .feld{overflow:hidden}
+/* **Die Blase darf ueber den Rand.** Rike: «Wenn da Etappe drei so
+   steht, dann ist es komplett abgeschnitten.» `overflow:hidden` schnitt
+   sie ab; `clip` mit einem Rand laesst genau so viel durch, wie eine
+   Blase braucht, und haelt trotzdem die Strecke im Zaum. */
+.zeitstrahl .feld{overflow:clip;overflow-clip-margin:30px}
 /* Die Sollbreite ist die der **breitesten** Station (zugang.py rechnet
    sie aus). Dadurch faellt in jeder Station derselbe Massstab an und
    die Kacheln sind ueberall gleich gross. Was an Platz uebrig bleibt,
@@ -754,49 +1426,167 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 .zeitstrahl .abschnitt .wort{font-family:var(--hand);font-weight:400;
      font-size:14.5px;color:var(--matt);white-space:nowrap}
 
-/* Eine Reihe je Kasten. Jede Spalte traegt oben ihre Kachel und
-   darunter, was von ihr abzweigt. Alle Spalten sind gleich tief —
-   sonst waeren die Kaesten wieder verschieden hoch. */
-.zeitstrahl .reihe{display:flex;align-items:flex-start}
-.zeitstrahl .stelle{flex:0 0 auto;display:flex;flex-direction:column;
-     align-items:center;min-width:var(--weg-kachel-b);
-     min-height:calc(var(--weg-zweig-tief) * var(--weg-kachel-h)
-                   + (var(--weg-zweig-tief) - 1) * var(--weg-ast))}
-/* Was von einer Kachel abzweigt, haengt an einem kurzen Ast unter ihr —
-   in einer Spalte, oder zu zweit, wenn die Kachel allein im Kasten
-   steht und viel daranhaengt. */
-/* Zwei Spalten Abzweigung wuerden die Stelle breiter machen als ihre
-   Kachel — dann sitzt die Kachel mittig und der Strich trifft sie
-   nicht mehr. Der Fall kommt nur vor, wenn eine Kachel allein im
-   Kasten steht; dann ist rundum Platz, und das Gitter darf ueber die
-   Spalte hinausragen, ohne etwas zu verdecken. */
-.zeitstrahl .stelle:has(.aeste.zweispaltig){position:relative}
-.zeitstrahl .aeste.zweispaltig{position:absolute;top:100%;left:50%;
-     transform:translateX(-50%)}
-.zeitstrahl .aeste{position:relative;display:grid;justify-content:center;
-     grid-template-columns:repeat(var(--sp,1), var(--weg-kachel-b));
-     gap:var(--weg-ast) 8px;margin-top:var(--weg-ast)}
-.zeitstrahl .aeste::before{content:"";position:absolute;
-     left:calc(50% - 1px);top:calc(-1 * var(--weg-ast));
-     width:2px;height:var(--weg-ast);background:var(--akzent);opacity:.55}
-/* Auch die zweite und dritte Abzweigung haengt sichtbar an dem, was
-   ueber ihr steht — sonst schwebt sie frei. Bei zwei Spalten sind das
-   die Kacheln ab der dritten. */
-.zeitstrahl .aeste.einspaltig > .halt:not(:first-child)::before,
-.zeitstrahl .aeste.zweispaltig > .halt:nth-child(n+3)::before{
-     content:"";position:absolute;left:calc(50% - 1px);
-     top:calc(-1 * var(--weg-ast));width:2px;height:var(--weg-ast);
-     background:var(--akzent);opacity:.55}
+/* ---------- Eine Zeile, keine Zweige ----------
+   Rike, 25.08.2026, zur gewaehlten Fassung: «Dann brauchen wir effektiv
+   gar keine Striche mehr, dann wandern wir einfach von links nach
+   rechts durch. Wir koennen wirklich das mit dunkel hervorheben und mit
+   hell … und koennen die Hilfe und die Bonusstellen entweder unten oder
+   oben anhaengen, je nachdem, ob sie vorher oder nachher angeschaut
+   werden sollen.»
+
+   Damit loesen sich drei Dinge auf einmal:
+
+   1. **Der Weg wird flach.** Vorher hielt JEDE Spalte Platz fuer zwei
+      zusaetzliche Kachelhoehen frei, auch ohne Abzweigung — sonst
+      sassen die Kacheln auf verschiedener Hoehe und die Striche trafen
+      daneben. Ein Weg mit neunzehn Halten wurde dreimal so tief wie
+      noetig, und genau der rutschte unter einem geoeffneten Applet aus
+      dem Blick.
+   2. **Die Striche verschwinden** — und mit ihnen die Fehler, die Rike
+      viermal gemeldet hat («die Striche sind falsch», «der Lernpfad ist
+      kaputt, wenn die Hilfe oberhalb der Etappe liegt»). Was von links
+      nach rechts steht, braucht keine Linie, die das noch einmal sagt.
+   3. **Vorher und nachher ist ablesbar**, statt aus der Richtung eines
+      Astes erschlossen zu werden. */
+/* Der Platz fuer die ueberstehenden Marken wird an der REIHE
+   freigehalten, nicht an der Stelle: So bleibt der Kasten der Stelle
+   genau die Kachel, und die Marke laesst sich an deren Kante haengen —
+   halb darauf, halb darueber. Rike, 25.08.2026: «Im Moment kleben die,
+   die oben sind, nicht oben an der Zeile, sondern die kleben so in der
+   Box drin.» */
+.zeitstrahl .reihe{display:flex;align-items:center;padding:15px 0}
+.zeitstrahl .stelle{flex:0 0 auto;position:relative;
+     display:flex;flex-direction:column;align-items:center;
+     min-width:var(--weg-kachel-b)}
+/* **`.wegmarken`, nicht `.marken`.** Der Name war schon vergeben: Die
+   Zeitmarkenleiste neben dem Video heisst `<ul class="marken">` und
+   traegt `margin-top:10px`. Der erbte still mit und schob jede Marke um
+   zehn Pixel nach unten — genau das, was Rike als «die kleben so in der
+   Box drin» gesehen hat. Zwei Dinge mit demselben Namen sind keine
+   Kleinigkeit; sie werden es nur, wenn man sie frueh auseinanderhaelt. */
+/* **Die Marken bleiben in der Breite ihrer Kachel.** Rike, 25.08.2026:
+   «Die Kaestchen, die in einem Abschnitt sind, sollten auch immer
+   vollstaendig da drin sein und schoen mittig gesetzt.» Vier Marken zu
+   18 Pixeln waren breiter als die 80 Pixel der Kachel und ragten am
+   Rand aus dem Kasten heraus. Bei 16 Pixeln und 2 Pixeln Zwischenraum
+   passen vier in 70 — und mehr als vier gibt es nirgends. */
+.zeitstrahl .wegmarken{position:absolute;display:flex;gap:2px;z-index:3;
+     margin:0;padding:0;max-width:var(--weg-kachel-b)}
+/* **Angeklebt statt aufgelegt, und aussen buendig statt mittig.** Rike,
+   25.08.2026: «Wir nehmen quasi die Variante drei, angeklebter Reiter,
+   aber erstens mit dem Layout von fuenf und zweitens auch unten
+   rechtsbuendig und nicht mittig und oben linksbuendig und nicht
+   mittig.»
+   Der Reiter sitzt AN der Kante, nicht darauf — nichts woelbt sich mehr
+   in die Kachel, und ihre Aufschrift bleibt frei. Das war Rikes
+   eigentlicher Einwand gegen die Kreise: «Das Hauptproblem ist, dass
+   sie den Titel der Kachel ueberdecken.» */
+.zeitstrahl .wegmarken.oben{bottom:100%;left:2px}
+.zeitstrahl .wegmarken.unten{top:100%;right:2px}
+.zeitstrahl .wegmarke{width:15px;height:15px;flex:0 0 auto;
+     display:grid;place-items:center;text-decoration:none;
+     font-size:10px;line-height:1;position:relative;
+     background:var(--karte);
+     border:1.5px solid color-mix(in srgb, var(--akzent) 55%, #fff);
+     color:color-mix(in srgb, var(--akzent) 82%, var(--tinte));
+     transition:transform .1s, box-shadow .1s, background .1s}
+/* Aussen gerundet, innen eckig — dadurch sieht man, dass der Reiter an
+   der Kachel klebt und nicht daneben liegt. */
+/* **Eckig, ganz eckig.** Rike, 25.08.2026: «Bitte die Ecken dieser
+   Hilfsetappen- und Bonus-Kaestchen nicht abgerundet.» Zur Kachel hin
+   fehlt ausserdem der Rand — dadurch sieht man, dass das Kaestchen an
+   ihr klebt und nicht daneben liegt. */
+.zeitstrahl .wegmarke{border-radius:0}
+.zeitstrahl .wegmarken.oben .wegmarke{border-bottom:0}
+.zeitstrahl .wegmarken.unten .wegmarke{border-top:0}
+/* **Beide mit durchgezogener Linie.** Rike, 25.08.2026: «Bei
+   Hilfsetappen- und Bonus-Kaestchen beide bitte mit durchgezogener
+   Linie — sie unterscheiden sich schon durchs Icon.» Der gestrichelte
+   Rand kam aus der alten Kachelsprache, wo es kein Zeichen gab und die
+   Form allein unterscheiden musste. */
+.zeitstrahl .wegmarke:hover,.zeitstrahl .wegmarke:focus-visible{
+     background:color-mix(in srgb, var(--akzent) 18%, #fff);
+     border-color:var(--akzent);outline:none}
+.zeitstrahl .wegmarke svg{display:block}
+/* **Der Kurztitel ploppt auf.** Rike: «dass man dann schon auch den
+   Kurztitel dazu lesen kann». `title` allein taete es nicht — der
+   Browser laesst sich Sekunden Zeit damit, und auf der Tastatur
+   erscheint er gar nicht. */
+.zeitstrahl .blase{position:absolute;left:50%;transform:translateX(-50%);
+     bottom:calc(100% + 6px);white-space:nowrap;
+     background:var(--tinte);color:#fff;font-size:11px;line-height:1.3;
+     padding:3px 8px;border-radius:5px;pointer-events:none;
+     opacity:0;visibility:hidden;transition:opacity .12s}
+.zeitstrahl .wegmarken.unten .blase{bottom:auto;top:calc(100% + 5px)}
+.zeitstrahl .wegmarke:hover .blase,.zeitstrahl .wegmarke:focus-visible .blase{
+     opacity:1;visibility:visible}
+
+/* **Zurueck und weiter, an den Enden des Bandes.** Rike, 25.08.2026:
+   «Weiter und zurueck machen wir schon nicht ganz unten, weil da sieht
+   man sie eh nicht, sondern die muessen in diese Wegleiste integriert
+   werden.» Beschriftet, nicht nur ein Zeichen: Ein blosser Pfeil sagt
+   nicht, ob er eine Etappe weiter geht oder aus dem Kapitel heraus. */
+.zeitstrahl .wegknopf{flex:0 0 auto;
+     width:30px;height:30px;display:grid;place-items:center;
+     border-radius:8px;text-decoration:none;line-height:1;
+     color:color-mix(in srgb, var(--akzent) 82%, var(--tinte));
+     background:var(--karte);border:1px solid var(--linie);
+     transition:transform .1s, box-shadow .1s, border-color .1s}
+.zeitstrahl .wegknopf .pf{font-size:17px;line-height:1;display:grid;
+     place-items:center}
+.zeitstrahl .wegknopf:hover{transform:translateY(-1px);
+     border-color:var(--akzent);box-shadow:0 2px 8px rgba(45,41,36,.18)}
+/* **An beiden Enden ein Stapel aus zwei Knoepfen.** Oben der Pfeil,
+   buendig mit der oberen Kante der Abschnitte; unten links die
+   Startseite, unten rechts der Abschluss. Rike, 25.08.2026: «So gefaellt
+   mir das. Das moechte ich so haben, bitte.» */
+.zeitstrahl .wegende{flex:0 0 auto;align-self:stretch;
+     display:flex;flex-direction:column;padding-bottom:9px}
+/* Der untere Knopf haengt an der unteren Kante — auch dann, wenn der
+   obere fehlt. Auf der letzten Etappe gibt es kein «weiter» mehr, und
+   `space-between` haette den Abschluss nach oben rutschen lassen. */
+.zeitstrahl .wegknopf.heim,.zeitstrahl .wegknopf.abschluss{margin-top:auto}
+.zeitstrahl .wegende.links{margin-right:12px}
+.zeitstrahl .wegende.rechts{margin-left:12px}
+.zeitstrahl .strecke{align-items:stretch}
+/* Der Abschluss ist keine Etappe, sondern das, was nach allen Etappen
+   kommt — deshalb die Zielfahne und die Didaktikfarbe. */
+/* Die Startseite ist kein Schritt auf dem Weg, sondern ein Ausstieg —
+   deshalb ruhiger als die Pfeile. */
+.zeitstrahl .wegknopf.heim{color:var(--matt);font-size:16px}
+.zeitstrahl .wegknopf.abschluss{
+     background:color-mix(in srgb, var(--didaktik) 12%, #fff);
+     border-color:color-mix(in srgb, var(--didaktik) 42%, #fff);
+     color:var(--didaktik)}
+.zeitstrahl .wegknopf.abschluss[aria-current="page"]{
+     background:var(--didaktik);color:#fff;border-color:var(--didaktik)}
 
 /* Abgerundete Rechtecke, alle gleich gross. */
+/* **Die Aufschrift muss lesbar sein, immer.** Hier stand
+   `hyphens:none`, und damit lief jedes lange Wort aus der Kachel:
+   «Optimierungsprobleme» stand als «Optimierungspro» da, «Das
+   Zerlegungsprinzip» verlor das p. Eine Kachel, die nicht sagt, wohin
+   sie fuehrt, ist keine Kachel (Henrike, 22.08.).
+
+   Getrennt wird jetzt nach deutschen Regeln — `lang="de"` steht im
+   `<html>`-Element, der Browser kann das. `break-word` faengt ab, was
+   auch getrennt nicht passt; besser ein harter Umbruch als ein
+   abgeschnittenes Wort. */
 .zeitstrahl .halt{display:grid;place-items:center;text-align:center;
-     hyphens:none;-webkit-hyphens:none;
+     hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word;
      text-decoration:none;line-height:1.14;overflow:hidden;border-radius:8px;
      width:var(--weg-kachel-b);height:var(--weg-kachel-h);font-size:10.5px;
      line-height:1.12;padding:2px 5px;position:relative;
      transition:transform .1s,box-shadow .1s}
-.zeitstrahl .halt.voll{background:var(--akzent);color:#fff;
-     box-shadow:0 1px 2px rgba(45,41,36,.14)}
+/* **Hell sind die uebrigen, dunkel ist die Stelle.** Rike, 25.08.2026:
+   «Wir koennen quasi mit hellblau und dunkelblau oder hellgruen und
+   dunkelgruen arbeiten und sehen dann durch das Dunkle immer: da sind
+   wir jetzt gerade.» Aus dem Akzent gemischt, nicht fest gesetzt —
+   sonst waere der Weg in jedem Kapitel blau. */
+.zeitstrahl .halt.voll{
+     background:color-mix(in srgb, var(--akzent) 14%, #fff);
+     color:color-mix(in srgb, var(--akzent) 88%, var(--tinte));
+     box-shadow:none}
 /* Aus dem Akzent gemischt, nicht fest gesetzt — sonst waere die Hilfe
    in jeder Station blau. Die Schrift wird leicht zur Tinte hin
    abgedunkelt; sonst steht das helle Orange von Station III zu blass
@@ -807,16 +1597,49 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
      border:1.5px dashed var(--akzent)}
 .zeitstrahl .halt:hover{transform:translateY(-1px);
      box-shadow:0 3px 10px rgba(45,41,36,.24)}
-/* **Wo bin ich?** Ein schwarzer Rand allein reichte nicht — er ging
-   zwischen den vielen Kacheln unter. Jetzt steht ein Zeiger darueber,
-   und der Ring hat aussen einen hellen Saum, damit er auch auf
-   dunklem Grund traegt. */
+/* **Wo bin ich?** Frueher ein schwarzer Ring mit einem Zeiger darueber
+   — Rike: «der schwarze Kasten ist der lauteste Ton auf einer sonst
+   ruhigen Seite». Jetzt macht der Kontrast die Arbeit: alles hell, die
+   Stelle voll in der Kapitelfarbe. Kein Ring, kein Zeiger, kein
+   Fremdton. */
 .zeitstrahl .halt[aria-current="page"]{
-     box-shadow:0 0 0 2.5px var(--karte), 0 0 0 5px var(--tinte)}
-.zeitstrahl .halt[aria-current="page"]::after{content:"";position:absolute;
-     left:50%;top:-11px;transform:translateX(-50%);
-     border:5px solid transparent;border-top:6px solid var(--tinte);
-     border-bottom:0}
+     background:var(--akzent);color:#fff;
+     box-shadow:0 2px 8px rgba(45,41,36,.20)}
+
+/* ---------- Die Legende unter dem Weg ----------
+   Rike am 23.08.: Die drei Sorten sollen auf der Einstiegsseite jedes
+   Kapitels erklaert stehen, «damit sie das im Blick oder im Griff
+   haben». Sie steht nur dort — auf den Etappenseiten waere sie ein
+   Wiederholungszwang, und der Weg ist dort ohnehin klein gesetzt.
+
+   Die Muster sind dieselben Formen wie die Kacheln, nur kleiner: Wer
+   die Legende liest, soll das Gezeigte wiedererkennen und nicht erst
+   uebersetzen. Sie erben denselben `--akzent` wie der Weg darueber,
+   also traegt die Legende in jedem Kapitel dessen Farbe. */
+.weglegende{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px;
+     margin:10px 2px 0;font-size:12px;color:var(--leise, #6b625a)}
+.weglegende b{font-weight:600;color:inherit}
+.weglegende .stueck{display:inline-flex;align-items:center;gap:7px}
+.weglegende .muster{width:30px;height:15px;border-radius:5px;flex:none}
+.weglegende .muster.jetzt{background:var(--akzent)}
+.weglegende .muster.voll{background:color-mix(in srgb, var(--akzent) 14%, #fff)}
+.weglegende .muster.marke{width:15px;height:15px;border-radius:0;
+     display:grid;place-items:center;font-size:10.5px;
+     background:var(--karte);
+     border:1.5px solid color-mix(in srgb, var(--akzent) 55%, #fff);
+     color:color-mix(in srgb, var(--akzent) 82%, var(--tinte))}
+/* Ein Miniaturbild der Anordnung: Kachel mit einer Marke oben und
+   einer unten. Wer es sieht, hat die Regel verstanden. */
+.weglegende .muster.stelle-oben{position:relative;width:30px;height:15px;
+     border-radius:5px;background:color-mix(in srgb, var(--akzent) 14%, #fff)}
+/* Das Miniaturbild zeigt jetzt dieselbe Anordnung wie der Weg: oben
+   links angeklebt, unten rechts. */
+.weglegende .muster.stelle-oben::before,
+.weglegende .muster.stelle-oben::after{content:"";position:absolute;
+     width:8px;height:8px;background:var(--karte);
+     border:1.5px solid color-mix(in srgb, var(--akzent) 55%, #fff)}
+.weglegende .muster.stelle-oben::before{top:-8px;left:2px;border-bottom:0}
+.weglegende .muster.stelle-oben::after{bottom:-8px;right:2px;border-top:0}
 
 /* Der Strich laeuft von Kachel zu Kachel — innerhalb eines Kastens und
    ueber seine Grenze hinweg, immer auf derselben Hoehe. */
@@ -824,9 +1647,10 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 /* Am aeusseren Ende des ganzen Weges hat der Strich nichts zu suchen. */
 .zeitstrahl .abschnitt:first-child .strich.rand:first-child,
 .zeitstrahl .abschnitt:last-child .strich.rand:last-child{background:none}
-.zeitstrahl .strich{flex:0 0 18px;height:2px;
-     background:var(--akzent);opacity:.55;align-self:flex-start;
-     margin-top:calc(var(--weg-kachel-h) / 2 - 1px)}
+/* Der Platzhalter bleibt — er haelt den Abstand zwischen den Kacheln —,
+   aber er zeichnet nichts mehr. Rike, 25.08.2026: «Die Striche, die
+   zwischen den einzelnen Etappen laufen, wirklich weg, bitte.» */
+.zeitstrahl .strich{flex:0 0 14px;height:0;background:none}
 /* Zwischen zwei Kaesten soll der Strich **von Kachel zu Kachel** laufen,
    nicht von Kastenkante zu Kastenkante. Er zieht deshalb ueber den
    Innenrand und den Rahmen beider Kaesten hinweg. Der Platzhalter
@@ -838,27 +1662,25 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
    Pixel ueber dem Strich in ihnen — auf dem cremefarbenen Grund gut
    zu sehen, und genau das, was G4 verbietet. */
 .zeitstrahl{--weg-rahmen:1px}
-.zeitstrahl .strich.zwischen{align-self:flex-start;flex:1 1 24px;
-     min-width:24px;
-     background:none;position:relative;z-index:2;
-     margin-top:calc(var(--weg-rahmen) + var(--weg-rand) + var(--weg-kopf-h)
-                     + var(--weg-luft) + var(--weg-kachel-h) / 2 - 1px)}
+.zeitstrahl .strich.zwischen{flex:1 1 20px;min-width:20px;background:none}
 /* **Überlappen, nicht aneinanderstossen.** Der Strich besteht aus drei
    Stücken: zwei in den Kästen, eines dazwischen. Stossen sie genau
    aneinander, bleibt durch die Skalierung des ganzen Weges an jeder
    Kastenkante ein Rundungsspalt von einem Pixel — und der ist auf dem
    cremefarbenen Grund gut zu sehen. Vier Pixel Übergriff kosten
    nichts: Es ist dieselbe Farbe auf derselben Höhe. */
-.zeitstrahl .strich.zwischen::after{content:"";position:absolute;top:0;
-     left:calc(-1 * var(--weg-innen) - 4px);
-     right:calc(-1 * var(--weg-innen) - 4px);
-     height:2px;background:var(--akzent);opacity:.55}
+.zeitstrahl .strich.zwischen::after{content:none}
 
 /* ---------- Der schmale Weg auf den Etappenseiten ---------- */
+/* **Kein Trennstrich mehr darueber.** Er stand da, solange der Weg
+   unten am Seitenende hing und sich vom Inhalt absetzen musste. Jetzt
+   steht er ganz oben, direkt unter der Kopfzeile — dort trennt er
+   nichts, er liegt nur quer. Rike, 25.08.2026: «Diese schmale Linie da
+   oben, die gehoert da eigentlich auch nicht hin.» */
 .zeitstrahl.klein{--weg-kachel-h:38px;--weg-kachel-b:80px;--weg-kopf-h:18px;
      --weg-luft:7px;--weg-rand:8px;
-     margin:26px 0 0;padding-top:14px;border-top:1px solid var(--linie);
-     width:calc(100vw - 2.5rem);margin-left:calc(50% - 50vw + 1.25rem)}
+     margin:6px 0 18px;padding-top:0;border-top:0;
+     width:calc(100vw - 2.5rem - var(--randstreifen,0px));margin-left:calc(50% - 50vw + 1.25rem + var(--randstreifen,0px)/2)}
 .zeitstrahl.klein .abschnitt{padding:var(--weg-rand) 9px calc(var(--weg-rand) + 2px);
      margin-bottom:9px}
 .zeitstrahl.klein .abschnitt .wort{font-size:12px}
@@ -903,7 +1725,7 @@ ol.klammer-1 > li::before{content:"(" counter(pos) ")"}
    darueber laeuft ueber die ganze Seite; standen die Pfeile am
    Textrand, zeigten sie nicht auf die Enden des Weges. */
 .wegweiser{display:flex;align-items:flex-start;gap:12px;
-     width:calc(100vw - 2.5rem);margin-left:calc(50% - 50vw + 1.25rem);
+     width:calc(100vw - 2.5rem - var(--randstreifen,0px));margin-left:calc(50% - 50vw + 1.25rem + var(--randstreifen,0px)/2);
      margin-top:16px;margin-bottom:10px;
      padding-top:14px;border-top:1px solid var(--linie)}
 .wegweiser .links{flex:1 1 0;display:flex;justify-content:flex-start}
@@ -912,7 +1734,14 @@ ol.klammer-1 > li::before{content:"(" counter(pos) ")"}
 .wegweiser .rechts{flex:1 1 0;display:flex;justify-content:flex-end}
 .wegweiser .knopf{border-radius:8px;min-height:40px;min-width:112px;
      display:inline-flex;align-items:center;justify-content:center;gap:7px}
-.wegweiser .weiter{background:var(--akzent);color:#fff;border-color:var(--akzent)}
+/* **Der Wegweiser traegt die KAPITELfarbe, nicht die Seitenfarbe.**
+   Rike, 24.08.2026: «Abschlussbutton muesste (in allen Kapiteln) nicht
+   rot sondern Kapitel-Farbe haben.» Rot war er auf der Seite «Bezug zur
+   Schulpraxis»: Die traegt `data-farbe="didaktik"`, weil ihr INHALT
+   didaktisch ist — und faerbte damit auch den Weiter-Knopf um. Die
+   Zugehoerigkeit zum Kapitel aendert sich davon aber nicht. */
+.wegweiser .weiter{background:var(--kapitelfarbe,var(--akzent));color:#fff;
+     border-color:var(--kapitelfarbe,var(--akzent))}
 .wegweiser .beiseite{border-style:dashed;min-width:96px}
 .wegweiser .pfeil{font-size:15px;line-height:1}
 
@@ -924,9 +1753,16 @@ ol.klammer-1 > li::before{content:"(" counter(pos) ")"}
 
 /* Bemerkungen zu einer Einblendung — sie stehen unter der Tafel und
    gelten fuer alle Blaetter darin, nicht fuer eines allein. */
-.tafel .nachsatz{margin-top:12px;padding-top:10px;
-     border-top:1px solid var(--linie);font-size:14px;color:var(--matt)}
-.tafel .nachsatz p{margin:.3em 0}
+/* **Die Fussnote zur Aufgabe.** Rike, 24.08.2026: «Bei solchen
+   Kommentaren bitte immer als Hinweis setzen, so wie eine Footnote —
+   und die Footnote aber UEBER den Buttons Starthilfe etc.» Sie steht
+   deshalb zwischen Aufgabentext und Knopfreihe, kleiner und ruhiger als
+   die Aufgabe, mit einem kurzen Strich davor wie eine Anmerkung unter
+   einem Text. */
+.tafel .fussnote,.blatt .fussnote{margin:10px 0 0;padding-top:7px;
+     border-top:1px solid var(--linie);
+     font-size:12.5px;line-height:1.45;color:var(--matt)}
+.tafel .fussnote p,.blatt .fussnote p{margin:.2em 0}
 .tafel h3.nurzeit{justify-content:flex-end}
 
 /* Die Unterlagen neben dem Einfuehrungsvideo. */
@@ -1191,14 +2027,704 @@ code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.94em;
    die ganze Breite, darunter zwei Kästen nebeneinander. Das ist
    `.material.gestapelt`; es greift nur, wo eine `gliederung` steht. */
 .material.gestapelt{display:block}
+/* **Die Materialkacheln der Startseite tragen Schwarz, keine
+   Kapitelfarbe.** Sie gehoeren zum ganzen Modul, nicht zu einem
+   Kapitel — eine Farbe waere dort eine Aussage, die nicht stimmt
+   (Henrike, 22.08.). Erst die Kapitelkarten darunter sind farbig. */
+.material .ganze .sym{background-color:var(--tinte)}
 .material.gestapelt .ganze{display:grid;
      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
 .material.gestapelt .teile{display:grid;
      grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px}
 /* Vier Kapitel in einem halben Bildschirm: schmaler als die vier
    Stationskarten von MA02.02, die die ganze Breite haben. */
+/* **Alle Kapitelkacheln sind gleich gross — immer.**
+   Vorher waren die Spalten `1fr`: Damit hing die Breite an der Breite
+   ihres Kastens, und Teil A und Teil B haben verschiedene. Die Hoehe
+   ergab sich aus dem Inhalt, also je Zeile eine andere — und beim
+   Verkleinern des Fensters wuchs ein Titel von zwei auf drei Zeilen
+   und riss die Reihe auseinander (Henrike, 22.08.).
+
+   Jetzt feste Breite und feste Hoehe. Drei Titelzeilen passen hinein;
+   das ist das laengste, was vorkommt («Dynamische
+   Problemlösestrategie»). Der Kasten fuellt sich mit so vielen
+   Kacheln, wie hineinpassen, und bricht um — die Kachel selbst
+   aendert sich nie. */
+:root{--kapitelkachel-b:118px; --kapitelkachel-h:124px}
 .material.gestapelt .modulteil .stationen{
-     grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:10px}
+     grid-template-columns:repeat(auto-fill,var(--kapitelkachel-b));gap:10px}
+.material.gestapelt .modulteil .stationskarte{
+     width:var(--kapitelkachel-b);height:var(--kapitelkachel-h)}
 .material.gestapelt .modulteil .stationskarte .kopfteil{height:auto;
      padding:12px 8px 14px}
 .material.gestapelt .modulteil .stationskarte .titel{font-size:17px}
+/* **Die Aufschrift der Folie auf der Karte.** Auf Folie 2 von MA01.03
+   liegt ueber Kapitel 10 und 11 ein Kasten «Wahlpflicht». Er sitzt
+   hier als schmales Band am Fuss der Karte — dieselbe Auskunft, ohne
+   die Reihe zu brechen. */
+   Das Band sitzt am FUSS der Karte, nicht direkt unter dem Titel:
+   Karte 10 traegt drei Titelzeilen, Karte 11 zwei — anders haengen die
+   beiden Baender auf verschiedener Hoehe nebeneinander. */
+.material.gestapelt .modulteil .stationskarte{grid-template-rows:auto 1fr auto}
+.stationskarte .marke{display:block;background:rgba(255,255,255,.22);
+     color:#fff;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+     text-align:center;padding:4px 6px;align-self:end;grid-row:-1}
+
+/* **Das aufgeklappte Feld nimmt eine ganze Zeile.**
+   `.stufen` ist eine Flex-Reihe: die Reiter nebeneinander, das Feld
+   darunter. Fuer `<details>` stand das schon da; das Feld an einem
+   Knopf hatte keine Basis und wurde **null breit**. Bei Text faellt
+   das kaum auf, beim Video schon: `.rahmen` rechnet seine Hoehe aus
+   `padding-top:56.25%` — also aus der Breite. Null Breite heisst null
+   Hoehe, und das Video war geladen, aber unsichtbar. */
+.stufen > .faltung{flex:1 0 100%;order:9}
+
+/* Was hinter einem fremden Verweis steckt, steht daneben — sonst
+   klickt man ins Ungewisse. */
+.knopf.fremd + .wasfolgt{display:block;margin:5px 0 0;font-size:12.5px;
+     color:var(--matt);max-width:44em}
+
+/* **Eine fremde Seite im Rahmen.** Sie kommt aus dem Netz und weiss
+   nichts von unserer Gestaltung — deshalb ein schlichter Kasten mit
+   Rand, und darunter der Weg hinaus, falls es im Rahmen zu eng wird. */
+.fremdrahmen{margin:0;border:1px solid var(--linie);border-radius:8px;
+     overflow:hidden;background:var(--karte)}
+.fremdrahmen iframe{display:block;width:100%;border:0}
+.fremdrahmen .ruhig{margin:0;padding:6px 10px;font-size:12.5px;
+     border-top:1px solid var(--linie);background:var(--papier)}
+
+/* ---------- Das GeoGebra-Applet, unter dem Video ----------
+   **Neben dem Video sind knapp 290 Pixel Platz.** Fuer einen Text
+   reicht das; in einem GeoGebra-Fenster dieser Breite laesst sich
+   nicht arbeiten. Das Applet steht deshalb unter dem Video, auf der
+   vollen Breite der Videospalte — und schliesst nicht, was rechts
+   offen ist: Wer die Loesung mitliest und dabei rechnet, will beides
+   sehen. Der Knopf dazu traegt die Klasse `.hinaus`, weil er ein Feld
+   ausserhalb seiner eigenen Tafel schaltet. */
+.applet-buehne{margin-top:12px}
+.applet-buehne > .faltung{display:block;margin:0;padding:0;border-top:0}
+.applet-buehne > .faltung[hidden]{display:none}
+/* **Der Rahmen bekommt das Seitenverhaeltnis seines Applets.** Rike,
+   25.08.2026: «Man sieht die nicht so richtig immer, weil der
+   Ausschnitt meistens so ist, dass man das eigentlich konstruierte Ding
+   gar nicht sieht.»
+
+   Der Grund stand in den Dateien selbst: Jedes Material traegt sein
+   Fenstermass (`<size width="972" height="428"/>`) und einen absoluten
+   Massstab in Pixeln je Einheit. Ein Rahmen mit anderem Verhaeltnis
+   zeigt deshalb nicht dasselbe groesser, sondern mehr Rand auf einer
+   Seite. Unser fester Rahmen war 1.75; die 167 gemessenen Applets
+   reichen von 0.94 bis 3.66.
+
+   `--gg-b` und `--gg-h` setzt der Bau je Applet. Rike, 25.08.2026:
+   «Prinzipiell waere es ja auch denkbar, dass die nicht so komplett
+   riesig sein muessen, sondern dass man sie dann passend skaliert.»
+   Genau das: Der Rahmen wird **so gross wie gebaut** und nicht so
+   gross wie die Seite. Der Mittelwert liegt bei 904 x 578 — auf einer
+   1120 Pixel breiten Buehne stand bisher bei jedem zweiten Applet ein
+   Streifen Leere. Jetzt steht es mittig in seiner eigenen Groesse.
+   Fehlt das Mass, bleibt es bei 960 x 540. */
+.applet-buehne iframe{display:block;margin:0 auto;border:0;
+     border-radius:8px;background:var(--karte);
+     /* Drei Schranken, die kleinste gewinnt:
+        1. was die Seite hergibt,
+        2. **die Groesse, in der das Applet gebaut wurde** — groesser
+           gezogen zeigt es nur mehr Rand, nicht mehr Zeichnung,
+        3. was ins Fenster passt, ohne dass man scrollen muss. */
+     width:min(100%,
+               calc(var(--gg-b,960) * 1px),
+               calc(84vh * var(--gg-b,960) / var(--gg-h,540)));
+     aspect-ratio:var(--gg-b,960) / var(--gg-h,540);height:auto}
+.applet-buehne .ruhig{font-size:13px;margin:6px 0 0}
+
+/* Ein Video in der Tafel soll nicht die ganze Breite fluten.
+   **Seitenverhaeltnis statt Polster.** Der `padding-top:56.25%`-Kniff
+   rechnet gegen den ELTERNBLOCK, nicht gegen die eigene Breite — mit
+   `max-width:560px` in einem 1072 breiten Feld ergab das 560 × 603.
+   `aspect-ratio` rechnet gegen die eigene Breite und stimmt immer. */
+.stufen > .faltung .rahmen{max-width:560px;padding-top:0;aspect-ratio:16/9}
+.stufen > .faltung .ausweichen{font-size:13px;margin:6px 0 0}
+
+/* ═════════════ Das Notizblatt ═════════════
+   Rikes Auftrag vom 23.08.2026, in drei Anlaeufen zurechtgerueckt.
+
+   Erst kam es von unten. Ihr Einwand: «Es ist halt wirklich
+   tendenziell sehr schmal, wenn man's Video noch sehen will.»
+
+   Dann versuchte ich es ueber die ganze Seite. Das war zu viel: «Ich
+   wollte auf keinen Fall, dass das Notizblatt ueber die gesamte Seite
+   geht. Ich wollte schon, dass man das Video auf jeden Fall
+   mitsieht.»
+
+   Jetzt ist es **dasselbe wie unten, um neunzig Grad gedreht**: Es
+   faehrt von rechts herein, geht von ganz oben bis ganz unten und
+   nimmt ein Stueck der Breite. Das Video steht links daneben und
+   bleibt sichtbar. Die Breite laesst sich ziehen; wer mehr Platz
+   braucht, holt ihn sich.
+
+   Der Unterschied zum zweiten Anlauf ist klein und entscheidend: Es
+   klebt am Fensterrand statt an der Textspalte — dort blieb rechts
+   ein Rand uebrig, den niemand brauchte — und es geht ueber den Kopf
+   hinweg statt darunter zu enden. */
+
+/* Der Griff am rechten Rand. Solange das Blatt zu ist, ist er das
+   Einzige, was man davon sieht — senkrecht gesetzt, damit er schmal
+   bleibt und nichts vom Weg verdeckt. */
+/* **Die Seite laesst rechts Platz.** Rike, 23.08.: «Ganz rechts haben
+   wir auch den Weiterklickknopf ... wir sollten den so bauen, dass er
+   nicht vom Notizfeld ueberdeckt ist, wenn das Notizfeld ganz
+   eingeklappt ist.» Der eingeschobene Streifen ist 52 Pixel breit;
+   genau so viel raeumt die Seite ihm ein. Zieht jemand ihn heraus,
+   legt er sich darueber — das ist dann seine Absicht. */
+/* Drei Baender brechen absichtlich auf die volle Fensterbreite aus —
+   Zeitstrahl, Kachelband, Wegweiser. Ein `padding` am `body` erreicht
+   sie nicht; sie rechnen mit `100vw`. Darum die Breite des Streifens
+   als eigene Groesse, die alle drei abziehen.
+
+   **Und zwar an ZWEI Stellen.** Die Baender haengen mit
+   `margin-left:calc(50% - 50vw + …)` an der Mitte des Textkoerpers.
+   Nimmt der Koerper rechts 52 Pixel weniger ein, wandert diese Mitte
+   um 26 nach links — und die Baender mit ihr, aus dem linken Rand
+   heraus. Rike am 23.08.: «Abschnitt eins und die Etappe eins ragen
+   jetzt total am anderen Rand ... als wuerde das aus dem Rand
+   rauskippen.» Die halbe Streifenbreite kommt darum im Rand wieder
+   dazu. Wer nur die Breite abzieht und den Rand vergisst, verschiebt
+   die ganze Landschaft. */
+:root{--randstreifen:0px}
+body:has(.notizleiste){padding-right:52px;--randstreifen:52px}
+@media print{
+  .notizleiste{display:none}
+  body:has(.notizleiste){padding-right:0;--randstreifen:0px}
+}
+
+.notizschirm{position:fixed;top:0;bottom:0;right:0;z-index:200;
+  /* 44 vw, nicht 46: Bei 1180 px ist das Video 630 breit und endet
+     bei 653 — mit 46 vw schnitte das Blatt sechzehn Pixel davon ab.
+     Bei 44 vw bleibt es frei, und wer mehr Platz will, zieht. */
+  /* **Der Ruhezustand ist schmal, nicht weg.** 52 Pixel: die Kante
+     zum Ziehen und gerade der erste Knopf. Rike: «ich brauche einen
+     Zustand am Anfang, in dem das Notizfeld fast nicht sichtbar ist,
+     aber sichtbar genug, damit man weiss, dass man dort was tun
+     kann.» Die uebrigen fuenf Knoepfe liegen dahinter und kommen mit,
+     sobald man zieht. */
+  width:var(--notiz-breite,52px);
+  min-width:52px;max-width:94vw;
+  display:flex;flex-direction:column;background:var(--karte);
+  border-left:1px solid var(--linie);
+  box-shadow:-4px 0 24px rgba(0,0,0,.12)}
+
+/* Die Kante zum Ziehen. Nach links breiter, nach rechts schmaler --
+   das Blatt haengt am rechten Rand. */
+/* **Die Kante ist der einzige Griff**, seit es keinen Auf- und
+   Zuknopf mehr gibt. Sie muss man sehen: ein Balken ueber die halbe
+   Hoehe, nicht ein Strichlein. Ziehen setzt die Breite genau, ein
+   Klick klappt auf und wieder zu — derselbe Griff, kein zweiter
+   Knopf. */
+.notizziehen{position:absolute;left:0;top:0;bottom:0;width:12px;
+  cursor:ew-resize;touch-action:none;z-index:2;
+  background:linear-gradient(90deg,
+    color-mix(in srgb, var(--akzent) 14%, transparent), transparent)}
+.notizziehen::after{content:'';position:absolute;left:4px;top:50%;
+  transform:translateY(-50%);width:4px;height:34vh;min-height:120px;
+  border-radius:3px;background:var(--linie)}
+.notizziehen:hover{background:linear-gradient(90deg,
+    color-mix(in srgb, var(--akzent) 26%, transparent), transparent)}
+.notizziehen:hover::after{background:var(--akzent)}
+
+.notizfenster{position:relative;flex:1;min-height:0}
+.notizrolle{position:absolute;inset:0 0 0 12px;overflow-y:auto;
+  overflow-x:hidden;cursor:crosshair}
+/* **Was ein Finger tut, sagt der Modus.** Beim Schreiben zeichnet er,
+   beim Tippen rollt er den Bogen. Ohne das schiebt der Browser die
+   Seite weg, sobald man den ersten Strich zieht. */
+.notizrolle[data-modus="schreiben"]{touch-action:none}
+.notizrolle[data-modus="tippen"]{touch-action:pan-y;cursor:text}
+
+/* Die Karos sitzen auf dem Bogen, nicht auf dem Fenster -- sie
+   muessen mitrollen. Gezeichnet statt geladen: eine Datei weniger,
+   und bei jeder Aufloesung gleich fein. */
+.notizblatt{position:relative;min-height:100%;
+  background:#fffdf7;
+  background-image:linear-gradient(#e8e0cc 1px,transparent 1px),
+                   linear-gradient(90deg,#e8e0cc 1px,transparent 1px);
+  background-size:26px 26px}
+.notiztexte{position:absolute;inset:0}
+/* **`width` und `height` muessen dastehen.** Bei absolut gesetzten
+   Ersatzelementen — und ein <canvas> ist eines — ignoriert CSS die
+   rechte und untere Kante und nimmt die Eigengroesse aus den
+   width/height-Attributen. Die stehen bei uns in Geraetepunkten,
+   also doppelt so gross wie die Flaeche: Der Stift setzte dann
+   nicht dort an, wo die Maus war, und der Abstand wuchs nach
+   unten. Ohne diese zwei Zeilen ist die Leinwand falsch skaliert. */
+.notizstriche{position:absolute;left:12px;top:0;
+  width:calc(100% - 12px);height:100%;pointer-events:none}
+.notiztext{position:absolute;min-width:14px;
+  font-size:15.5px;line-height:20px;color:var(--tinte);
+  outline:none;white-space:pre-wrap;overflow-wrap:break-word;cursor:text}
+.notiztext:focus{background:color-mix(in srgb,var(--akzent) 9%,transparent);
+  border-radius:3px}
+
+/* Die eine Zeile. Rike: «maximal eine Zeile fuer die Sachen, die man
+   zusaetzlich anklicken kann.» In einer schmalen Spalte geht das nur
+   mit Zeichen statt Woertern -- ihr eigener Vorschlag. Was man beim
+   Arbeiten staendig braucht, behaelt sein Wort. */
+.notizbalken{flex:none;display:flex;gap:6px;align-items:center;
+  padding:9px;border-top:1px solid var(--linie);
+  background:var(--karte);overflow:hidden}
+.notizbalken button{font:inherit;font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:32px;padding:0;border-radius:9px;
+  border:1px solid var(--linie);background:#fff;color:var(--matt)}
+.notizbalken button:hover{border-color:var(--akzent);color:var(--akzent)}
+.notizbalken button[aria-pressed="true"]{
+  background:var(--akzent);border-color:var(--akzent);color:#fff}
+.notizbalken button:disabled{opacity:.5;cursor:default}
+/* Die Luecke trennt die beiden Gruppen: links das Arbeiten,
+   rechts das Aufbewahren und Schliessen. */
+.notizbalken .notizhilfe{margin-left:auto}
+.notizstand{position:absolute;left:22px;bottom:50px;right:14px;
+  font-size:12.5px;color:var(--matt);pointer-events:none;
+  background:color-mix(in srgb,var(--karte) 88%,transparent);
+  border-radius:6px;padding:2px 6px}
+.notizstand:empty{display:none}
+.notizstand[data-art="gut"]{color:var(--richtig);font-weight:600}
+.notizstand[data-art="schlecht"]{color:var(--falsch);font-weight:600}
+
+/* Eingeschoben ist die Flaeche taub: Ein Streifen von fuenfzig Pixeln
+   am rechten Rand darf nicht jeden Wisch an sich ziehen, mit dem
+   jemand die Seite rollen will — und keinen Strich hinterlassen, den
+   niemand gewollt hat. */
+.notizleiste.schmal .notizrolle{pointer-events:none;touch-action:auto}
+.notizleiste.schmal .notizerklaerung{display:none}
+.notizleiste.schmal .notizschirm{box-shadow:-2px 0 10px rgba(0,0,0,.07)}
+
+.notizerklaerung{flex:none;max-height:52vh;overflow-y:auto;
+  padding:14px 16px;border-top:1px solid var(--linie);
+  background:var(--creme);font-size:13.5px;line-height:1.55}
+.notizerklaerung p{margin:0 0 9px}
+.notizerklaerung p:last-child{margin:0}
+.notizerklaerung b{color:var(--tinte)}
+
+@media (max-width:760px){
+  /* Auf dem Telefon ist eine Spalte neben dem Video nicht zu haben.
+     Dort nimmt das Blatt die ganze Breite -- das ist kein zweiter
+     Bauplan, nur dieselbe Spalte, so breit wie das Geraet. */
+  .notizschirm{width:100vw;max-width:100vw}
+  .notizbalken{gap:4px;padding:7px 8px}
+}
+
+/* ═════════════ Die Sortierflaeche ═════════════
+   Rikes Auftrag vom 23.08.2026: auf dem Abschluss von MA01.03 eine
+   FREIE Flaeche — «machen Sie fuer sich Ordnung», keine strukturierte
+   wie bei SORT. Sie ist dasselbe Notizblatt wie am Rand der Etappen,
+   nur im Seitenfluss statt als Streifen und mit Kaertchen darauf. Zum
+   Sortieren braucht man die Breite. */
+.notizleiste[data-lage="block"]{display:block;margin:26px 0 8px}
+.notizleiste[data-lage="block"] .notizschirm{
+  position:static;width:auto;min-width:0;max-width:none;
+  height:min(78vh,760px);
+  border:1px solid var(--linie);border-radius:12px;
+  box-shadow:none;overflow:hidden;
+  /* **Hier gehoert die Leiste nach oben.** Rike, 24.08.: «Man muss
+     ordentlich runterscrollen, bis man zum Schreiben kommt. Und wenn
+     man das Feld noch gar nicht verwendet hat und gar nicht weiss,
+     dass es da einen Stift gibt, dann findet man ihn vermutlich auch
+     nicht.»
+     Auf den Etappenseiten bleibt sie unten — dort ist sie am Fuss des
+     schmalen Streifens richtig und wuerde oben den Kopf verdecken.
+     `column-reverse` dreht die Reihenfolge um, ohne dass am Aufbau
+     etwas zu aendern waere: eine Zeile statt eines zweiten Bauplans. */
+  flex-direction:column-reverse}
+.notizleiste[data-lage="block"] .notizbalken{
+  border-top:none;border-bottom:1px solid var(--linie)}
+.notizleiste[data-lage="block"] .notizerklaerung{
+  border-top:none;border-bottom:1px solid var(--linie)}
+.notizleiste[data-lage="block"] .notizabgabe{inset:58px 16px auto 16px}
+.notizleiste[data-lage="block"] .notizstand{top:50px;bottom:auto}
+.notizleiste[data-lage="block"] .notizziehen{display:none}
+.notizleiste[data-lage="block"] .notizrolle{inset:0}
+.notizleiste[data-lage="block"] .notizstriche{left:0;width:100%}
+.notizleiste[data-lage="block"] .notizstand{left:16px;bottom:50px;right:16px}
+
+/* Die Kaertchen selbst. Handschrift, wie Rike es wollte — sie tragen
+   nichts als ihr Wort. */
+.notizkartenlage{position:absolute;inset:0}
+/* **Alle gleich gross, der Text in der Mitte.** Rike, 24.08.: «Ich
+   haette gerne, dass die Kaertchen jeweils eine feste Breite und
+   Groesse haben ... und dass der Text jeweils zentriert und mittig
+   steht.» Vorher wuchsen sie mit ihrer Aufschrift, und ein Haufen aus
+   verschieden hohen Kaertchen sieht unruhig aus, obwohl nichts daran
+   Bedeutung traegt. Die laengste Aufschrift hat 59 Zeichen und passt
+   in vier Zeilen. */
+/* **Klein genug zum Sortieren, gross genug zum Lesen.** Rike,
+   24.08.: «Ich haette die Kaertchen gerne noch einen Tick kleiner,
+   damit man ein bisschen luftiger sortieren kann.» Der Einwand
+   dagegen — dass man sie dann nicht mehr liest — ist mit Kaspers
+   Lupe erledigt: Ueberfahren zeigt gross (weiter unten). */
+/* **Die Kaertchenmasse stehen als Merkmal an der Flaeche**, damit die
+   Uebersicht ueber ein ganzes Modul kleiner setzen kann als die
+   Flaeche am Kapitelende. Rike, 25.08.2026, zur Modul-Uebersicht:
+   «Kaertchen muessten sehr klein sein, damit man alles ueberblickt.» */
+/* **Die drei Wege zu den Lernzielkärtchen.** Rike, 25.08.2026: «Die
+   drei Optionen bitte im Popup als Buttons oder Pillen verlinken.»
+   Gleich breit, gleich hoch, in einer Reihe — keine ist wichtiger als
+   die andere; jede sagt in einer Zeile, was sie bringt. */
+.pillenreihe{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0 26px}
+.pille{flex:1 1 15rem;min-width:13rem;display:block;
+  padding:14px 18px;border:1px solid var(--linie);border-radius:12px;
+  background:var(--karte);color:var(--tinte);text-decoration:none;
+  box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.pille:hover{border-color:var(--akzent);
+  box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.pille b{display:block;font-size:16px}
+.pille span{display:block;color:var(--matt);font-size:13.5px;margin-top:3px}
+.vorspann{max-width:46rem}
+
+.notizkartenlage{--kk-b:124px;--kk-h:62px;--kk-schrift:12.5px}
+/* Die Kapitelnummern über den vorsortierten Spalten. Sie liegen unter
+   den Kärtchen und nehmen keine Klicks an — man soll sie lesen, nicht
+   anfassen. */
+.notizspaltenkoepfe{position:absolute;inset:0;pointer-events:none;z-index:0}
+.notizspaltenkopf{position:absolute;text-align:center;
+  font-family:var(--hand);font-size:15px;color:var(--matt);
+  letter-spacing:.02em}
+.notizkarte{position:absolute;width:var(--kk-b);height:var(--kk-h);
+  box-sizing:border-box;padding:4px 6px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;
+  font-family:var(--hand);font-weight:400;
+  font-size:var(--kk-schrift);line-height:1.06;
+  color:var(--tinte);border-radius:9px;border:1px solid var(--linie);
+  background:var(--kk-fach);
+  cursor:grab;touch-action:none;user-select:none;
+  box-shadow:0 1px 3px rgba(0,0,0,.10)}
+.notizkarte[data-farbe="fach"]{background:var(--kk-fach);border-color:var(--fach)}
+.notizkarte[data-farbe="zugang"]{background:var(--kk-zugang);border-color:var(--zugang)}
+.notizkarte[data-farbe="beweis"]{background:var(--kk-beweis);border-color:var(--beweis)}
+.notizkarte[data-farbe="aktion"]{background:var(--kk-aktion);border-color:var(--aktion)}
+.notizkarte[data-farbe="didaktik"]{background:var(--kk-didaktik);border-color:var(--didaktik)}
+/* **Die Lupe.** Von Kasper geholt, dort als Javascript mit einem
+   Massstab an der Karte; hier reicht CSS, weil unsere Kaertchen ueber
+   `left`/`top` liegen und `transform` frei ist. Drei Zeilen statt
+   einer Mechanik — und sie kann mit nichts kollidieren, weil sie
+   nichts speichert und nichts ausrechnet.
+
+   Nur mit der Maus: Ein Finger kennt kein Ueberfahren. Wer auf dem
+   Tablet arbeitet, zieht das Kaertchen kurz heraus. */
+@media (hover: hover) {
+  /* Die Lupe richtet das Kaertchen zugleich gerade — was man liest,
+     soll nicht schief stehen. */
+  .notizkarte:hover{transform:rotate(0deg) scale(1.45) !important;z-index:60;
+    box-shadow:0 8px 22px rgba(0,0,0,.20)}
+}
+.notizkarte.gefasst,
+.notizkarte.gefasst:hover{cursor:grabbing;
+  box-shadow:0 6px 18px rgba(0,0,0,.20);transform:scale(1.06)}
+
+/* Der Knopf zur Farbtafel sitzt oben rechts im Kasten — Rikes
+   Wunsch vom 24.08. Der Text laesst ihm Platz, statt dass er
+   sich davorlegt. */
+.sortierkopf{margin:30px 0 10px;position:relative}
+/* **Der Auftrag bleibt lesbar, auch wenn die Tafel offen ist.**
+   Rike, 24.08.: «Wenn die Farbtafel aufklappt, sollte sie nur von
+   rechts bis ungefaehr zwei Drittel Platz einnehmen, sodass die
+   Anweisung erhalten bleibt.» Also steht der Auftrag im linken
+   Drittel und die Tafel legt sich in die freien zwei. */
+.sortierkopf > p,
+.sortierkopf > .aufpapier{max-width:33%}
+.sortierkopf .farbdeutung{position:absolute;right:0;top:0;
+  margin:0;text-align:right;width:65%;z-index:3}
+/* Aufgeklappt legt sich die Tafel ueber den Text, statt ihn
+   wegzuschieben — Rikes Wunsch. Damit das nicht nach Zusammenstoss
+   aussieht, bekommt sie einen eigenen Grund: ein Blatt, das obenauf
+   liegt. */
+.sortierkopf .farbdeutung[open]{
+  background:var(--karte);border:1px solid var(--linie);
+  border-radius:10px;padding:12px 14px;
+  box-shadow:0 8px 26px rgba(0,0,0,.14)}
+.sortierkopf .farbdeutung table{text-align:left;margin:10px 0 0}
+@media (max-width:900px){
+  /* Auf schmalen Geraeten rueckt die Farbtafel unter den Text — dann
+     braucht der Auftrag auch nicht mehr nur ein Drittel, sondern die
+     ganze Breite. Ohne das stand er in einer 150 Pixel schmalen
+     Spalte, zwei Woerter je Zeile. */
+  .sortierkopf > p,
+  .sortierkopf > .aufpapier{max-width:none;padding-right:0}
+  .sortierkopf .farbdeutung{position:static;text-align:left;
+    width:auto;margin-top:10px}
+}
+.sortierkopf h3{margin:0 0 4px}
+.sortierkopf p{margin:0;font-size:14.5px;color:var(--matt)}
+/* Die Breite steht weiter oben bei `> p` — hier stand einmal
+   `max-width:68ch`, und weil beide Regeln gleich stark sind,
+   gewann die spaetere. Der Auftrag war dann so breit, dass die
+   Farbtafel ihn beim Aufklappen doch wieder verdeckte. */
+
+/* Das Abgabefenster. Es legt sich ueber die Flaeche, nicht daneben:
+   Wer abgibt, hoert fuer einen Augenblick auf zu arbeiten. */
+.notizabgabe{position:absolute;inset:auto 12px 54px 12px;
+  z-index:5;padding:16px 18px;border-radius:10px;
+  background:var(--karte);border:1px solid var(--linie);
+  box-shadow:0 8px 26px rgba(0,0,0,.16);font-size:14px}
+.notizleiste[data-lage="block"] .notizabgabe{inset:auto 16px 58px 16px;
+  max-width:52ch;margin-left:auto}
+.notizabgabe .was{margin:0 0 12px}
+.notizabgabe label{display:block;margin:0 0 10px}
+.notizname input{display:block;width:100%;margin-top:5px;font:inherit;
+  padding:6px 9px;border:1px solid var(--linie);border-radius:7px;
+  background:#fff}
+.notizname input:focus{outline:none;border-color:var(--akzent)}
+/* **Die Frage nach der Abgabe kommt NACH dem Herunterladen.** Rike,
+   25.08.2026: «Ich fände es am besten, wenn man einfach runterladen
+   kann, ohne dass man nach Namen oder sonst was gefragt wird — und
+   dann danach wird man gefragt: Wollen Sie die Notizen abgeben?»
+
+   Die beiden Wege stehen als zwei Felder untereinander, jedes mit dem
+   Satz, der sagt, was mit dem Abgegebenen geschieht. Wer nichts
+   auswählt, hat seine Datei und ist fertig. */
+.notizfrage{margin:14px 0 8px;font-weight:600}
+.notizwege{display:grid;gap:8px;margin-bottom:4px}
+.notizweg{display:flex!important;gap:9px;align-items:flex-start;
+  margin:0!important;padding:9px 11px;border:1px solid var(--linie);
+  border-radius:8px;background:#fff;cursor:pointer;line-height:1.4}
+.notizweg:hover{border-color:var(--akzent)}
+.notizweg:has(input:checked){border-color:var(--akzent);
+  background:color-mix(in srgb, var(--akzent) 7%, #fff)}
+.notizweg input{margin-top:3px;flex:0 0 auto}
+.notizneu{margin:10px 0 6px}
+.notizweiter{margin:12px 0 0}
+.notizabgabe .leise{color:var(--matt);font-weight:400}
+.notizmangel{margin:0 0 10px;color:var(--falsch);font-weight:600}
+.notizabgabeknoepfe{display:flex;gap:8px;margin-top:4px}
+.notizabgabe .knopf{font:inherit;font-size:13.5px;cursor:pointer;
+  padding:7px 14px;border-radius:8px;border:1px solid var(--linie);
+  background:#fff;color:var(--tinte);text-decoration:none;
+  display:inline-block}
+.notizabgabe .knopf.haupt{background:var(--akzent);color:#fff;
+  border-color:var(--akzent)}
+.notizabgabe .knopf:disabled{opacity:.5;cursor:default}
+.notizdanach{margin-top:14px;padding-top:12px;
+  border-top:1px solid var(--linie)}
+.notizdanach p{margin:0 0 10px}
+
+/* Was hinter den Farben der Kärtchen steckt. Rike, 24.08.: «Ich habe
+   die Erfahrung gemacht, dass die Studierenden nicht kapieren, dass
+   hinter diesen Farben Kompetenzen stehen» — obwohl sie es immer
+   wieder kommuniziert. Also steht es dort, wo sortiert wird, und
+   nicht nur im Merkblatt. Als `<details>`, damit es kein Javascript
+   braucht und mit nichts kollidieren kann. */
+.farbdeutung{margin:10px 0 0}
+.farbdeutung > summary{display:inline-block;cursor:pointer;
+  font-size:14px;color:var(--matt);
+  border:1px solid var(--linie);border-radius:999px;padding:4px 12px}
+.farbdeutung > summary::-webkit-details-marker{display:none}
+.farbdeutung > summary::before{content:'? '}
+.farbdeutung[open] > summary{margin-bottom:12px}
+.farbdeutung > summary:hover{border-color:var(--akzent);color:var(--akzent)}
+.farbdeutung table{border-collapse:collapse;font-size:13.5px;
+  max-width:100%;margin:0 0 8px}
+.farbdeutung td{vertical-align:top;padding:9px 11px;
+  border:1px solid var(--linie);width:25%}
+/* Die Querreihe traegt keine Breitenvorgabe — sie nimmt alle. */
+.farbdeutung td[colspan]{width:auto}
+/* Die Ueberschriften in Handschrift, nicht fett — Rike, 24.08.
+   Sie sind Namen von Kompetenzen, keine Betonung im Satz. */
+.farbdeutung td b{display:block;margin-bottom:5px;
+  font-family:var(--hand);font-weight:400;font-size:16px;
+  color:var(--tinte)}
+.farbdeutung .quelle{margin:0;font-size:13px;color:var(--matt)}
+/* Der Weg aufs Papier ist ein Knopf, kein Nebensatz — Rike,
+   24.08. Wer analog ordnen will, sucht ihn, und ein Knopf
+   laesst sich suchen. */
+.sortierkopf .aufpapier{margin:12px 0 0}
+.sortierkopf .aufpapier .knopf{font-size:13.5px;padding:6px 13px}
+@media (max-width:760px){
+  .farbdeutung table,.farbdeutung tbody,.farbdeutung tr,.farbdeutung td{
+    display:block;width:auto}
+  .farbdeutung td{border-bottom:none}
+  .farbdeutung tr:last-child td:last-child{border-bottom:1px solid var(--linie)}
+}
+
+/* ── Die Kaesten des Skripts ───────────────────────────────────────
+ *
+ * Rike, 24.08.2026: «Kannst du diese immer so einblenden, dass sie das
+ * Layout und Farbe meiner Kaesten im Skript imitieren? Also
+ * insbesondere auch ohne Rundungen. Das bitte fuer alle Stellen in
+ * allen drei Modulen.»
+ *
+ * Nachgebaut nach dem gesetzten Skript, Zug um Zug:
+ *
+ *   eckig            keine Rundung, nirgends
+ *   Reiter oben links  volle Fachfarbe, weisse Schrift in Patrick Hand,
+ *                    rechte Kante schraeg angeschnitten
+ *   Titel daneben    in der Fachfarbe, NICHT weiss, ausserhalb des
+ *                    Reiters
+ *   Grund            sehr blasse Toenung derselben Farbe, nicht weiss
+ *   Rand             duenn, in der Fachfarbe
+ *
+ * Die Farbe steht als Klasse am Kasten (fach, zugang, beweis, aktion)
+ * — sie ist das erste Wahlargument der Umgebung und damit dieselbe wie
+ * im Druck.
+ */
+.fragekasten{
+  --kastenfarbe:var(--fach);
+  position:relative;margin:22px 0 14px;padding:26px 16px 14px;
+  border:2px solid var(--kastenfarbe);border-radius:0;
+  background:color-mix(in srgb, var(--kastenfarbe) 6%, #fff)}
+.fragekasten.fach  {--kastenfarbe:var(--fach)}
+.fragekasten.zugang{--kastenfarbe:var(--zugang)}
+.fragekasten.beweis{--kastenfarbe:var(--beweis)}
+.fragekasten.aktion{--kastenfarbe:var(--aktion)}
+
+/* **Die Lösung neben dem Video einer Hilfsetappe.** Rike, 25.08.2026:
+   «Lösung vielleicht nebendran einblenden? Das bitte für alle
+   Hilfsetappen, die eine Lösung von einer Aufgabe vorrechnen» — «ja,
+   für alle».
+
+   Sie trägt dieselbe Sprache wie ein Kasten des Skripts, aber die
+   Farbe der Lösung: Es ist keine Frage und kein Satz, sondern die
+   Auflösung dessen, was das Video gerade vorrechnet. */
+.loesungdaneben{
+  --kastenfarbe:var(--zugang);
+  position:relative;margin:22px 0 14px;padding:26px 16px 14px;
+  border:2px solid var(--kastenfarbe);
+  background:color-mix(in srgb, var(--kastenfarbe) 6%, #fff)}
+.loesungdaneben .kastenkopf{
+  position:absolute;top:-2px;left:-2px;margin:0;
+  display:flex;align-items:baseline;gap:0;
+  font-family:var(--hand);font-weight:400;font-size:16px;line-height:1.35;
+  color:var(--kastenfarbe);white-space:nowrap;max-width:calc(100% + 4px)}
+.loesungdaneben .kastenkopf .wort{
+  background:var(--kastenfarbe);color:#fff;padding:2px 22px 3px 12px}
+.loesungdaneben .kastenkopf .titel{
+  padding:2px 12px 3px 10px;overflow:hidden;text-overflow:ellipsis}
+.loesungdaneben > :first-of-type{margin-top:0}
+
+/* Eine Herleitung, die im Skript steht und hier gesetzt wird statt
+   fotografiert. In der schmalen Spalte darf sie seitlich rollen —
+   umbrechen kann eine `align*`-Kette nicht. */
+.hergeleitet{overflow-x:auto;overflow-y:hidden;padding:2px 0 6px}
+.loesungdaneben .ruhig{margin-bottom:0}
+
+/* Ein zusaetzliches Video neben dem der Etappe — dieselbe Sprache wie
+   der Loesungskasten, nur ohne Farbe: Es ist ein Angebot, keine
+   Antwort. */
+.videodaneben{margin:22px 0 14px;padding:22px 0 0;position:relative}
+.videodaneben .kastenkopf{
+  position:absolute;top:0;left:0;margin:0;
+  font-family:var(--hand);font-weight:400;font-size:16px;
+  color:var(--matt)}
+.videodaneben .rahmen{margin:0}
+.videodaneben .ruhig{margin:6px 0 0}
+
+/* Der Reiter sitzt auf dem oberen Rand, buendig links, und seine
+   rechte Kante ist angeschnitten — wie im Skript. */
+.fragekasten .kastenkopf{
+  position:absolute;top:-2px;left:-2px;margin:0;
+  display:flex;align-items:baseline;gap:0;
+  font-family:var(--hand);font-weight:400;font-size:16px;line-height:1.35;
+  color:var(--kastenfarbe);white-space:nowrap;max-width:calc(100% + 4px)}
+.fragekasten .kastenkopf .wort{
+  background:var(--kastenfarbe);color:#fff;
+  padding:2px 22px 3px 12px;
+  clip-path:polygon(0 0, 100% 0, calc(100% - 13px) 100%, 0 100%)}
+/* **Der Aufgabenkasten traegt die Kapitelfarbe, keine eigene.**
+   Rike: «Vielleicht lassen wir bei den Einblendungen dann den
+   Kapitel-Farbstrich am linken Rand weg, weil sonst zu farbenfroh.»
+   Der Strich ist weg; die Farbe des Kapitels bleibt, aber nur noch als
+   Rahmen des Kastens — eine Farbe statt zwei. */
+/* **Der Aufgabenkasten traegt die Farben des Skripts.** Rike,
+   25.08.2026: «Wir sollten die Farbe haben, die im Skript auch
+   verwendet wird, damit es einen echten Wiedererkennungswert gibt.»
+
+   Eine Farbe: Rahmen rundum, Reiter voll. Zwei Farben (`AufgabeZ`):
+   oben und rechts die erste, links und unten die zweite, und der
+   Reiter ist von Nordwest nach Suedost geteilt — die untere linke
+   Haelfte traegt die zweite. Genau so steht es in
+   `Preambel/Umgebungen-AUFG.def`.
+
+   Der Grund ist auch weiss statt getoent: `colback=white`. Der
+   Wiedererkennungswert war der Punkt. */
+/* **Der Beweis haengt unter seinem Satz.** Rikes Entscheidung vom
+   25.08.2026: «unter dem Kasten zum Aufklappen». Er sitzt buendig an
+   der Unterkante, wie eine Schublade — eckig wie der Kasten, in
+   derselben Farbe, aber ohne eigenen Kopfbereich. Zu ist er eine Zeile;
+   offen steht der ganze Beweis da. */
+.beweiskasten{margin:-14px 0 14px;border:2px solid var(--kastenfarbe,var(--fach));
+     border-top:0;background:#fff}
+.fragekasten + .beweiskasten{border-color:inherit}
+.beweiskasten > summary{list-style:none;cursor:pointer;
+     font-family:var(--hand);font-weight:400;font-size:15px;
+     padding:4px 14px 5px;color:var(--matt);
+     border-top:1px dashed var(--linie)}
+.beweiskasten > summary::-webkit-details-marker{display:none}
+.beweiskasten > summary::before{content:'▸ ';color:var(--matt)}
+.beweiskasten[open] > summary::before{content:'▾ '}
+.beweiskasten[open] > summary{color:var(--tinte)}
+.beweiskasten > .faltung{padding:2px 15px 12px;font-size:14.5px}
+.beweiskasten > .faltung p:first-child{margin-top:0}
+
+.fragekasten.aufgabenkasten{--kastenfarbe:var(--f1,var(--akzent));
+     background:#fff}
+.fragekasten.aufgabenkasten.zweifarbig{
+     border-left-color:var(--f2);border-bottom-color:var(--f2)}
+.fragekasten.aufgabenkasten.zweifarbig .kastenkopf .wort{
+     background:linear-gradient(to bottom left,
+                var(--f1) 0 50%, var(--f2) 50% 100%)}
+/* `AufgabeV` hat keine Farben in den Klammern; ihre vier stehen fest in
+   der Definition — Norden fach, Osten zugang, Sueden beweis, Westen
+   aktion — und der Reiter ist von der Mitte aus geviertelt. Dreimal im
+   ganzen Material. */
+.fragekasten.aufgabenkasten.vierfarbig{
+     border-top-color:var(--f1);border-right-color:var(--f2);
+     border-bottom-color:var(--f3);border-left-color:var(--f4)}
+.fragekasten.aufgabenkasten.vierfarbig .kastenkopf .wort{
+     background:conic-gradient(from 45deg,
+                var(--f2) 0 90deg, var(--f3) 90deg 180deg,
+                var(--f4) 180deg 270deg, var(--f1) 270deg 360deg)}
+.fragekasten .kastenkopf .titel{padding:2px 12px 3px 6px;overflow:hidden;
+  text-overflow:ellipsis}
+
+.fragekasten > :first-child:not(.kastenkopf){margin-top:0}
+.fragekasten > :last-child{margin-bottom:0}
+.fragekasten ul{margin:.5em 0;padding-left:1.2em}
+.fragekasten li{margin:.35em 0}
+.fragekasten .fussnote{display:block;margin-top:.7em;padding-top:.6em;
+  border-top:1px solid color-mix(in srgb, var(--kastenfarbe) 35%, #fff);
+  font-size:.9em}
+/* Kein Kopf: dann braucht es oben auch keinen Platz. */
+.fragekasten:not(:has(.kastenkopf)){padding-top:14px}
+
+/* **Der Schieber gehoert an die abgesetzte Formel, nicht ans Blatt.**
+   Erster Versuch war `.blatt{overflow-x:auto}` — das hob die Rechnung
+   darueber wieder auf: Ein Scrollkasten hat die Mindestbreite null,
+   also waechst die Spalte nicht mehr, und der ganze Loesungstext lag
+   in einem Schieber. Jetzt waechst die Spalte mit dem, was nicht
+   umbrechen kann (Fliesstext bricht, eine Formel im Satz nicht), und
+   nur eine abgesetzte Formel, die auch dann noch zu breit ist,
+   bekommt ihren eigenen Schieber. */
+.blatt mjx-container[display="true"],
+.blatt .formel{max-width:100%;overflow-x:auto;overflow-y:hidden}
+
+/* Das Kapitel, zu dem eine Seite gehoert — unabhaengig von der Farbe
+   ihres Inhalts. Nur «Bezug zur Schulpraxis» braucht das bisher. */
+[data-kapitel="fach"]    {--kapitelfarbe:var(--fach)}
+[data-kapitel="zugang"]  {--kapitelfarbe:var(--zugang)}
+[data-kapitel="beweis"]  {--kapitelfarbe:var(--beweis)}
+[data-kapitel="aktion"]  {--kapitelfarbe:var(--aktion)}
+
+/* **Angekuendigt, nicht verlinkt.** Wo eine Unterlage noch nicht in der
+   gueltigen Fassung vorliegt, steht sie ausgegraut und sagt, dass sie
+   kommt. Das alte PDF zu verlinken waere schlimmer als die Luecke: Wer
+   es herunterlaedt, arbeitet mit einem ueberholten Text.
+   Rike, 24.08.2026. */
+.ablage.wartet{opacity:.55;cursor:default;border-style:dashed}
+.ablage.wartet .wozu{font-style:italic}
+
+/* **Was neben dem Video steht, ohne dass eine Marke es traegt.**
+   Saetze und Beweise aus dem Skript, an Etappen ohne Einblendung.
+   Rike, 24.08.2026: «Beweis nebendran einblenden.» Sie stehen in
+   derselben Spalte wie die Aufgaben, darunter. */
+.daneben{margin-top:14px;display:flex;flex-direction:column;gap:12px}
+.daneben .fragekasten{margin:0}
+.daneben .ruhig{margin:.6em 0 0;font-size:13px}

@@ -149,9 +149,10 @@
       knoepfe.forEach(function (b, i) {
         b.addEventListener('click', function () {
           zuletzt = marken[i].nr;
+          var laeuft = !video.paused;
           video.currentTime = marken[i].sekunde;
           tafelZeigen(marken[i].nr, true);
-          video.play().catch(function () {});
+          if (laeuft) video.play().catch(function () {});
         });
       });
       return;
@@ -185,8 +186,9 @@
         b.addEventListener('click', function () {
           zuletzt = marken[i].nr;
           tafelZeigen(marken[i].nr, true);
-          spieler.seekTo(marken[i].sekunde, true);
-          spieler.playVideo();
+          var laeuft = spieler.getPlayerState && spieler.getPlayerState() === 1;
+          spieler.seekTo(marken[i].sekunde, laeuft);
+          if (!laeuft && spieler.pauseVideo) spieler.pauseVideo();
         });
       });
     }
@@ -464,6 +466,31 @@
       if (sichtbar && window.MathJax && MathJax.typesetPromise) {
         MathJax.typesetPromise([sichtbar]).catch(function () {});
       }
+
+      /* **Der Wechsel der Stelle raeumt das Applet weg.** Rike,
+         24.08.2026: «Bitte beim Wechsel von einer Aufgabe zur naechsten
+         das GeoGebra der alten Aufgabe prinzipiell ausblenden.» Sonst
+         stuende unter dem Video die Zeichnung zu einer Aufgabe, die
+         daneben gar nicht mehr steht. */
+      etappe.querySelectorAll('.reiter button.hinaus').forEach(function (a) {
+        if (a.getAttribute('aria-expanded') !== 'true') return;
+        var f = document.getElementById(a.dataset.ziel);
+        if (f) f.hidden = true;
+        a.setAttribute('aria-expanded', 'false');
+      });
+
+      /* **Wo das Applet der ganze Inhalt ist, geht es von selbst auf.**
+         Diese Tafeln tragen nichts als den Knopf; ihn erst noch
+         anklicken zu muessen waere ein Klick ohne Entscheidung.
+         `schaltenApplet` haengt `stufenAufsetzen` an den Knopf — laeuft
+         das noch nicht, tut ein einfacher Klick dasselbe. */
+      if (sichtbar) {
+        var selbst = sichtbar.querySelector('.reiter button.hinaus[data-auto]');
+        if (selbst && selbst.getAttribute('aria-expanded') !== 'true') {
+          if (selbst.schaltenApplet) selbst.schaltenApplet(true);
+          else selbst.click();
+        }
+      }
     }
     /* Anfangs ist **nichts** eingeblendet. Die erste Aufgabe erscheint,
        wenn das Video ihre Stelle erreicht — oder wenn jemand sie in der
@@ -507,23 +534,46 @@
       }
     }
 
-    video = etappe.querySelector('video');
+    /* **Nur das Video der Etappe, nicht das an der Aufgabe.**
+       Hier stand `etappe.querySelector('video')` — und das griff in die
+       Aufgabentafel hinein: Unter dem Reiter «Video» steht bei
+       MA01.03 ein Kaltura-Film als gewoehnliches `<video>`. Wo es eines
+       gab, nahm die Etappe diesen Zweig, band die Sprungmarken an das
+       AUFGABENvideo und stieg aus, bevor das eigentliche Video der
+       Etappe verdrahtet war.
+
+       Sichtbar wurde das als Gespenst: Ein Klick auf eine Sprungmarke
+       zeigte die Aufgabe — und 16 Millisekunden spaeter sprang die
+       Anzeige auf eine andere. Denn `video.currentTime = 503.9` auf
+       einem viel kuerzeren Aufgabenvideo loeste sofort ein
+       `timeupdate` aus, und `pruefen()` schaltete auf die Marke, die
+       zu dieser Zeit passte. (Henrike, Kapitel 2, Etappe 5.) */
+    video = etappe.querySelector('.film video');
     if (video) {
       if (!tafeln.length) return;
       video.addEventListener('timeupdate', function () { pruefen(video.currentTime); });
       knoepfe.forEach(function (b, i) {
         b.addEventListener('click', function () {
           zeigen(marken[i].nr);
+          /* Springen heisst nicht starten — siehe unten beim
+             YouTube-Abspieler. Lief es, laeuft es weiter. */
+          var laeuft = !video.paused;
           video.currentTime = marken[i].sekunde;
-          video.play().catch(function () {});
+          if (laeuft) video.play().catch(function () {});
         });
       });
       return;
     }
 
     /* --- YouTube: erst auf Klick einbetten --- */
-    var vorschau = etappe.querySelector('.rahmen.vorschau[data-video]');
+    /* **Nur das Video der Etappe, nicht das an der Aufgabe.**
+       `querySelector` nahm das erste Vorschaubild der ganzen Seite —
+       und in der Reiterleiste einer Aufgabe steht unter «Video» ein
+       zweites. Ohne die Einschraenkung haetten die Sprungmarken der
+       Etappe unter Umstaenden das Aufgabenvideo gesteuert. */
+    var vorschau = etappe.querySelector('.film .rahmen.vorschau[data-video]');
     if (!vorschau) return;
+    vorschau.dataset.verdrahtet = '1';
     var kennung = vorschau.getAttribute('data-video');
     var rahmen = null;
 
@@ -619,8 +669,15 @@
       b.addEventListener('click', function () {
         zeigen(marken[i].nr);
         if (spieler && spieler.seekTo) {
-          spieler.seekTo(marken[i].sekunde, true);
-          spieler.playVideo();
+          /* **Springen heisst nicht starten.** Wer eine Sprungmarke
+             anklickt, will meistens die Aufgabe LESEN — dass dabei das
+             Video zu reden anfaengt, war das Aergerlichste an der
+             ganzen Seite. Lief es schon, laeuft es weiter; stand es,
+             bleibt es stehen. Gestartet wird nur ueber den Startknopf. */
+          var laeuft = spieler.getPlayerState
+                       && spieler.getPlayerState() === 1;
+          spieler.seekTo(marken[i].sekunde, laeuft);
+          if (!laeuft && spieler.pauseVideo) spieler.pauseVideo();
         } else {
           einbetten(marken[i].sekunde);
         }
@@ -661,6 +718,30 @@
     var offen = tafel.querySelector('.blatt:not([hidden])');
     if (offen && window.MathJax && MathJax.typesetPromise) {
       MathJax.typesetPromise([offen]).catch(function () {});
+    }
+
+    /* **Auch beim Blättern wechselt, was unter dem Video steht.**
+       Rike, 25.08.2026: «Applets bitte beide in getrennten Marken,
+       gleiche Stelle, damit sie einzeln eingebettet werden können.»
+       Zwei Applets auf derselben Sekunde liegen in einem Kasten als
+       zwei Blätter — und ohne das hier blieb beim Umblättern das
+       Applet des ersten stehen und das des zweiten kam nie. Dieselbe
+       Regel wie beim Wechsel der Stelle: erst wegräumen, dann das
+       aufmachen, das allein im Blatt steht. */
+    var etappe_b = tafel.closest('.etappe') || document;
+    etappe_b.querySelectorAll('.reiter button.hinaus').forEach(function (a) {
+      if (a.getAttribute('aria-expanded') !== 'true') return;
+      if (offen && offen.contains(a)) return;
+      var f = document.getElementById(a.dataset.ziel);
+      if (f) f.hidden = true;
+      a.setAttribute('aria-expanded', 'false');
+    });
+    if (offen) {
+      var selbst_b = offen.querySelector('.reiter button.hinaus[data-auto]');
+      if (selbst_b && selbst_b.getAttribute('aria-expanded') !== 'true') {
+        if (selbst_b.schaltenApplet) selbst_b.schaltenApplet(true);
+        else selbst_b.click();
+      }
     }
   });
 
@@ -741,7 +822,13 @@
      Sonst laedt jede Etappe beim Aufschlagen ungefragt ein Applet.
      ========================================================== */
   function stufenAufsetzen(kasten) {
-    var knoepfe = [].slice.call(kasten.querySelectorAll('.reiter button'));
+    /* **`.hinaus` gehoert nicht in diese Reihe.** Der GeoGebra-Knopf
+       schaltet ein Feld ausserhalb der Tafel (unter dem Video) und wird
+       weiter unten eigens verdrahtet. Lief er hier mit, geschah beim
+       Klick zweierlei: Das Applet ging auf — und `zeigen(undefined)`
+       schloss im selben Atemzug Starthilfe und Loesung. Genau das
+       Gegenteil dessen, was gewollt ist. */
+    var knoepfe = [].slice.call(kasten.querySelectorAll('.reiter button:not(.hinaus)'));
     var felder = [].slice.call(kasten.querySelectorAll('.faltung'));
 
     function applet(feld) {
@@ -763,6 +850,16 @@
       knoepfe.forEach(function (k) {
         k.setAttribute('aria-expanded', String(k.dataset.stufe === welche));
       });
+      /* Starthilfe und Loesung schliessen jetzt auch das Applet — es
+         steht ueber die ganze Breite, es kann nicht daneben stehen. */
+      if (welche) {
+        kasten.querySelectorAll('.reiter button.hinaus').forEach(function (a) {
+          if (a.getAttribute('aria-expanded') !== 'true') return;
+          var f = document.getElementById(a.dataset.ziel);
+          if (f) f.hidden = true;
+          a.setAttribute('aria-expanded', 'false');
+        });
+      }
       felder.forEach(function (f) {
         var auf = f.dataset.stufe === welche;
         f.hidden = !auf;
@@ -781,9 +878,163 @@
         zeigen(k.getAttribute('aria-expanded') === 'true' ? null : k.dataset.stufe);
       });
     });
+
+    /* **Der GeoGebra-Knopf schaltet ein Feld AUSSERHALB der Tafel.**
+       Das Applet steht jetzt unter Video UND Arbeitsspalte, ueber die
+       ganze Seitenbreite — Rike, 25.08.2026: «Dann haben wir einfach
+       ein riesiges, grosses, breites GeoGebra-Applet.»
+
+       Damit faellt der Grund weg, aus dem es bisher NICHT schloss, was
+       daneben offen war: Nebeneinander gab es Loesung und Applet nur,
+       solange das Applet halb so breit war. Sie hat die Folge selbst
+       benannt: «Das haette zur Folge, dass man die Loesungen nicht
+       parallel lesen kann. Das heisst: entweder ist die Starthilfe
+       offen oder die Loesung oder das Applet.» Genau so ist es jetzt —
+       eine Reihe, ein Feld, egal wo das Feld steht. */
+    kasten.querySelectorAll('.reiter button.hinaus').forEach(function (k) {
+      var feld = document.getElementById(k.dataset.ziel);
+      if (!feld) return;
+      function schalten(auf) {
+        if (auf) {
+          /* Erst alles andere zu: die eigenen Reiter dieser Tafel ... */
+          zeigen(null);
+          /* ... und jedes Applet, das sonst noch offen steht. */
+          document.querySelectorAll('.reiter button.hinaus').forEach(function (a) {
+            if (a === k || a.getAttribute('aria-expanded') !== 'true') return;
+            var f = document.getElementById(a.dataset.ziel);
+            if (f) f.hidden = true;
+            a.setAttribute('aria-expanded', 'false');
+          });
+        }
+        k.setAttribute('aria-expanded', String(auf));
+        feld.hidden = !auf;
+        if (auf) applet(feld);
+      }
+      k.schaltenApplet = schalten;
+      k.addEventListener('click', function () {
+        schalten(k.getAttribute('aria-expanded') !== 'true');
+      });
+    });
+  }
+
+  /* ==========================================================
+     Vorschaubilder ausserhalb der Etappe
+
+     Unter dem Reiter «Video» an einer Aufgabe steht dasselbe
+     Vorschaubild wie bei der Etappe — und auf der Aufgabenseite steht
+     es ganz allein, ohne Etappe drumherum. Verdrahtet war bisher nur
+     das der Etappe; ueberall sonst tat der Startknopf **nichts**.
+
+     Kein `autoplay`: Safari und Firefox lassen ein Video mit Ton nicht
+     von selbst anlaufen, und die Klickerlaubnis traegt nicht in einen
+     Rahmen hinein, der durch denselben Klick erst entsteht. YouTube
+     zeigt seinen eigenen Startknopf — ein Klick mehr, dafuer laeuft es
+     ueberall.
+     ========================================================== */
+  function vorschauAufsetzen(v) {
+    if (v.dataset.verdrahtet) return;
+    v.dataset.verdrahtet = '1';
+    v.addEventListener('click', function () {
+      var kennung = v.getAttribute('data-video');
+      if (!kennung) return;
+      var ursprung = (window.location.protocol === 'file:')
+                     ? '' : '&origin=' + encodeURIComponent(window.location.origin);
+      var rahmen = document.createElement('iframe');
+      rahmen.className = 'spieler';
+      rahmen.setAttribute('allowfullscreen', '');
+      rahmen.setAttribute('allow', 'encrypted-media; picture-in-picture');
+      rahmen.setAttribute('title', 'Video');
+      rahmen.src = 'https://www.youtube.com/embed/' + kennung
+                 + '?rel=0&modestbranding=1&playsinline=1' + ursprung;
+      v.innerHTML = '';
+      v.classList.remove('vorschau');
+      v.appendChild(rahmen);
+    });
+  }
+
+  /* ---- Der Gedankengang wandert mit ------------------------------
+     Rike am 23.08.: «Ich fände es gut, wenn oben bei dem Gedankengang
+     immer der Teil gehighlightet wird, der gerade dran ist.»
+
+     Beobachtet wird, welcher Abschnitt gerade im oberen Drittel des
+     Fensters steht — nicht welcher am meisten zu sehen ist. Beim
+     Lesen wandert das Auge von oben nach unten; der Abschnitt, dessen
+     Anfang man eben passiert hat, ist der, in dem man liest.
+
+     Faellt `IntersectionObserver` aus, bleibt die Reihe einfach ohne
+     Auszeichnung — anklickbar ist sie ohnehin. */
+  function gedankengangAufsetzen(reihe) {
+    var teile = [].slice.call(document.querySelectorAll('.schulpraxis .teil'));
+    if (!teile.length || !window.IntersectionObserver) return;
+    var verweise = {};
+    reihe.querySelectorAll('a[data-teil]').forEach(function (a) {
+      verweise[a.getAttribute('data-teil')] = a;
+    });
+    var sichtbar = {};
+
+    function zeichnen() {
+      var jetzt = null;
+      teile.forEach(function (t) {
+        if (sichtbar[t.id]) jetzt = jetzt || t.id;
+      });
+      /* Nichts sichtbar (ganz unten angekommen)? Dann bleibt der
+         letzte Abschnitt ausgezeichnet, statt dass alles erlischt. */
+      if (!jetzt) {
+        for (var i = teile.length - 1; i >= 0; i--) {
+          if (teile[i].getBoundingClientRect().top < window.innerHeight / 2) {
+            jetzt = teile[i].id;
+            break;
+          }
+        }
+      }
+      Object.keys(verweise).forEach(function (k) {
+        verweise[k].setAttribute('aria-current', k === jetzt ? 'true' : 'false');
+      });
+    }
+
+    var waechter = new IntersectionObserver(function (eintraege) {
+      eintraege.forEach(function (e) { sichtbar[e.target.id] = e.isIntersecting; });
+      zeichnen();
+    }, { rootMargin: '-12% 0px -62% 0px' });
+    teile.forEach(function (t) { waechter.observe(t); });
+    zeichnen();
+  }
+
+  /* ---- Die Arbeitsblattseite ---------------------------------------
+     Sie hat nur einen Zweck: das Applet zu zeigen, auf das der QR-Code
+     im Skript fuehrt. Es wird darum **sofort** geladen und nicht hinter
+     einen Klick gelegt — anders als das Video auf der Etappenseite, wo
+     der Film nur eines von mehreren Dingen ist.
+
+     Dieselbe Adresse und dieselbe Sandbox wie in der Aufgabentafel:
+     `geogebra.org/m/<buch>#material/<applet>` antwortet seit August
+     2026 mit 502, `geogebra.org/calculator/<applet>` laeuft. */
+  function arbeitsblattAufsetzen(feld) {
+    if (feld.dataset.gebaut || !feld.dataset.applet) return;
+    feld.dataset.gebaut = '1';
+    var rahmen = document.createElement('iframe');
+    rahmen.title = 'GeoGebra-Applet';
+    rahmen.allowFullscreen = true;
+    rahmen.setAttribute('sandbox', 'allow-scripts allow-same-origin '
+      + 'allow-popups allow-forms allow-downloads');
+    rahmen.loading = 'lazy';
+    rahmen.src = 'https://www.geogebra.org/calculator/'
+      + feld.dataset.applet + '?embed';
+    feld.insertBefore(rahmen, feld.firstChild);
   }
 
   function los() {
+    document.querySelectorAll('.arbeitsblatt .applet[data-applet]')
+            .forEach(arbeitsblattAufsetzen);
+    /* **Ein Applet in der Einblendung baut sich selbst auf.** Rike,
+       24.08.2026: «Wenn hier ein Applet ohne Aufgabe eingebunden wird,
+       immer direkt einbetten.» Der Rahmen haengt zu diesem Zeitpunkt in
+       einer verborgenen Tafel; `loading="lazy"` sorgt dafuer, dass er
+       erst laedt, wenn die Tafel wirklich aufgeht. Sonst zoege jede
+       Etappenseite ein halbes Dutzend GeoGebra-Fenster nach. */
+    document.querySelectorAll('.applet.eingebettet[data-applet]')
+            .forEach(arbeitsblattAufsetzen);
+    document.querySelectorAll('.gedankengang').forEach(gedankengangAufsetzen);
     document.querySelectorAll('.buch').forEach(buchAufsetzen);
     document.querySelectorAll('.videoblock').forEach(videoAufsetzen);
     document.querySelectorAll('.kartenbuehne').forEach(kartenAufsetzen);
@@ -791,6 +1042,10 @@
     document.querySelectorAll('.etappe').forEach(etappeAufsetzen);
     document.querySelectorAll('.zeitstrahl').forEach(wegAnpassen);
     document.querySelectorAll('.stufen').forEach(stufenAufsetzen);
+    /* Nach `etappeAufsetzen`, damit das Video der Etappe schon
+       beansprucht ist und hier nicht doppelt verdrahtet wird. */
+    document.querySelectorAll('.rahmen.vorschau[data-video]')
+            .forEach(vorschauAufsetzen);
   }
 
   if (document.readyState === 'loading') {

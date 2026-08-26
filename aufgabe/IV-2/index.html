@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Aufgabe IV.2 · Komplexe Zahlen</title>
-<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=24c1b738">
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css?f=f127c73f">
 <body data-farbe="aktion">
 <div class="stationskopf"><span class="wort">AUFGABE</span><span class="roemisch">IV.2</span><h1>Komplexe Zahlen</h1><span class="wechsel wortweise"><a href="../../index.html">Startseite</a><a href="../index.html">Alle Aufgaben</a></span></div>
 <main>
@@ -12,7 +12,7 @@
 <div class="spalten">
       <ol class="klammer-a"><li>$z=2+5i$</li><li>$z=1+\pi i$</li><li>$z=1+3\pi i$</li><li>$z=0.5$</li><li>$z=2\pi i$</li><li>$z=\pi i$</li></ol>
     </div>
-<p>Und skizzieren Sie $z$ und $w$ jeweils im selben Koordinatensystem.</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Nutzen Sie $e^{x+iy} = e^x \cdot e^{iy} = e^x \cdot \text{cis}(y)$.</li><li>Der Realteil bestimmt den Betrag, der Imaginärteil das Argument.</li><li>Rechnen Sie Bogenmass in Grad um: $\pi = 180°$.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><p><strong>(a) $z = 2 + 5i$:</strong>
+<p>Und skizzieren Sie $z$ und $w$ jeweils im selben Koordinatensystem.</p><div class="stufen"><div class="reiter"><button type="button" data-stufe="starthilfe" aria-expanded="false">Starthilfe</button><button type="button" data-stufe="loesung" aria-expanded="false">Lösung</button><button type="button" data-stufe="geogebra" aria-expanded="false">GeoGebra</button></div><div class="faltung" data-stufe="starthilfe" hidden><ul><li>Nutzen Sie $e^{x+iy} = e^x \cdot e^{iy} = e^x \cdot \text{cis}(y)$.</li><li>Der Realteil bestimmt den Betrag, der Imaginärteil das Argument.</li><li>Rechnen Sie Bogenmass in Grad um: $\pi = 180°$.</li></ul></div><div class="faltung" data-stufe="loesung" hidden><p><strong>(a) $z = 2 + 5i$:</strong>
 \begin{align*}
 w &amp;= e^{2+5i} = e^2 \cdot e^{5i} = e^2 \cdot \text{cis}(5)\\
 &amp;= 7.389 \cdot \text{cis}(286.48°) \approx 2.10 - 7.09i 
@@ -49,17 +49,25 @@ w &amp;= e^{\pi i} = \text{cis}(\pi) = \text{cis}(180°) = -1
 <p><strong>Konkret:</strong>
 <ol><li>Nimm den Realteil $x$ von $z$ und berechne $e^x$ - das ist der Abstand von $e^z$ zum Ursprung</li><li>Nimm den Imaginärteil $y$ von $z$ - das ist der Winkel (im Bogenmass) von $e^z$</li><li>Zeichne $e^z$ in Polarkoordinaten: Gehe vom Ursprung aus die Distanz $e^x$ in Richtung des Winkels $y$</li></ol></p>
 <h4>Spezialfälle:</h4>
-<ul><li>Ist $z$ rein reell ($y = 0$), dann liegt $e^z$ auf der positiven reellen Achse</li><li>Ist $z$ rein imaginär ($x = 0$), dann liegt $e^z$ auf dem Einheitskreis</li><li>Der Imaginärteil $y = \pi$ entspricht einer halben Drehung ($180°$)</li><li>Der Imaginärteil $y = 2\pi$ entspricht einer vollen Drehung (zurück zum Ausgangspunkt)</li></ul></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-4/e-z/index.html">Etappe 4 · e(z)=???</a> <span class="zeit">bei 6:52</span></p>
+<ul><li>Ist $z$ rein reell ($y = 0$), dann liegt $e^z$ auf der positiven reellen Achse</li><li>Ist $z$ rein imaginär ($x = 0$), dann liegt $e^z$ auf dem Einheitskreis</li><li>Der Imaginärteil $y = \pi$ entspricht einer halben Drehung ($180°$)</li><li>Der Imaginärteil $y = 2\pi$ entspricht einer vollen Drehung (zurück zum Ausgangspunkt)</li></ul></div><div class="faltung applet" data-stufe="geogebra" data-applet="hrmzsg76" hidden><p class="ruhig"><a href="https://www.geogebra.org/calculator/hrmzsg76" target="_blank" rel="noopener">Bei GeoGebra öffnen</a></p></div></div></div><p class="fundort">Im Video: <a href="../../lernweg-4/exp-z/index.html">Etappe 4 · Exp(z)=???</a> <span class="zeit">bei 6:52</span></p>
 </main>
-<footer>Komplexe Zahlen</footer>
-<script src="../../gemeinsam/seite.js?f=24c1b738"></script>
+<footer><div class="seitenfuss"><span class="wo"><b>MA02.02</b> Komplexe Zahlen</span><span class="wer">Henrike Allmendinger · Herbstsemester 2026<a class="pinnwand" href="https://www.taskcards.de/#/board/c1b7fe7b-28eb-41b2-bf38-60c4264a9f8c" target="_blank" rel="noopener">Feedback</a></span></div></footer>
+<script src="../../gemeinsam/seite.js?f=f127c73f"></script>
 
 <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],
   displayMath:[['\\[','\\]'],['$$','$$']],processEscapes:true,
   macros:{cc:'\\mathbb{C}',rr:'\\mathbb{R}',nn:'\\mathbb{N}',
           zz:'\\mathbb{Z}',qq:'\\mathbb{Q}',cis:'\\operatorname{cis}',
           Log:'\\operatorname{Log}',dd:'\\mathrm{d}',
-          glqq:'\\text{„}',grqq:'\\text{“}'}},
+          glqq:'\\text{„}',grqq:'\\text{“}',
+          // Aus dem Vorspann von MA01.03 (`Preambel/Styles.tex`):
+          // ein Gleichheitszeichen mit Dach, «entspricht».
+          equalhat:'\\mathrel{\\stackrel{\\wedge}{=}}',
+          // `\vv` kommt aus dem Paket `esvect` (Vektorpfeil) und ist
+          // MathJax unbekannt — ohne diese Zeile setzt es den Befehl
+          // rot als Fehler. Gefunden am 26.08. in Kapitel 3 von
+          // MA01.03 («schultypische Beispiele», 4 Stellen).
+          vv:['\\overrightarrow{#1}',1]}},
   options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};</script>
 <script defer src="../../gemeinsam/fremd/tex-svg.js"></script>
 </body>

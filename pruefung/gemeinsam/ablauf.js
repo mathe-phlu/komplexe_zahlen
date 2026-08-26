@@ -16,6 +16,40 @@ const STATIONSNAMEN = {
   3: 'Komplexe Folgen',  4: 'Komplexe Potenzen'
 };
 
+/* ============================================================
+   Was den Studierenden vor der Prüfung gesagt wird
+
+   Steht hier und nicht viermal in den Stationen: Der Text gilt für
+   alle vier gleich, und was für alle gilt, soll man an EINER Stelle
+   ändern können.
+
+   Der Ton ist Absicht. Beide Fälle - Netz weg, Rechner weg - sind
+   für die Prüfung harmlos (siehe UEBERGABE.md, «Was bei einem
+   Ausfall passiert»). Wer das vorher weiss, gerät nicht in Panik und
+   tut dann auch nicht das eine, was wirklich schadet: neu laden.
+
+   Der Tabletabsatz ist Rikes Entscheidung vom 25.08.2026, wörtlich
+   gemeint - kein Ständer, keine Vorschrift zur Haltung, keine
+   Ermahnung. Begründung: ENTSCHEIDUNGEN.md, 25.08.
+   ============================================================ */
+const WENN_ETWAS_SCHIEFGEHT =
+  '<h3>Wenn etwas schiefgeht</h3>' +
+  '<p><b>Internet weg?</b> Arbeiten Sie einfach weiter. Diese Prüfung ist ' +
+  'eine einzige geladene Seite — es wird nichts nachgeladen und während der ' +
+  'Prüfung auch nichts hochgeladen. Nichts geht verloren. ' +
+  '<b>Laden Sie die Seite nicht neu.</b> Das ist das Einzige, was hier ' +
+  'wirklich schadet.</p>' +
+  '<p><b>Rechner abgestürzt, Strom weg, versehentlich geschlossen?</b> ' +
+  'Öffnen Sie <i>denselben Browser auf demselben Rechner</i> wieder und rufen ' +
+  'Sie <i>dieselbe Seite</i> auf. Das Angefangene meldet sich von selbst.</p>' +
+  '<p><b>Damit es gar nicht erst dazu kommt:</b> Stromkabel einstecken, und ' +
+  'was Sie nicht brauchen, vorher schliessen.</p>' +
+  '<p><b>Sie arbeiten auf einem Tablet?</b> Stellen Sie es so hin, dass die ' +
+  'Kamera Sie sieht, solange Sie nicht schreiben. Zum Schreiben dürfen Sie es ' +
+  'flach hinlegen — dann filmt die Kamera die Decke, und <b>das ist in ' +
+  'Ordnung</b>. Der Ton läuft weiter, und darauf kommt es an. Nur ' +
+  'ausschalten sollten Sie die Kamera nicht.</p>';
+
 function pruefung(def){
   document.body.dataset.station = String(def.station);
   document.title = 'Station ' + def.station + ' · ' + STATIONSNAMEN[def.station];
@@ -40,6 +74,13 @@ function pruefung(def){
       'Die Aufgaben lassen sich ausfüllen und am Schluss auswerten.');
     band.style.cssText = 'margin:0;border-radius:0;border-left:0;border-right:0';
     document.body.insertBefore(band, document.body.children[1]);
+
+    /* Nur in der Werkstatt: der Griff, an dem `pruefstand/richtigkeit.html`
+       die gebauten Aufgaben fasst. Nicht in der echten Prüfung - dort
+       soll `soll()` nicht mit einem Wort aus der Konsole zu holen sein.
+       (Wasserdicht ist das nicht; die Aufgaben liegen als Quelltext im
+       Browser. Aber es soll nicht bequemer sein als nötig.) */
+    window.PIA.werkstatt = stand;
     return;
   }
 
@@ -172,11 +213,6 @@ function pruefung(def){
     }
     blatt.appendChild(ausklapp('Aufgaben und Punkte', tabellenHalter));
 
-    const istSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
-    if (istSafari) blatt.appendChild(el('div', 'warnung',
-      '<b>Bitte Chrome oder Edge verwenden.</b> Safari nimmt in einem anderen ' +
-      'Format auf; die Aufnahme lässt sich danach schlechter ansehen.'));
-
     /* Liegt eine unterbrochene Prüfung? Dann zuerst die retten. */
     AUF.angefangenes().then(offen => {
       offen.filter(o => o.kopf && o.kopf.station === def.station).forEach(o => {
@@ -233,7 +269,6 @@ function pruefung(def){
      Abschlussseite wie sonst - nur ohne Auswertung, denn wie weit
      jemand gekommen ist, steht im Protokoll und nicht hier. */
   function retten(angefangen){
-    const paket = AUF.paketAus(angefangen);
     document.body.innerHTML = '';
     document.body.classList.add('titelseite');
     const streifen = el('div', 'streifen',
@@ -245,10 +280,93 @@ function pruefung(def){
     haupt.appendChild(blatt);
     document.body.appendChild(haupt);
 
+    /* ---- Auswerten, was sich auswerten lässt ----
+       Bis zum 25.08.2026 hat retten() nur das Paket geschnürt und
+       gesagt «danach können Sie neu beginnen» - also die ganze Station
+       noch einmal. Das ist mehr Strafe als nötig: Was richtig gelöst
+       war, war richtig gelöst, auch wenn danach der Strom ausfiel.
+
+       Ausgewertet wird aus dem Ereignisstrom gegen die Schnappschüsse
+       (nachwerten.js), ohne eine Seite aufzubauen - die Aufgaben von
+       damals sind mit dem Fenster verschwunden.
+
+       Im Zweifel offen: Was sich nicht zurücklesen lässt, zählt als
+       nicht gelöst. Siehe nachwerten.js, Regel 1. */
+    const nach = window.Nachwerten.bewerten(angefangen.ereignisse);
+    const geloest = nach.aufgaben.filter(a => a.ganz).map(a => a.nr);
+    const offen = def.aufgaben.map(a => a.nr).filter(nr => geloest.indexOf(nr) < 0);
+
+    /* Der Code wird auf GESTERN datiert. Sonst griffe die Sperrfrist
+       (am Ausstellungstag gilt ein Code nicht) und der Wiedereintritt
+       wäre bis morgen versperrt - bei einer Abgabe ist die Frist
+       gewollt, hier wäre sie eine zweite Strafe für einen Stromausfall. */
+    const code = offen.length
+      ? CODE.ausstellen({ station: def.station,
+                          durchgang: (angefangen.kopf && angefangen.kopf.durchgang) || 1,
+                          offen: offen, person: angefangen.kopf && angefangen.kopf.person,
+                          tag: CODE.tagesnummer() - 1 })
+      : null;
+
+    /* Die Auswertung gehört INS PAKET, nicht nur auf den Bildschirm:
+       Wer beurteilt, soll sie sehen, ohne sie nachrechnen zu müssen.
+       Deshalb erst anhängen, dann schnüren - in dieser Reihenfolge. */
+    const bilanz = { erreicht: nach.erreicht, moeglich: nach.moeglich,
+                     offen: offen, code: code, gerettet: true,
+                     aufgaben: nach.aufgaben };
+    angefangen.ereignisse = (angefangen.ereignisse || [])
+      .concat([Object.assign({ t: 0, was: 'auswertung' }, bilanz)]);
+    /* Auch in den KOPF: Die Wiedergabe holt die Auswertung von dort
+       (`kopf.auswertung`), nicht aus dem Ereignisstrom. Ohne das stünde
+       eine gerettete Prüfung beim Beurteilen ohne Auswertung da. */
+    angefangen.kopf = Object.assign({}, angefangen.kopf, { auswertung: bilanz });
+    const paket = AUF.paketAus(angefangen);
+
     blatt.appendChild(el('div', 'warnung',
-      '<b>Gerettete Aufnahme.</b> Diese Prüfung wurde unterbrochen. Was bis ' +
-      'dahin aufgenommen wurde, steckt im Paket — geben Sie es ab und sagen ' +
-      'Sie Ihrer Dozentin Bescheid. Danach können Sie neu beginnen.'));
+      '<b>Diese Prüfung wurde unterbrochen.</b> Was bis dahin aufgenommen ' +
+      'wurde, steckt im Paket. Geben Sie es ab — danach können Sie dort ' +
+      'weitermachen, wo es aufgehört hat.'));
+
+    /* --- Was schon gelöst ist --- */
+    const uebersicht = el('div', 'ergebnis');
+    uebersicht.appendChild(el('h3', null, 'Was bis zur Unterbrechung stand'));
+    const t = el('table');
+    t.innerHTML = '<tr><th>Aufgabe</th><th>Stand</th></tr>';
+    def.aufgaben.forEach(a => {
+      const x = nach.aufgaben.find(y => y.nr === a.nr);
+      const fertig = geloest.indexOf(a.nr) >= 0;
+      const wort = fertig ? 'vollständig richtig'
+                 : !x ? 'nicht begonnen'
+                 : x.erreicht > 0 ? 'teilweise — noch einmal zu lösen'
+                 : 'noch einmal zu lösen';
+      const tr = el('tr');
+      tr.innerHTML = '<td>Aufgabe ' + a.nr + ' · ' + a.titel + '</td>' +
+        '<td class="' + (fertig ? 'ganz' : x && x.erreicht > 0 ? 'teils' : 'nichts') +
+        '">' + wort + '</td>';
+      t.appendChild(tr);
+    });
+    uebersicht.appendChild(t);
+
+    if (offen.length === 0){
+      uebersicht.appendChild(el('p', null,
+        '<b>Alle Aufgaben sind gelöst.</b> Geben Sie das Paket ab und sagen Sie ' +
+        'Ihrer Dozentin Bescheid — die Auswertung steckt darin.'));
+    } else {
+      uebersicht.appendChild(el('p', null,
+        'Mit diesem Code steigen Sie wieder ein. Es sind dann nur noch die ' +
+        'Aufgaben zu lösen, die oben offen stehen.'));
+      uebersicht.appendChild(el('p', 'code', code));
+      uebersicht.appendChild(el('p', 'hinweis',
+        'Der Code gilt sofort. Schreiben Sie ihn auf, bevor Sie das Fenster ' +
+        'schliessen. <b>Geben Sie zuerst das Paket ab</b> — ohne die Aufnahme ' +
+        'zählt der bisherige Teil nicht.'));
+    }
+    if (nach.unvollstaendig)
+      uebersicht.appendChild(el('p', 'hinweis',
+        'Bei einzelnen Aufgaben lässt sich aus der Aufzeichnung nicht ' +
+        'zweifelsfrei ablesen, was zuletzt eingetragen war. Die stehen oben ' +
+        'als offen — im Zweifel lieber noch einmal.'));
+    blatt.appendChild(uebersicht);
+
     abgabeschritte(blatt, paket, () => AUF.aufraeumen(angefangen.sitzung));
 
     const zurueck = el('button', 'neben', 'Zur Titelseite');
@@ -295,7 +413,8 @@ function pruefung(def){
     zurueck.onclick = () => { if (stand.geraet) stand.geraet.stopp(); einstieg(); };
     const losKnopf = el('button', 'tat', 'Los geht’s — Aufnahme starten');
     losKnopf.type = 'button'; losKnopf.disabled = true;
-    const fussWort = el('span', 'zart', 'Bitte zuerst Mikrofon und Kamera prüfen.');
+    const fussWort = el('span', 'zart',
+      'Bitte zuerst Mikrofon und Kamera prüfen und einmal probeweise aufnehmen.');
     fuss.appendChild(zurueck); fuss.appendChild(fussWort);
     fuss.appendChild(el('span', 'luft')); fuss.appendChild(losKnopf);
     document.body.appendChild(fuss);
@@ -303,24 +422,12 @@ function pruefung(def){
     probeKnopf.onclick = async () => {
       probeKnopf.disabled = true;
       probeBereich.innerHTML = '';
+      let p;
       try {
-        const p = await AUF.probe(wert => {
+        p = await AUF.probe(wert => {
           pegelBalken.style.width = Math.round(wert*100) + '%';
         }, spiegel);
         stand.geraet = p;
-        const z = el('div', 'zeile');
-        z.style.alignItems = 'flex-start';
-        const links = el('div');
-        links.appendChild(el('p', 'hinweis', 'Sagen Sie etwas — der Balken muss ausschlagen.'));
-        links.appendChild(pegel);
-        z.appendChild(links);
-        if (p.hatBild) z.appendChild(spiegel);
-        probeBereich.appendChild(z);
-        if (!p.hatBild) probeBereich.appendChild(el('div', 'warnung',
-          'Ich bekomme kein Kamerabild. Die Prüfung läuft auch ohne — der Ton ' +
-          'genügt. Sie können dann allerdings kein Blatt abfotografieren.'));
-        losKnopf.disabled = false;
-        fussWort.textContent = 'Mit dem Start beginnt die Aufnahme.';
       } catch(e){
         probeBereich.appendChild(el('div', 'fehl',
           'Kein Zugriff auf Mikrofon oder Kamera. <b>Ohne Mikrofon kann die ' +
@@ -328,7 +435,102 @@ function pruefung(def){
           'können. Erlauben Sie den Zugriff in der Adresszeile und versuchen Sie ' +
           'es noch einmal.'));
         probeKnopf.disabled = false;
+        return;
       }
+
+      const z = el('div', 'zeile');
+      z.style.alignItems = 'flex-start';
+      const links = el('div');
+      links.appendChild(el('p', 'hinweis', 'Sagen Sie etwas — der Balken muss ausschlagen.'));
+      links.appendChild(pegel);
+      z.appendChild(links);
+      if (p.hatBild) z.appendChild(spiegel);
+      probeBereich.appendChild(z);
+      if (!p.hatBild) probeBereich.appendChild(el('div', 'warnung',
+        'Ich bekomme kein Kamerabild. Die Prüfung läuft auch ohne — der Ton ' +
+        'genügt. Sie können dann allerdings kein Blatt abfotografieren.'));
+
+      /* --- Zweite Stufe: wirklich zwei Sekunden aufnehmen ---
+
+         NEU (gemeinsam entschieden, 2026-08-22): Statt vor Safari zu
+         warnen, wird die Aufnahme hier ausprobiert. Der Browsername
+         sagt nichts darueber, ob es auf DIESEM Rechner traegt. */
+      const lauf = el('div', 'schritt');
+      lauf.appendChild(el('h2', null,
+        '<span class="nr">4</span>Kurze Probeaufnahme'));
+      lauf.appendChild(el('p', null,
+        'Zwei Sekunden zur Probe — <b>sagen Sie etwas</b>. Danach hören und ' +
+        'sehen Sie es gleich wieder. So wissen wir, dass es in Ihrem Browser ' +
+        'wirklich funktioniert, statt es zu vermuten.'));
+      const laufKnopf = el('button', 'tat', 'Probeaufnahme starten');
+      laufKnopf.type = 'button';
+      lauf.appendChild(laufKnopf);
+      const laufStand = el('div');
+      lauf.appendChild(laufStand);
+      probeBereich.appendChild(lauf);
+
+      laufKnopf.onclick = async () => {
+        laufKnopf.disabled = true;
+        laufStand.innerHTML = '';
+        laufStand.appendChild(el('p', 'hinweis', '● Nimmt auf … zwei Sekunden.'));
+        const [r, sp] = await Promise.all([
+          AUF.probeMitRueckfall(p.spur, p.hatBild),
+          AUF.speicherprobe()
+        ]);
+        laufStand.innerHTML = '';
+
+        if (!r.gut){
+          laufStand.appendChild(el('div', 'fehl',
+            '<b>Die Probeaufnahme hat nicht geklappt.</b> ' + r.grund +
+            '<br>Bitte versuchen Sie es in einem anderen Browser — ' +
+            'Chrome, Edge, Firefox und Safari sollten alle gehen. ' +
+            'Sagen Sie Ihrer Dozentin Bescheid, welcher es war.'));
+          laufKnopf.disabled = false;
+          return;
+        }
+
+        /* Ging es nur ohne Bild, wird mit Ton allein aufgezeichnet.
+           Die Kamera bleibt trotzdem an - fuers Abfotografieren. */
+        stand.mitBild = r.bild;
+        if (p.hatBild && !r.bild)
+          laufStand.appendChild(el('div', 'warnung',
+            '<b>Nur der Ton wird aufgezeichnet.</b> Ihr Browser konnte Ton und ' +
+            'Bild nicht zusammen aufnehmen. Das ist kein Hindernis — der Ton ' +
+            'trägt Ihre Erklärungen, und darauf kommt es an. Die Kamera bleibt ' +
+            'an, Sie können weiterhin ein Blatt abfotografieren.<br>' +
+            '<span class="hinweis">Bitte sagen Sie Ihrer Dozentin, in welchem ' +
+            'Browser das war.</span>'));
+
+        r.spieler.controls = true;
+        r.spieler.muted = false;
+        if (r.bild){
+          r.spieler.className = 'spiegel';
+          r.spieler.style.width = '260px';
+          r.spieler.style.transform = 'none';
+        } else {
+          r.spieler.style.width = '100%';
+          r.spieler.style.maxWidth = '340px';
+        }
+        laufStand.appendChild(el('p', null,
+          '<b>Hat geklappt.</b> Hören Sie kurz hinein — verstehen Sie sich?'));
+        laufStand.appendChild(r.spieler);
+        laufStand.appendChild(el('p', 'hinweis',
+          'Format: ' + r.typ + ' · ' + r.brocken + ' Stücke, wieder ' +
+          'zusammengesetzt · ' + Math.round(r.groesse/1024) + ' KB' +
+          (r.bild ? ' · mit Bild' : ' · nur Ton')));
+
+        if (!sp.gut) laufStand.appendChild(el('div', 'warnung',
+          '<b>Zwischensicherung geht nicht.</b> ' + sp.grund +
+          ' Die Prüfung läuft trotzdem — aber wenn der Browser abstürzt, ist ' +
+          'die Aufnahme weg. Falls möglich: privates Fenster schliessen oder ' +
+          'anderen Browser nehmen.'));
+
+        laufKnopf.textContent = 'Probeaufnahme wiederholen';
+        laufKnopf.className = 'neben';
+        laufKnopf.disabled = false;
+        losKnopf.disabled = false;
+        fussWort.textContent = 'Mit dem Start beginnt die Aufnahme.';
+      };
     };
 
     losKnopf.onclick = async () => {
@@ -336,7 +538,7 @@ function pruefung(def){
       if (stand.geraet) stand.geraet.stopp();
       await AUF.starten({ person: stand.person, kuerzel: stand.kuerzel,
                           station: def.station, durchgang: stand.durchgang,
-                          spur: stand.geraet.spur });
+                          spur: stand.geraet.spur, mitBild: stand.mitBild });
       document.body.classList.remove('titelseite');
       aufgabenAufbauen();
     };
@@ -366,6 +568,28 @@ function pruefung(def){
       const halter = el('div');
       const bau = window.PIA.Bau(s.aufgabe, halter);
       s.aufgabe.bauen(bau, window.PIA);
+
+      /* ---- Der Schnappschuss ----
+         Was hier ins Protokoll geht, ist die Aufgabe, WIE SIE DASTAND -
+         mit den gezogenen Zahlen und der gezeichneten Ebene, aber ohne
+         eine einzige Antwort. Er entsteht genau hier: nach dem Bauen,
+         vor dem Nebenblatt, vor dem ersten Klick.
+
+         Warum vorher und nicht bei der Abgabe: Eine Prüfung, die
+         abstürzt, kommt nie zur Abgabe. Ohne diesen Eintrag wüsste man
+         hinterher nicht, was gefragt war - die Werte sind im Browser
+         gezogen und nirgends sonst aufgehoben.
+
+         Warum kein Seed: siehe ENTSCHEIDUNGEN.md, 25.08.2026. */
+      s.bild = {
+        aufgabe: s.aufgabe.id, nr: s.aufgabe.nr, titel: s.aufgabe.titel,
+        punkte: s.aufgabe.punkte,
+        teile: bau.teile.map(t => ({ name: t.name, art: t.art, p: t.p,
+                                    soll: t.soll(), sollRoh: t.sollRoh || null })),
+        html: halter.innerHTML
+      };
+      AUF.M.aufgabeGebaut(s.bild);
+
       const nb = window.PIA.nebenblatt(s.aufgabe.id);
       halter.appendChild(nb.element);
       s.inhalt = halter;
@@ -514,7 +738,7 @@ function pruefung(def){
 
     function startBlatt(){
       const d = el('div', 'ergebnis');
-      d.innerHTML = def.startseite || '';
+      d.innerHTML = (def.startseite || '') + WENN_ETWAS_SCHIEFGEHT;
       d.appendChild(punktetabelle(true));
       const punkte = def.aufgaben.reduce((x,a) => x + a.punkte, 0);
       const offenePunkte = stand.seiten.filter(s => s.art === 'aufgabe')

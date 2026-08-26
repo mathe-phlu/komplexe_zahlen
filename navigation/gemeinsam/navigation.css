@@ -1,0 +1,1226 @@
+/* Die Navigationsseiten des Moodle-Kurses.
+ *
+ * Nachgebaut aus `Unterlagen/Powerpoint/Navigation/<Modul>/`. Masse,
+ * Farben und Schattenwerte stammen aus dem Folien-XML, nicht aus dem
+ * Augenmass — die Folie ist 1280 x 720 gross, und bei einer
+ * Wurzelschrift von 16 px entspricht 1rem genau 16 Folienpixeln.
+ *
+ * Darunter wird die Wurzelschrift kleiner, und die Seite bleibt
+ * massstaeblich; unter 62rem brechen die Spalten um.
+ */
+
+:root {
+  /* Farben aus dem Folien-XML */
+  --grund:        #F4F1EB;   /* Rectangle 1 */
+  --tinte:        #1A1A1A;
+  --grau:         #6B7280;   /* Gruppenbeschriftungen */
+  --weiss:        #FFFFFF;
+
+  --material:     #E3ECF6;   /* Rounded Rectangle 5 */
+  --material-rand:#2A62A4;
+  --material-tief:#15273F;
+
+  --aktuell:      #F1E7DA;   /* Rounded Rectangle 8 */
+  --aktuell-rand: #D9C9B4;
+  --braun:        #A45D22;   /* Rand der Aktuelles-Kaertchen */
+  --kopfbraun:    #A45D22;   /* Rectangle 2 der Unterseiten */
+
+  /* outerShdw blurRad=70000 dist=32000 dir=90 Grad, #4A3F30 bei 26 % */
+  --schatten:     0 0.156rem 0.344rem rgba(74, 63, 48, .26);
+  --schatten-klein: 0 0.109rem 0.219rem rgba(74, 63, 48, .26);
+
+  --kachel-rund:  0.703rem;  /* roundRect 9000 auf 125 px Hoehe */
+
+  /* Das Wimmelbild ist das Einzige, was je Modul wechselt. */
+  --streifen: url(bilder/streifen-komplexe_zahlen.png);
+  --lücke:        1.313rem;  /* 21 px zwischen den Kacheln */
+}
+
+body.m-daten_und_zufall { --streifen: url(bilder/streifen-daten_und_zufall.png); }
+body.m-form_und_raum    { --streifen: url(bilder/streifen-form_und_raum.png); }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  /* 1280 px Fensterbreite ergibt 16 px — die Folie in Originalgroesse. */
+  font-size: clamp(11px, 1.25vw, 16px);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--grund);
+  color: var(--tinte);
+  font-family: 'Fira Sans', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ---------------------------------------------------------- Kopf --- */
+
+.kopf {
+  position: relative;
+  height: 9.625rem;                       /* 154 px */
+  background: var(--streifen) center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+/* Der weiche weisse Schleier hinter dem Titel — auf der Folie ein Bild,
+ * hier dasselbe Bild, damit die Kante gleich ausblendet. */
+.kopf::after {
+  content: "";
+  position: absolute;
+  right: -1.5rem; top: 50%;
+  transform: translateY(-50%);
+  width: 30.875rem; height: 7.813rem;     /* 494 x 125 px */
+  background: url(bilder/titelschleier.png) center / 100% 100% no-repeat;
+  pointer-events: none;
+}
+
+.kopf h1 {
+  position: relative;
+  z-index: 1;
+  margin: 0 3.5rem 0 0;
+  font-family: 'Patrick Hand', 'Bradley Hand', cursive;
+  font-weight: 400;
+  font-size: 4rem;                        /* 48 pt */
+  line-height: 1;
+  letter-spacing: .01em;
+}
+
+/* Die Unterseiten tragen statt des Streifens einen braunen Balken mit
+ * dem Wimmelbild als Quadrat rechts — Folien 7, 9, 10, 11. */
+.kopf--balken {
+  background: var(--kopfbraun);
+  justify-content: space-between;
+  padding: 0 3.063rem 0 3.625rem;
+  height: 9.625rem;                       /* 154 px, wie Rectangle 2 */
+}
+.kopf--balken::after { content: none; }
+.kopf--balken h1 {
+  margin: 0;
+  font-size: 2.5rem;                      /* 30 pt */
+  color: var(--weiss);
+}
+.kopf--balken .marke {
+  width: 5.688rem; height: 5.688rem;      /* 91 px */
+  border-radius: .25rem;
+  object-fit: cover;
+  object-position: 62% 50%;
+  box-shadow: var(--schatten-klein);
+}
+
+/* --------------------------------------------------------- Tafel --- */
+
+.blatt {
+  width: min(100%, 80rem);                /* 1280 px */
+  margin: 0 auto;
+  padding: 2.375rem 3rem 3rem;            /* Rand wie auf der Folie */
+}
+
+.tafel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24.625rem;   /* 394 px rechts */
+  gap: 1.813rem;
+  align-items: start;
+}
+
+/* ------------------------------------------------------ Material --- */
+
+.material {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-height: 8.125rem;                   /* 130 px */
+  padding: .75rem 1.75rem .75rem 1.25rem;
+  background: var(--material);
+  border: 0.208rem solid var(--material-rand);   /* 2.5 pt */
+  border-radius: .569rem;                 /* roundRect 7000 auf 130 px */
+  box-shadow: var(--schatten);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.material img {
+  width: 11.5rem;                         /* 227 px, ragt links heraus */
+  margin: -1.5rem 0 -1.5rem -2.5rem;
+  flex: none;
+}
+.material b {
+  display: block;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 2.333rem;                    /* 28 pt */
+  line-height: 1.1;
+  color: var(--material-tief);
+}
+.material span {
+  display: block;
+  margin-top: .25rem;
+  font-size: .917rem;                     /* 11 pt */
+  font-weight: 500;
+  color: var(--material-rand);
+}
+
+/* -------------------------------------------------------- Bloecke --- */
+
+.bloecke {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.188rem var(--lücke);
+  margin-top: 1.813rem;
+}
+.block--breit { grid-column: 1 / -1; }
+
+.block > h2 {
+  margin: 0 0 .5rem;
+  font-size: 1rem;                        /* 12 pt */
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--grau);
+  text-transform: uppercase;
+}
+
+.kacheln {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--lücke);
+}
+
+/* -------------------------------------------------------- Kachel --- */
+
+.kachel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .25rem;
+  aspect-ratio: 171 / 125;
+  min-height: 7.813rem;
+  padding: .625rem .5rem .75rem;
+  background: var(--weiss);
+  border-radius: var(--kachel-rund);
+  box-shadow: var(--schatten);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.kachel img {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: 82%;
+  object-fit: contain;
+}
+.kachel span {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.333rem;                    /* 16 pt */
+  line-height: 1.15;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.kachel:hover, .kachel:focus-visible,
+.material:hover, .material:focus-visible {
+  transform: translateY(-.125rem);
+  box-shadow: 0 .375rem .75rem rgba(74, 63, 48, .3);
+}
+a:focus-visible .kachel, a:focus-visible .material,
+.kachel:focus-visible, .material:focus-visible {
+  outline: .1875rem solid var(--material-rand);
+  outline-offset: .1875rem;
+}
+
+/* Auswaertige Ziele bekommen eine kleine Marke oben rechts. */
+.kachel.aus::after, .material.aus::after {
+  content: "↗";
+  position: absolute;
+  top: .375rem; right: .5rem;
+  font-size: .8rem;
+  color: var(--grau);
+}
+.kachel, .material { position: relative; }
+
+/* ----------------------------------------------------- Aktuelles --- */
+
+.aktuelles {
+  min-height: 30rem;                      /* 480 px */
+  padding: 1.188rem 1.5rem 1.5rem;
+  background: var(--aktuell);
+  border: 0.083rem solid var(--aktuell-rand);
+  border-radius: .5rem;
+}
+.aktuelles > h2 {
+  margin: 0 0 1.125rem;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 1.667rem;                    /* 20 pt */
+  color: var(--material-tief);
+}
+.aktuelles > h2 .nadel { margin-right: .35rem; }
+
+.zettel {
+  display: block;
+  padding: .875rem 1.25rem;
+  background: var(--weiss);
+  border: 0.167rem solid var(--braun);     /* 2 pt */
+  border-radius: .5rem;
+  box-shadow: var(--schatten-klein);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.zettel + .zettel { margin-top: .875rem; }
+.zettel b {
+  display: block;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 1.25rem;                     /* 15 pt */
+  line-height: 1.15;
+}
+.zettel span {
+  display: block;
+  margin-top: .125rem;
+  font-size: .833rem;                     /* 10 pt */
+  color: var(--grau);
+}
+.zettel:hover {
+  transform: translateY(-.125rem);
+  box-shadow: 0 .375rem .75rem rgba(74, 63, 48, .3);
+}
+
+/* ------------------------------------------------------ Wegweiser --- */
+
+/* **Ein Knopf, ueberall gleich.** Rike, 24.08.2026: «Wir muessen
+   schauen, dass der Button zur Startseite immer auf allen Seiten und in
+   allen Modulen identisch aussieht. Ich haette gerne das Layout, das wir
+   auf den Etappenseiten unten in der Mitte haben.» Dort ist er
+   zurueckhaltend: heller Rand, matte Schrift, achteckig gerundet — und
+   er faerbt sich erst beim Darueberfahren. */
+.zurueck {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: 2rem;
+  min-height: 2.5rem;
+  padding: .5rem 1rem;
+  border: 0.0625rem solid var(--aktuell-rand);
+  border-radius: .5rem;
+  color: var(--grau);
+  font-size: 1rem;
+}
+.zurueck:hover { color: var(--kopfbraun); border-color: var(--kopfbraun); background: none; }
+.fuss { display: flex; justify-content: flex-end; }
+
+/* --------------------------------------------------------- Enge ---- */
+
+@media (max-width: 62rem) {
+  .tafel { grid-template-columns: minmax(0, 1fr); }
+  .bloecke { grid-template-columns: minmax(0, 1fr); }
+  .blatt { padding: 1.5rem 1.25rem 2rem; }
+  .kopf h1 { font-size: 2.75rem; margin-right: 1.5rem; }
+  .kopf::after { width: 22rem; }
+  .material { flex-wrap: wrap; }
+}
+
+@media (max-width: 30rem) {
+  .kacheln { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .material img { width: 8rem; margin-left: -1.25rem; }
+  .material b { font-size: 1.875rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* ================================================== Unterseiten ====
+ * Folien 7 (Informationen), 9 (Fahrplan), 10 (Leistungsnachweis)
+ * und 11 (Meilensteine). Gleicher Kopf, gleicher Wegweiser.
+ */
+
+:root {
+  --st-1: #2A62A4;   /* Station I   — Rounded Rectangle 13 */
+  --st-2: #027C57;   /* Station II  — accent3 */
+  --st-3: #DF9E59;   /* Station III — accent4 */
+  --st-4: #9664A1;   /* Station IV  — accent5 */
+}
+
+/* ----------------------------------------- Informationen (7) ------ */
+
+.karten {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 17.125rem));
+  gap: 1.813rem;
+}
+.karte {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 13.188rem;                  /* 211 px */
+  padding: 1.25rem 1.188rem;
+  background: var(--weiss);
+  border-radius: 1.055rem;
+  box-shadow: var(--schatten);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.karte b {
+  display: block;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 2rem;                        /* 24 pt */
+  line-height: 1.1;
+}
+.karte > span {
+  display: block;
+  margin-top: .25rem;
+  font-size: 1.167rem;                    /* 14 pt */
+  color: var(--grau);
+}
+.karte:hover { transform: translateY(-.125rem); box-shadow: 0 .375rem .75rem rgba(74,63,48,.3); }
+
+/* Wo eine Karte zwei Ziele hat, stehen sie als Knoepfe darin. */
+.karte .wege { display: flex; gap: .5rem; margin-top: .875rem; flex-wrap: wrap; }
+.karte .wege a {
+  padding: .3rem .75rem;
+  border: 0.104rem solid var(--material-rand);
+  border-radius: 1rem;
+  font-size: .917rem;
+  color: var(--material-rand);
+}
+.karte .wege a:hover { background: var(--material-rand); color: var(--weiss); }
+
+/* --------------------------------------------- Fahrplan (9) ------- */
+
+.hinweis {
+  max-width: 41.75rem;                    /* 668 px */
+  margin: 0 0 1.75rem;
+  padding: 1.125rem 1.5rem;
+  background: var(--weiss);
+  border-radius: 1.055rem;
+  box-shadow: var(--schatten);
+  font-size: 1.167rem;
+}
+.hinweis p { margin: 0; }
+.hinweis ul { margin: .25rem 0 0; padding-left: 1.25rem; }
+
+.fahrplan-rolle { overflow-x: auto; padding-bottom: .5rem; }
+table.fahrplan {
+  border-collapse: separate;
+  border-spacing: .125rem;
+  width: 100%;
+  min-width: 46rem;
+  table-layout: fixed;
+}
+table.fahrplan td {
+  padding: .5rem .25rem;
+  text-align: center;
+  vertical-align: middle;
+  border: 0.0625rem solid var(--grund);
+}
+table.fahrplan .woche {
+  height: 2.813rem;                       /* 45 px */
+  color: var(--weiss);
+  font-size: 1.083rem;                    /* 13 pt, gekuerzt fuer den Satz */
+  font-weight: 500;
+}
+table.fahrplan .abschnitt {
+  height: 5.438rem;                       /* 87 px */
+  font-family: 'Patrick Hand', cursive;
+  font-size: 2.667rem;                    /* 32 pt */
+  line-height: 1.05;
+}
+table.fahrplan .abschnitt.klein { font-size: 1.5rem; }   /* 18 pt */
+table.fahrplan .leer { background: none; border-color: transparent; }
+
+.f-blau   { background: #0064A9; }   /* accent2 */
+.f-gruen  { background: var(--st-2); }
+.f-ocker  { background: var(--st-3); }
+.f-lila   { background: var(--st-4); }
+.f-grau   { background: #747474; }
+
+.h-blau   { background: #BBE3FF; }
+.h-gruen  { background: #C9EFE4; }
+.h-ocker  { background: #F9ECDE; }
+.h-lila   { background: #EAE0EC; }
+.h-hell   { background: #E8E8E8; }
+
+/* Schraffur wie `pattFill prst="wdUpDiag"` auf der Folie */
+.schraffur {
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(120,120,120,.35) 0 .0625rem,
+      transparent .0625rem .375rem),
+    var(--weiss);
+}
+
+/* ------------------------------------ Leistungsnachweis (10) ------ */
+
+.ln {
+  display: grid;
+  grid-template-columns: minmax(0, 36rem) minmax(0, 31rem);
+  gap: 1.75rem;
+  align-items: start;
+}
+.regeln {
+  padding: 1.25rem 2.125rem 1.75rem;
+  background: var(--weiss);
+  border-radius: 1.544rem;
+  box-shadow: var(--schatten);
+}
+.regeln h2 {
+  margin: 0 0 .75rem;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 2rem;                        /* 24 pt */
+  color: var(--braun);
+}
+.regeln ul { margin: 0; padding-left: 1.1rem; font-size: 1.167rem; }
+.regeln li { margin: .55rem 0; }
+.regeln li::marker { color: var(--braun); }
+
+.stationen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+  gap: 1.125rem;
+}
+.station {
+  position: relative;
+  min-height: 10.188rem;                  /* 163 px */
+  padding: .938rem;
+  border-radius: .613rem;
+  overflow: hidden;
+  box-shadow: var(--schatten);
+}
+.station .knoepfe { display: flex; gap: .875rem; position: relative; z-index: 1; }
+.station .knoepfe a {
+  flex: 1 1 0;
+  padding: .5rem .25rem;
+  background: var(--weiss);
+  border-radius: .419rem;
+  text-align: center;
+  font-size: 1rem;                        /* 12 pt */
+  font-weight: 500;
+}
+.station .knoepfe a:hover { background: #F1F1F1; }
+.station img {
+  position: absolute;
+  left: -.2rem; bottom: -.35rem;
+  width: 8.25rem;                         /* 132 px */
+  opacity: .95;
+}
+.station .name {
+  position: absolute;
+  right: .938rem; bottom: .75rem;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.667rem;                    /* 20 pt */
+  color: var(--weiss);
+}
+.station-1 { background: var(--st-1); } .station-1 .knoepfe a { color: var(--st-1); }
+.station-2 { background: var(--st-2); } .station-2 .knoepfe a { color: var(--st-2); }
+.station-3 { background: var(--st-3); } .station-3 .knoepfe a { color: #8A5A20; }
+.station-4 { background: var(--st-4); } .station-4 .knoepfe a { color: var(--st-4); }
+
+.breitkarte {
+  display: block;
+  margin-top: 1.125rem;
+  padding: 1.125rem 1.25rem;
+  background: var(--weiss);
+  border-radius: .669rem;
+  box-shadow: var(--schatten);
+  text-align: center;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.25rem;                     /* 15 pt */
+}
+.breitkarte:hover { transform: translateY(-.125rem); }
+
+/* ----------------------------------------- Meilensteine (11) ------ */
+
+.ms { display: grid; grid-template-columns: minmax(0, 45rem) minmax(0, 27.2rem); gap: 1.813rem; align-items: start; }
+.ms-links > * + * { margin-top: 1.75rem; }
+.ms-paar { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1.75rem; }
+
+.merk {
+  padding: 1.125rem 2.125rem;
+  background: var(--weiss);
+  border: 0.125rem solid var(--braun);
+  border-radius: 1.544rem;
+  box-shadow: var(--schatten);
+}
+.merk b {
+  display: block;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 1.5rem;                      /* 18 pt */
+  color: var(--braun);
+}
+.merk span { font-size: 1.167rem; }
+
+.grosskachel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 8.375rem;                   /* 134 px */
+  padding: 1rem;
+  background: var(--weiss);
+  border-radius: .837rem;
+  box-shadow: var(--schatten);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.417rem;                    /* 17 pt */
+  text-align: center;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.grosskachel:hover { transform: translateY(-.125rem); box-shadow: 0 .375rem .75rem rgba(74,63,48,.3); }
+
+.notiz {
+  padding: 1.25rem 1.813rem;
+  border-radius: 1.544rem;
+  font-size: 1rem;                        /* 12 pt */
+}
+.notiz + .notiz { margin-top: .938rem; }
+.notiz b {
+  display: block;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 1.333rem;                    /* 16 pt */
+  margin-bottom: .25rem;
+}
+.notiz--blau { background: var(--material); border: 0.108rem solid var(--material-rand); }
+.notiz--blau b { color: var(--material-tief); }
+.notiz--braun { background: var(--aktuell); border: 0.108rem solid var(--braun); }
+.notiz--braun b { color: var(--braun); }
+
+/* -------------------------------------------------- Fliesstext ---- */
+
+.text { max-width: 46rem; font-size: 1.167rem; }
+.text h2 {
+  margin: 2rem 0 .5rem;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 1.833rem;
+  color: var(--braun);
+}
+.text h2:first-child { margin-top: 0; }
+.text li { margin: .4rem 0; }
+
+/* ------------------------------------------------------- Enge ----- */
+
+@media (max-width: 62rem) {
+  .ln, .ms { grid-template-columns: minmax(0, 1fr); }
+  .kopf--balken { height: 5.5rem; padding: 0 1.25rem; }
+  .kopf--balken h1 { font-size: 2rem; }
+  .kopf--balken .marke { width: 3.25rem; height: 3.25rem; }
+}
+
+/* Nur fuer Vorlesegeraete — sichtbar hat es keinen Platz. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ============================== Fahrplan mit Zeilenkoepfen =========
+ * MA01.07 und MA01.03 fuehren zwei Zeilen je Woche — Heimarbeit und
+ * Praesenz — mit einer Kopfspalte links. Farben aus dem Folien-XML.
+ */
+
+table.fahrplan .kopfzeile {
+  background: var(--kopfbraun);
+  color: var(--weiss);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.083rem;
+  line-height: 1.15;
+  width: 6.5rem;
+}
+table.fahrplan .heim,
+table.fahrplan .praesenz {
+  height: 4.5rem;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+table.fahrplan .heim { font-family: 'Patrick Hand', cursive; font-size: 1.25rem; }
+table.fahrplan .pruefung { background: #FCBFD3; font-weight: 500; }
+
+/* **Werkstatt A und B unterscheiden sich sichtbar.** Rike, 24.08.2026:
+   «Kann man das hübscher schreiben? Ist das übersichtlich genug?
+   Vielleicht Strategiewerkstatt A und B deutlicher voneinander
+   abgrenzen.» Vorher trugen beide dieselbe Farbe und dieselbe
+   Aufschrift, nur der Buchstabe unterschied sie — auf einer Zeile mit
+   fünfzehn Wochen ist das zu wenig.
+
+   Jetzt trägt jede ihren eigenen Ton und einen kräftigen Strich am
+   Anfang des Blocks; die Aufschrift bleibt, sie ist ja richtig. */
+table.fahrplan .werkstatt-a { background: #E4EDF7; }
+table.fahrplan .werkstatt-b { background: #EAF2E6; }
+table.fahrplan .werkstatt-a:first-of-type,
+table.fahrplan .werkstatt-b:first-of-type { position: relative; }
+table.fahrplan .werkstatt-a + :not(.werkstatt-a),
+table.fahrplan .werkstatt-b + :not(.werkstatt-b) { border-left-width: 2px; }
+table.fahrplan :not(.werkstatt-a) + .werkstatt-a,
+table.fahrplan :not(.werkstatt-b) + .werkstatt-b {
+  border-left: 3px solid var(--tinte);
+}
+table.fahrplan .luecke { background: none; border-color: transparent; }
+
+/* ------------------------------------------ Aufklappbare Infos ---- */
+
+.klapper {
+  background: var(--weiss);
+  border-radius: .669rem;
+  box-shadow: var(--schatten);
+  overflow: hidden;
+}
+.klapper + .klapper { margin-top: 1.125rem; }
+.klapper > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 1.125rem 1.25rem;
+  text-align: center;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.25rem;                     /* 15 pt */
+}
+.klapper > summary::-webkit-details-marker { display: none; }
+.klapper > summary::after {
+  content: " ▾";
+  color: var(--grau);
+  font-family: 'Fira Sans', sans-serif;
+  font-size: .8rem;
+}
+.klapper[open] > summary::after { content: " ▴"; }
+.klapper > summary:hover { background: #F7F5F1; }
+.klapper .inhalt {
+  padding: 0 1.5rem 1.25rem;
+  font-size: 1rem;
+  border-top: 1px solid #EDE8E0;
+}
+.klapper .inhalt > :first-child { margin-top: .875rem; }
+.klapper .inhalt ul { padding-left: 1.1rem; }
+
+/* ----------------------------------------- Werkstatt-Kaertchen ---- */
+
+.werkstatt-reihe { display: grid; gap: .875rem; }
+/* Farbneutral. Der frühere Verlauf stammte aus der Zeit, als Teil A
+ * nur blaue und lila und Teil B nur grüne und gelbe Kacheln hatte —
+ * heute tragen beide Teile beide Farben, und der Verlauf behauptete
+ * einen Unterschied, den es nicht mehr gibt. */
+.werkstatt {
+  display: block;
+  padding: 1rem 1.25rem;
+  background: var(--weiss);
+  border: 0.125rem solid var(--braun);
+  border-radius: .5rem;
+  color: var(--tinte);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.25rem;
+  text-align: center;
+  box-shadow: var(--schatten);
+  transition: transform .12s ease, background .12s ease;
+}
+.werkstatt:hover {
+  transform: translateY(-.125rem);
+  background: var(--aktuell);
+}
+
+/* --------------------------------------------- Zweispaltig -------- */
+
+.zwei {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 1.813rem;
+  align-items: start;
+}
+.zwei--gleich { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+.spalte > h2.gruppe {
+  margin: 0 0 .5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--grau);
+  text-transform: uppercase;
+}
+.spalte > * + h2.gruppe { margin-top: 1.5rem; }
+
+@media (max-width: 62rem) {
+  .zwei { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ------------------------------------------------- Merkkarten ----- */
+
+.karte-fest {
+  display: block;            /* als <a> waere sie sonst inline und zerlaeuft */
+  padding: 1.125rem 1.5rem;
+  background: var(--weiss);
+  border-radius: 1.055rem;
+  box-shadow: var(--schatten);
+}
+.karte-fest + .karte-fest { margin-top: 1.125rem; }
+a.karte-fest { transition: transform .12s ease, box-shadow .12s ease; }
+a.karte-fest:hover {
+  transform: translateY(-.125rem);
+  box-shadow: 0 .375rem .75rem rgba(74, 63, 48, .3);
+}
+.karte-fest b {
+  display: block;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.15;
+}
+.karte-fest span, .karte-fest p { font-size: 1.083rem; }
+.karte-fest p { margin: .35rem 0 0; }
+.karte-fest .leise { color: var(--grau); font-size: 1rem; }
+
+/* Das Modulkonzept — «Das Modul auf einer Seite» als Seite.
+ *
+ * Rike, 25.08.2026: «PDF als HTML. Bitte nutze das aktuellste PDF vom
+ * Rechner dazu … Pass bitte auf, ob sich mit Blick auf unsere
+ * Darstellung hier was geändert hat, ggf. was die Kompensation angeht
+ * oder die Videoaufzeichnung bei MA02.02.»
+ *
+ * Die Vorlage ist eine Word-Folie mit Textkästen: vier Materialstränge
+ * nebeneinander, darunter Blöcke. Auf dem Papier hält die Anordnung das
+ * zusammen; im Browser tut das die Überschrift. Deshalb hier Abschnitte
+ * statt Kästen — und die vier Stränge als Karten, weil sie wirklich
+ * gleichrangig nebeneinanderstehen. */
+/* Rike, 25.08.2026: «Bitte so setzen wie in der PDF.» Dort tragen die
+ * Abschnitte durchgehende braune Balken, keine Fliesstext-Überschrift
+ * — das wird hier direkt übernommen, statt es an den Rest der Seite
+ * anzugleichen. */
+.konzept { max-width: 58rem; }
+.konzept h2 {
+  margin: 1.75rem 0 .75rem;
+  padding: .55rem 1rem;
+  background: var(--kopfbraun);
+  color: var(--weiss);
+  border-radius: .3rem;
+  font-family: 'Fira Sans', sans-serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+}
+.konzept h2:first-child { margin-top: 0; }
+.konzept > p { font-size: 1.083rem; line-height: 1.55; margin: .5rem 0; }
+.konzept ul { font-size: 1.083rem; line-height: 1.5; margin: .4rem 0; padding-left: 1.2rem; }
+.konzept li { margin: .25rem 0; }
+
+/* Die vier Materialstränge */
+.straenge {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: .75rem;
+  margin: .75rem 0 0;
+}
+.strang {
+  background: var(--weiss);
+  border: 1px solid #E2DCD2;
+  border-top: 3px solid #B6ADA0;
+  border-radius: .4rem;
+  padding: .85rem .95rem 1rem;
+}
+.strang b { display: block; font-size: 1.15rem; margin-bottom: .35rem; }
+.strang ul { margin: 0; padding-left: 1.1rem; font-size: .98rem; color: var(--tinte); }
+.strang-1 { border-top-color: #2A62A4; }
+.strang-2 { border-top-color: #027C57; }
+.strang-3 { border-top-color: #DF9E59; }
+.strang-4 { border-top-color: #9664A1; }
+
+/* --------------------------------------------- Folien-Bühne (neu) -
+ * Rike, 25.08.2026: eigener Foliensatz für Organisatorisches und
+ * Material, zum Durchklicken während der Bildschirmaufnahme -- «Folien
+ * in der Folie», darum ohne Kopfzeile/Wegweiser. Nur die Bühne selbst
+ * zählt, die Aufnahme drumherum ist der Rahmen. */
+.folien-buehne {
+  position: relative;
+  width: min(100%, 64rem);
+  aspect-ratio: 16 / 9;
+  margin: 1.5rem auto 0;
+  background: var(--weiss);
+  border-radius: .5rem;
+  overflow: hidden;
+  box-shadow: var(--schatten);
+}
+.folie {
+  position: absolute; inset: 0;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3.5rem 4.5rem;
+}
+.folie.aktiv { display: flex; }
+.folie.folie--voll { padding: 2rem 2rem 3rem; }
+.folie h2 {
+  margin: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-weight: 400;
+  font-size: 2.4rem;
+  color: var(--kopfbraun);
+}
+.folie .unterzeile { margin: -.5rem 0 0; font-size: 1.1rem; color: var(--grau); }
+.folie .kernzahl {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 3.2rem;
+  color: var(--material-rand);
+  line-height: 1;
+}
+.folie ul { font-size: 1.15rem; line-height: 1.5; margin: 0; padding-left: 1.3rem; }
+.folie li { margin: .4rem 0; }
+.folie iframe {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: .0625rem solid var(--aktuell-rand);
+  border-radius: .4rem;
+  background: var(--weiss);
+}
+
+/* Die drei Materialstränge als Folieninhalt -- dieselbe Karte wie in
+   modulkonzept.html, hier ohne Balkenüberschrift darüber. */
+.folie .straenge { margin-top: 0; }
+
+.folien-steuerung {
+  position: absolute; bottom: .75rem; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+}
+.folien-steuerung button {
+  border: .0625rem solid var(--aktuell-rand);
+  background: var(--weiss);
+  border-radius: .4rem;
+  padding: .35rem .9rem;
+  color: var(--grau);
+  font-size: .9rem;
+  cursor: pointer;
+}
+.folien-steuerung button:hover { color: var(--kopfbraun); border-color: var(--kopfbraun); }
+.folien-zaehler {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .8rem;
+  color: var(--grau);
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+/* Die echten Stationskarten als Folieninhalt, mit denselben Porträts
+   wie in der Werkstatt selbst. Höhe begrenzt, damit die Steuerleiste
+   unten nicht überlagert wird. */
+.folie .stationen { flex: 1; min-height: 0; align-content: stretch; }
+.folie .station { min-height: 0; }
+.folie .station .name { font-size: 1.3rem; }
+
+/* Workload- und Zahlenreihen innerhalb einer Folie. */
+.folie-reihe { display: flex; gap: 2rem; flex-wrap: wrap; }
+.folie-reihe > div { flex: 1 1 8rem; }
+.folie-reihe .beschriftung { font-size: .95rem; color: var(--grau); margin-top: .2rem; }
+
+/* ----------------------------------------------- Einführung (neu) -
+ * Rike, 25.08.2026: Nur die Begrüssung zeigt ein Gesicht vor der
+ * Kamera — dafür lohnt sich die Etappen-Bauart (Video + Kärtchen
+ * daneben, wie in `.zwei`). Organisatorisches und Material sind
+ * abgefilmte Foliensätze mit Ton; das Wichtige steht schon auf der
+ * Folie. Deshalb dort volle Breite statt einer Spalte daneben, nur
+ * eine schmale Link-Reihe darunter für das, was klickbar bleiben muss
+ * (Termine, Fahrplan) statt im Video stehen zu müssen. */
+/* Rike, 25.08.2026: Die Begrüssung nimmt sie einfach am eigenen
+ * Rechner auf, nicht im Studio — vermutlich eher quadratisch als
+ * Breitbild. Schmalerer Rahmen, damit der Platzhalter nicht
+ * langgezogen wirkt, bevor die Aufnahme drinsteckt. Organisatorisches
+ * und Material sind Bildschirmaufnahmen und bleiben breit. */
+.video-rahmen {
+  margin: .75rem 0 0;
+  max-width: 28rem;
+  border-radius: .5rem;
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--schatten);
+}
+.video-rahmen video { display: block; width: 100%; height: auto; }
+.video-rahmen--breit { max-width: 56rem; }
+
+.einfuehrung-titel { margin: 0 0 .35rem; }
+.einfuehrung-vorspann { color: var(--grau); font-size: 1.083rem; margin: 0 0 1.25rem; }
+
+/* Aside neben der Begrüssung — kleine Merkkarten zum Mitnehmen. */
+.mitnehmen { position: sticky; top: 1.5rem; }
+.mitnehmen > h2.gruppe {
+  margin: 0 0 .75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--grau);
+  text-transform: uppercase;
+}
+
+/* Schmale Link-Reihe unter Organisatorisches/Material — dieselbe
+ * Pille wie in `.karte .wege a`, nur ausserhalb einer Karte. */
+.linkreihe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .625rem;
+  margin: 1.125rem 0 0;
+}
+.linkreihe a {
+  padding: .4rem 1rem;
+  background: var(--weiss);
+  border: 0.104rem solid var(--material-rand);
+  border-radius: 1.25rem;
+  color: var(--material-rand);
+  font-size: .98rem;
+  box-shadow: var(--schatten-klein);
+}
+.linkreihe a:hover { background: var(--material-rand); color: var(--weiss); }
+
+/* Wegweiser zwischen den drei Einführungsteilen. */
+.teilweiser {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 0.0625rem solid var(--aktuell-rand);
+}
+.teilweiser .schritt {
+  color: var(--grau);
+  font-size: .92rem;
+  font-family: 'IBM Plex Mono', 'Fira Sans', monospace;
+  letter-spacing: .04em;
+}
+.teilweiser a {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 2.5rem;
+  padding: .5rem 1.1rem;
+  border: 0.0625rem solid var(--aktuell-rand);
+  border-radius: .5rem;
+  color: var(--grau);
+  font-size: 1rem;
+}
+.teilweiser a:hover { color: var(--kopfbraun); border-color: var(--kopfbraun); }
+.teilweiser a.primaer { background: var(--kopfbraun); color: var(--weiss); border-color: var(--kopfbraun); }
+.teilweiser a.primaer:hover { opacity: .9; color: var(--weiss); }
+.teilweiser .leer { visibility: hidden; }
+
+@media (max-width: 46rem) {
+  .teilweiser { flex-wrap: wrap; }
+  .teilweiser .schritt { order: -1; width: 100%; text-align: center; }
+}
+
+/* Die Lernzielfarben — in der PDF vier bzw. fünf gleich breite
+ * Farbflächen in einer Reihe, nicht eine Linkslinie. Rike, 25.08.2026:
+ * «Bitte so setzen wie in der PDF.»
+ *
+ * KORRIGIERT (25.08.2026): Die Farbwerte kamen zunächst aus den
+ * Fahrplan-Hell-Farben (.h-blau usw.) — falsche Quelle. Die echten,
+ * kanonischen Werte stehen in `bauen/gestalt/lernlandschaft.css` als
+ * `--kk-fach/--kk-zugang/--kk-beweis/--kk-aktion/--kk-didaktik` und
+ * gelten dort in jedem Kapitel (Farbdeutung-Tabelle). Hier direkt
+ * übernommen, damit dieselbe Sprache gilt wie in der Werkstatt
+ * selbst, nicht nur wie in der Navigation. */
+.zielarten {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  margin: .75rem 0 0;
+  border-radius: .4rem;
+  overflow: hidden;
+}
+.zielart {
+  padding: .9rem 1rem 1.1rem;
+  font-size: .98rem;
+  line-height: 1.4;
+}
+.zielart b {
+  display: block;
+  margin-bottom: .4rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+.zielart.z-didaktik  { background: #EDCCD2; }
+.zielart.z-begriff   { background: #CCDFE7; }
+.zielart.z-zugang    { background: #CCE3D7; }
+.zielart.z-beweis    { background: #F9EAD8; }
+.zielart.z-verfahren { background: #EADFE7; }
+
+/* Die Terminleiste der Studienleistung.
+ *
+ * Rike, 25.08.2026, zur alten Aufteilung: «Aufteilung der Seite gefällt
+ * mir noch nicht. Die Rolle der rechten Seite ist unklar» — und auf den
+ * Vorschlag, stattdessen eine Spalte und die Termine als Zeitleiste zu
+ * setzen: «so».
+ *
+ * Elf Kästchen in einer Reihe, eines je Termin. Was zählt, ist auf
+ * einen Blick sichtbar: acht Werkstätten, zwei Wochen Festigung, eine
+ * Prüfung. Auf schmalen Geräten bricht die Reihe um; das ist gewollt,
+ * denn die Reihenfolge bleibt lesbar. */
+.zeitleiste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: .9rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.zeitleiste li {
+  flex: 1 1 5.5rem;
+  min-width: 5.5rem;
+  background: var(--weiss);
+  border: 1px solid #E2DCD2;
+  border-top: 3px solid #B6ADA0;
+  border-radius: .35rem;
+  padding: .55rem .6rem .6rem;
+  font-size: .95rem;
+  line-height: 1.25;
+}
+.zeitleiste li .nr {
+  display: block;
+  font-size: .8rem;
+  color: var(--grau);
+  margin-bottom: .15rem;
+}
+.zeitleiste li.werkstatt-termin { border-top-color: #027C57; }
+.zeitleiste li.festigung { border-top-color: #DF9E59; }
+.zeitleiste li.pruefungstermin {
+  border-top-color: #B0356A;
+  background: #FCF3F6;
+  font-weight: 500;
+}
+
+/* Die Prüfungstabelle — in allen Modulen dieselbe.
+ *
+ * Rike, 25.08.2026: «Die Tabellen bitte bei beiden hübscher setzen. Wir
+ * haben hier nicht mehr diese beiden Farben. Es müsste neutral sein» —
+ * und auf die Rückfrage «Einheitlich mit MA01.07».
+ *
+ * Vorher hat sie die Fahrplan-Tabelle mitbenutzt, und die trägt ihre
+ * Farben (blau für Teil A, ocker für Teil B) aus einem anderen
+ * Zusammenhang mit. Hier gibt es keine Zuordnung mehr zu färben: es
+ * sind zwei Termine, sonst nichts. Also Linien statt Flächen. */
+table.pruefungsplan {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 0 1.5rem;
+  background: var(--weiss);
+  border: 1px solid #E2DCD2;
+  border-radius: .5rem;
+  overflow: hidden;
+}
+table.pruefungsplan th {
+  background: #F4F1EC;
+  color: var(--grau);
+  font-weight: 500;
+  font-size: .95rem;
+  letter-spacing: .02em;
+  text-align: left;
+  padding: .6rem 1.1rem;
+  border-bottom: 1px solid #E2DCD2;
+}
+table.pruefungsplan td {
+  padding: .95rem 1.1rem;
+  border-bottom: 1px solid #EDE8E0;
+  vertical-align: top;
+  font-size: 1.083rem;
+}
+table.pruefungsplan tr:last-child td { border-bottom: none; }
+/* Die erste Spalte trägt den Namen des Teils. Sie bekommt keinen
+ * Farbblock, sondern nur einen Strich — genug, um sie als Kopf der
+ * Zeile zu lesen. */
+table.pruefungsplan .teil {
+  font-weight: 600;
+  white-space: nowrap;
+  border-left: 4px solid #B6ADA0;
+  padding-left: .95rem;
+}
+table.pruefungsplan .wann { line-height: 1.35; }
+table.pruefungsplan .dazu {
+  display: block;
+  font-size: .9rem;
+  color: var(--grau);
+  margin-top: .15rem;
+}
+table.pruefungsplan .stoff { color: var(--tinte); }
+
+/* Staffelungstabelle in den Kompensationstexten */
+table.staffel { border-collapse: collapse; width: 100%; margin-top: .75rem; font-size: 1rem; }
+table.staffel th {
+  background: var(--st-2); color: var(--weiss); text-align: left;
+  padding: .5rem .75rem; font-weight: 500;
+}
+table.staffel td { padding: .5rem .75rem; border-bottom: 1px solid #EDE8E0; }
+table.staffel tr:nth-child(even) td { background: #F3F6F4; }
+
+/* Bei fester Tabellenbreite bricht ein langes Wort wie
+ * «Strategiewerkstatt» nicht von selbst und laeuft aus der Zelle.
+ * Auf der Folie ist es von Hand getrennt; hier trennt der Browser. */
+table.fahrplan td { hyphens: auto; overflow-wrap: break-word; }
+table.fahrplan .praesenz { font-size: .917rem; }
+
+/* Ein Aufklapper, der wie eine Karte aussieht — fuer die beiden
+ * Gruppenfahrplaene von Form und Raum. */
+.klapper--gross > summary {
+  text-align: left;
+  padding: 1.5rem 1.75rem;
+  font-size: 2rem;                        /* 24 pt, wie die Karten */
+}
+.klapper--gross > summary .leise {
+  display: block;
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 1.167rem;
+  color: var(--grau);
+}
+.klapper--gross .inhalt { padding: 1.25rem 1.5rem 1.5rem; }
+
+/* Beim grossen Aufklapper steht der Untertitel als eigene Zeile — das
+ * Zeichen ::after landet dadurch darunter. Also an den Rand setzen. */
+.klapper--gross > summary { position: relative; padding-right: 3rem; }
+.klapper--gross > summary::after {
+  position: absolute;
+  right: 1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+}
+
+/* Der Wegweiser traegt jetzt das Haeuschen des Materials statt eines
+ * Pfeils nach oben (Rike, 24.08.): «so ein Häuschenbutton, den wir
+ * sonst auch schon im Material nutzen». Gleiche Form wie dort —
+ * `<span class="pfeil">⌂</span>Startseite`. */
+.zurueck .pfeil { font-size: 1.05em; line-height: 1; }
+
+/* ── Die Prüfungsfenster als Reiterreihe ───────────────────────────
+ *
+ * Rike, 24.08.2026: «Irgendwie ist es seltsam, wie die Fenster
+ * aufploppen. Idee: alle vier aufklappbaren Fenster unter der Tabelle
+ * und nebeneinander. Wenn eines geöffnet wird, öffnet sich ein Feld
+ * direkt darunter über die volle Breite; wenn das nächste geöffnet
+ * wird, schliesst sich das andere.»
+ *
+ * Genau die Bauform, die im Material an jeder Aufgabe steht
+ * (`.stufen`) — Reiter nebeneinander, das Offene darunter über die
+ * ganze Breite. Sie ist dort erprobt und gefällt ihr.
+ *
+ * **Ohne JavaScript.** Das `name`-Merkmal an `<details>` macht die
+ * Gruppe von sich aus ausschliessend: Öffnet man eines, schliesst der
+ * Browser die anderen. Das hält den Entscheid vom 21.08.2026 ein, dass
+ * Aufklappen ohne Skript funktionieren muss.
+ */
+.reiterreihe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .625rem;
+  align-items: flex-start;
+  margin-top: 1.75rem;
+}
+.reiterreihe .klapper {
+  flex: 0 0 auto;
+  margin: 0;
+  box-shadow: var(--schatten-klein);
+}
+.reiterreihe .klapper[open] {
+  flex: 1 0 100%;
+  order: 9;                      /* rutscht unter die Reihe */
+  box-shadow: var(--schatten);
+}
+.reiterreihe .klapper > summary { padding: .625rem 1.125rem; font-size: 1.083rem; }
+.reiterreihe .klapper[open] > summary {
+  background: var(--braun);
+  color: var(--weiss);
+}
+.reiterreihe .klapper[open] > summary::after { color: var(--weiss); }
+.reiterreihe .klapper .inhalt { max-width: 46rem; }

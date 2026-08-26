@@ -171,7 +171,25 @@ function flaeche(o){
     vorratBlatt.appendChild(karte);
   });
 
-  return { element: buehne, belegung: belegung };
+  /* Eine Karte ohne Zieh-Geste ablegen. Gebraucht vom Prüfstand
+     `richtigkeit.html`, der eine Zuordnung setzen muss, ohne mit dem
+     Zeiger zu fahren. Nimmt denselben Weg wie das Ziehen: dieselbe
+     Platzprüfung, dieselbe Meldung in den Ereignisstrom.
+     zielId === null legt die Karte zurück in den Vorrat. */
+  function legen(kartenId, zielId){
+    const karte = buehne.querySelector('.kk[data-id="' + kartenId + '"]');
+    if (!karte) return false;
+    const ablage = zielId === null || zielId === undefined
+      ? vorratBlatt : felder[zielId];
+    if (!ablage) return false;
+    if (ablage !== vorratBlatt && !platzFrei(ablage, karte)) return false;
+    if (karte.parentElement === ablage) return true;
+    ablage.appendChild(karte);
+    melden(kartenId, ablage === vorratBlatt ? null : zielId);
+    return true;
+  }
+
+  return { element: buehne, belegung: belegung, legen: legen };
 }
 
 window.Karten = { flaeche: flaeche };

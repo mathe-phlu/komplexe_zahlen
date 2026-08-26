@@ -298,7 +298,17 @@ const AUFGABEN = [
         farbe: 'var(--falsch)', p: 1,
         pruefer: g => passende.some(bahn =>
           bahn.length === g.length && bahn.every(x => g.indexOf(x) >= 0)),
-        sollText: passende.map(x => x.join('+')).join('  oder  ') }
+        sollText: passende.map(x => x.join('+')).join('  oder  '),
+        /* Hier gibt es mehrere richtige Antworten, deshalb ein Prüfer
+           statt einer festen Menge. Der Prüfstand `richtigkeit.html`
+           muss aber EINE richtige Antwort eintragen können, um zu
+           sehen, ob sie die volle Punktzahl gibt - dafür dieses
+           Beispiel. Für die Prüfung selbst hat es keine Wirkung. */
+        beispiel: passende[0],
+        /* Alle gültigen Antworten - damit auch eine abgestürzte
+           Prüfung nachgewertet werden kann, ohne den Prüfer zu
+           haben (der ist eine Funktion und übersteht kein JSON). */
+        mengen: passende }
     ]});
 
     /* (c) Die Zählkette */

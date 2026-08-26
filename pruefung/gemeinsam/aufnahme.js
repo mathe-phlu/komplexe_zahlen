@@ -184,6 +184,12 @@ function kopfdaten(){
     durchgang: S.durchgang || 1,
     begonnen: S.begonnen, dauer: jetzt(),
     mitBild: S.mitBild,
+    kameraDa: S.kameraDa,
+    /* Beides festhalten: was bestellt war und was ankam. Weichen sie
+       ab, sieht man es beim Ansehen statt es zu raten. */
+    medienTypBestellt: S.medienTyp || null,
+    medienTypWirklich: (S.behalten.length && S.behalten[0].blob
+                        && S.behalten[0].blob.type) || null,
     brocken: S.brockenNr, brockenGescheitert: S.gescheitert,
     blaetter: S.blaetter,
     fenster: [innerWidth, innerHeight],
@@ -236,6 +242,132 @@ async function probe(anzeigenPegel, videoElement){
   };
 }
 
+/* ============================================================
+   Die Probe an der Sache statt am Browsernamen
+
+   NEU (gemeinsam entschieden, 2026-08-22): Es gibt keine
+   Browserwarnung mehr. Rike: «Wir haben in LARS sehr viel
+   investiert, damit die Lernlandschaften in Safari, Edge, Chrome
+   und Firefox laufen. Dann waere gut, wenn wir bei den Pruefungen
+   nicht Einschraenkungen machen muessten.»
+
+   Sie hat recht, und die Warnung war ohnehin das schwaechere
+   Mittel: Sie haette ein funktionierendes Safari abgewiesen und ein
+   kaputtes Chrome durchgelassen. Der Browsername sagt nichts
+   darueber, ob die Aufnahme auf DIESEM Rechner traegt.
+
+   Stattdessen nimmt die Geraeteprobe zwei Sekunden auf, reiht die
+   Stuecke aneinander und spielt sie ab. Das prueft genau die Kette,
+   auf die es ankommt - und zwar die heikle Stelle: Ein einzelnes
+   Stueck ist ab dem zweiten nicht abspielbar, erst die
+   Aneinanderreihung ergibt die Datei. Ob Safari das mit seinem MP4
+   ebenso kann wie Chrome mit WebM, wissen wir dann nicht aus einer
+   Tabelle, sondern aus dem Versuch.
+   ============================================================ */
+
+/* Erst mit Bild versuchen, und wenn das nicht geht, mit Ton allein.
+
+   NEU (gemeinsam entschieden, 2026-08-22): Rike hat darauf
+   hingewiesen, dass Kaspers Erfahrung hier nicht traegt - dort wurde
+   NUR TON aufgenommen. Ob ein Browser Ton und Bild zusammen
+   aufzeichnen kann, ist eine andere Frage.
+
+   Daraus folgt ein Rueckfallweg: Scheitert die Aufnahme mit Bild,
+   wird Ton allein versucht. Der Ton ist das Wesentliche - er traegt
+   die Erklaerungen, und ohne Erklaerung ist die Pruefung ohnehin
+   nicht bestanden. Das Bild ist wertvoll, aber entbehrlich; wer sein
+   Blatt zeigen will, haengt statt der Kameraaufnahme ein Foto an.
+
+   Lieber eine Pruefung ohne Bild als eine, die gar nicht startet. */
+async function probeMitRueckfall(spur, kameraDa){
+  if (kameraDa){
+    const mitBild = await probeaufnahme(spur, true);
+    if (mitBild.gut) return Object.assign(mitBild, { bild: true });
+
+    /* Nur die Tonspur weiterreichen - das Videobild bleibt fuer die
+       Blattaufnahme erhalten, aufgezeichnet wird es nicht. */
+    const nurTon = new MediaStream(spur.getAudioTracks());
+    const ohneBild = await probeaufnahme(nurTon, false);
+    if (ohneBild.gut)
+      return Object.assign(ohneBild, { bild: false, bildScheiterte: mitBild.grund });
+    return Object.assign(ohneBild, { bild: false, bildScheiterte: mitBild.grund });
+  }
+  const nurTon = await probeaufnahme(spur, false);
+  return Object.assign(nurTon, { bild: false });
+}
+
+/* Zwei Sekunden aufnehmen, in Stuecken, wieder zusammensetzen und
+   abspielen. Liefert, was dabei herauskam. */
+async function probeaufnahme(spur, mitBild){
+  const typ = typWaehlen(mitBild);
+  if (!window.MediaRecorder)
+    return { gut: false, grund: 'MediaRecorder fehlt', typ: '' };
+  let aufnehmer;
+  try {
+    const e = { audioBitsPerSecond: CFG.ton.rate };
+    if (mitBild) e.videoBitsPerSecond = CFG.bild.rate;
+    if (typ) e.mimeType = typ;
+    aufnehmer = new MediaRecorder(spur, e);
+  } catch(f){
+    return { gut: false, grund: 'Aufnahme lässt sich nicht starten: ' + f.message, typ: typ };
+  }
+
+  const brocken = [];
+  aufnehmer.ondataavailable = e => { if (e.data && e.data.size) brocken.push(e.data); };
+  const fertig = new Promise(f => { aufnehmer.onstop = f; });
+  /* Eine Sekunde je Stueck: So entstehen in zwei Sekunden mehrere,
+     und genau deren Aneinanderreihung ist das, was geprueft werden
+     muss. Mit einem einzigen Stueck bewiese die Probe nichts. */
+  aufnehmer.start(1000);
+  await new Promise(f => setTimeout(f, 2100));
+  aufnehmer.requestData();
+  aufnehmer.stop();
+  await fertig;
+
+  if (brocken.length < 2)
+    return { gut: false, typ: typ, brocken: brocken.length,
+             grund: 'Die Aufnahme kam nur in einem Stück — dann lässt sich ' +
+                    'ein Abbruch nicht auffangen.' };
+
+  const ganz = new Blob(brocken, { type: brocken[0].type || typ });
+  const spieler = document.createElement(mitBild ? 'video' : 'audio');
+  spieler.muted = true;
+  spieler.preload = 'auto';
+  spieler.src = URL.createObjectURL(ganz);
+
+  const spielbar = await new Promise(f => {
+    let erledigt = false;
+    const ja = () => { if (!erledigt){ erledigt = true; f(true); } };
+    const nein = () => { if (!erledigt){ erledigt = true; f(false); } };
+    spieler.addEventListener('loadedmetadata', ja);
+    spieler.addEventListener('canplay', ja);
+    spieler.addEventListener('error', nein);
+    setTimeout(nein, 6000);
+    spieler.load();
+  });
+
+  return { gut: spielbar, typ: brocken[0].type || typ, brocken: brocken.length,
+           groesse: ganz.size, blob: ganz, spieler: spieler,
+           grund: spielbar ? '' :
+             'Die aneinandergereihten Stücke liessen sich nicht abspielen.' };
+}
+
+/* Haelt die Datenbank des Browsers einen Blob? Das ist das Netz
+   unter der Aufnahme; ohne sie ist ein Absturz ein Totalverlust. */
+async function speicherprobe(){
+  try {
+    const probe = new Blob([new Uint8Array([1,2,3,4,5])]);
+    await Speicher.stueck('__probe__', 1, 'probe.bin', probe, 0, 5);
+    const zurueck = await Speicher.stuecke('__probe__');
+    await Speicher.loeschen('__probe__');
+    const gut = zurueck.length === 1 && zurueck[0].blob &&
+                (await zurueck[0].blob.arrayBuffer()).byteLength === 5;
+    return { gut: gut, grund: gut ? '' : 'Die Datenbank gab den Inhalt nicht zurück.' };
+  } catch(e){
+    return { gut: false, grund: e.message };
+  }
+}
+
 function typWaehlen(mitBild){
   const kandidaten = mitBild
     ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4']
@@ -259,14 +391,19 @@ async function starten(o){
                 zeitcode() + '-D' + S.durchgang;
   S.begonnen  = new Date().toISOString();
   S.spur      = s.spur || await navigator.mediaDevices.getUserMedia({audio:true});
-  S.mitBild   = S.spur.getVideoTracks().length > 0;
+  /* Die Kameraspur bleibt am Stream haengen - fuer die Blattaufnahme.
+     Aufgezeichnet wird sie nur, wenn die Probe gezeigt hat, dass es
+     geht (s.mitBild). Sonst laeuft die Aufnahme mit Ton allein. */
+  S.kameraDa  = S.spur.getVideoTracks().length > 0;
+  S.mitBild   = S.kameraDa && s.mitBild !== false;
+  const aufnahmeSpur = S.mitBild ? S.spur : new MediaStream(S.spur.getAudioTracks());
 
   const typ = typWaehlen(S.mitBild);
   const einstellungen = { audioBitsPerSecond: CFG.ton.rate };
   if (S.mitBild) einstellungen.videoBitsPerSecond = CFG.bild.rate;
   if (typ) einstellungen.mimeType = typ;
 
-  S.aufnehmer = new MediaRecorder(S.spur, einstellungen);
+  S.aufnehmer = new MediaRecorder(aufnahmeSpur, einstellungen);
   S.aufnehmer.ondataavailable = e => {
     if (!e.data || !e.data.size) return;
     S.brockenNr++;
@@ -293,8 +430,22 @@ async function starten(o){
   return S.sitzung;
 }
 
+/* Die Endung richtet sich danach, was TATSAECHLICH aufgenommen
+   wurde, nicht danach, was bestellt war.
+
+   NEU (2026-08-22): Vorher stand hier S.medienTyp - der Typ, den wir
+   MediaRecorder VORGEGEBEN haben. Liefert der Browser etwas anderes,
+   loge der Dateiname. Kaspers Aufnahme hat genau diese Schwaeche: Sie
+   nennt die Datei fest `ton.webm`, auch wenn Safari in MP4 aufgenommen
+   hat. Auf Rikes Rechner liegt eine Datei, die `.webm` heisst und ein
+   MP4 ist - anderer Herkunft, aber dasselbe Muster.
+
+   Ein falscher Name ist nicht bloss unschoen: Die Wiedergabe leitet
+   aus ihm den Typ ab, wenn er am Blob fehlt. Deshalb kommt er jetzt
+   aus dem ersten Brocken selbst. */
 function endung(){
-  const t = S.medienTyp || '';
+  const t = (S.behalten.length && S.behalten[0].blob && S.behalten[0].blob.type)
+            || S.medienTyp || '';
   return t.indexOf('mp4') >= 0 ? (S.mitBild ? 'mp4' : 'm4a') : 'webm';
 }
 
@@ -371,6 +522,13 @@ const M = {
   karte:      (id, x, y, feld) => merken('karte', { karte: id, x: x, y: y, feld: feld }),
   strich:     (feld, punkte) => merken('strich', { feld: feld, p: punkte }),
   radiert:    (feld) => merken('radiert', { feld: feld }),
+
+  /* Der Schnappschuss beim Aufbauen: wie die Aufgabe aussah, BEVOR
+     jemand geantwortet hat. Damit lässt sie sich später zeigen und
+     auswerten, auch wenn die Prüfung nie fertig wurde - und ohne dass
+     wir die Zufallsziehung nachspielen müssten (kein Seed; Begründung
+     in ENTSCHEIDUNGEN.md, 25.08.2026). */
+  aufgabeGebaut: (bild) => merken('aufgabe-gebaut', bild),
 
   erklaerung: (nr, frage) => merken('erklaerstelle', { nr: nr, frage: frage }),
   aufgabeFertig: (id) => merken('aufgabe-fertig', { aufgabe: id }),
@@ -554,14 +712,20 @@ function zip(dateien){
 window.Aufnahme = {
   probe: probe, starten: starten, beenden: beenden,
   merken: merken, M: M,
+  /* Der laufende Ereignisstrom. Gebraucht von `pruefstand/richtigkeit.html`,
+     der prüft, ob die Nachwertung aus dem Strom dasselbe sagt wie die
+     Bewertung auf der Seite. */
+  ereignisse: () => S.ereignisse,
   blattVonKamera: blattVonKamera, blattAbgeben: blattAbgeben,
   fundort: fundort, ablage: () => CFG.ablage,
+  probeaufnahme: probeaufnahme, probeMitRueckfall: probeMitRueckfall,
+  speicherprobe: speicherprobe,
   angefangenes: angefangenes, paketAus: paketAus,
   aufraeumen: s => Speicher.loeschen(s),
   /* nur fuer den Pruefstand: der ZIP-Schreiber und die Pruefsumme */
   _zip: zip, _crc32: crc32,
   spur: () => S.spur,
-  hatKamera: () => S.mitBild,
+  hatKamera: () => S.kameraDa,
   herunterladen: herunterladen,
   laeuft: () => S.laeuft,
   sitzung: () => S.sitzung,
