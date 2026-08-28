@@ -22,7 +22,17 @@
 
   --aktuell:      #F1E7DA;   /* Rounded Rectangle 8 */
   --aktuell-rand: #D9C9B4;
-  --braun:        #A45D22;   /* Rand der Aktuelles-Kaertchen */
+  --braun:        #A45D22;   /* Rand der Aktuelles-Kaertchen (alt) */
+  /* **Der Tausch vom 28.08.2026** (Rike): «Ich wuerde auf den braunen
+     Rahmen ganz verzichten und stattdessen hellblau hinterlegen. Dafuer
+     koennten wir den Material-Knopf, der im Moment blau hinterlegt ist
+     — was irgendwie uninspiriert ist, warum gerade blau —, in diesem
+     dunklen Braun setzen.» Die beiden tauschen also die Rollen: Das
+     Blau geht an die Zettel, das Braun an den grossen Knopf. */
+  --zettel:       #E8F0F8;   /* hellblau hinterlegt */
+  --zettel-rand:  #B8CFE4;
+  --material-braun:      #4A3F30;
+  --material-braun-rand: #33291E;
   --kopfbraun:    #A45D22;   /* Rectangle 2 der Unterseiten */
 
   /* outerShdw blurRad=70000 dist=32000 dir=90 Grad, #4A3F30 bei 26 % */
@@ -138,8 +148,9 @@ a { color: inherit; text-decoration: none; }
   gap: 1.25rem;
   min-height: 8.125rem;                   /* 130 px */
   padding: .75rem 1.75rem .75rem 1.25rem;
-  background: var(--material);
-  border: 0.208rem solid var(--material-rand);   /* 2.5 pt */
+  background: var(--material-braun);
+  border: 0.208rem solid var(--material-braun-rand);   /* 2.5 pt */
+  color: var(--weiss);
   border-radius: .569rem;                 /* roundRect 7000 auf 130 px */
   box-shadow: var(--schatten);
   transition: transform .12s ease, box-shadow .12s ease;
@@ -262,8 +273,8 @@ a:focus-visible .kachel, a:focus-visible .material,
 .zettel {
   display: block;
   padding: .875rem 1.25rem;
-  background: var(--weiss);
-  border: 0.167rem solid var(--braun);     /* 2 pt */
+  background: var(--zettel);
+  border: 0.083rem solid var(--zettel-rand);
   border-radius: .5rem;
   box-shadow: var(--schatten-klein);
   transition: transform .12s ease, box-shadow .12s ease;
@@ -1295,3 +1306,9 @@ table.fahrplan .praesenz { font-size: .917rem; }
 /* Wo es kein Ziel gibt — Herbstpause, Wiederholung —, ist der Zettel
    kein Verweis und soll auch nicht wie einer aussehen. */
 .zettel.ruhig { cursor: default; opacity: .85; }
+
+
+/* Auf dunklem Grund muss die Schrift hell sein — sonst steht der
+   Untertitel in Grau auf Braun und ist nicht mehr zu lesen. */
+.material b { color: var(--weiss); }
+.material span { color: rgba(255, 255, 255, .82); }

@@ -267,8 +267,15 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
    per `margin-top:auto` an die Unterkante: Bei vier Abschnitten steht
    er buendig, bei zweien faellt die Luft dorthin, wo sie hingehoert --
    zwischen Navigation und Skript, nie dazwischen enger. */
+/* **Oben bündig mit dem Video** (Rike, 28.08.2026): «Es wäre schön,
+   wenn zumindest der obere Videorand bündig mit dem obersten
+   Abschnittsrand ist.» Kein Aussenabstand oben, sonst rutscht die
+   Spalte gegen die Bühne. */
 .etappe .arbeit:has(.zeitstrahl.senkrecht){display:flex;
-     flex-direction:column;gap:var(--kastenluft,18px)}
+     flex-direction:column;gap:14px;margin-top:0;padding-top:0}
+.etappe:has(.zeitstrahl.senkrecht) > .film{margin-top:0}
+.etappe:has(.zeitstrahl.senkrecht) .wartet.nurbild{padding:0;border:0;
+     background:none;margin:0}
 .arbeit .zeitstrahl.senkrecht{margin:0}
 .arbeit .zeitstrahl.senkrecht .feld{overflow:visible}
 /* **Links buendig, rechts Flattersatz** (Rike, 27.08.2026): «Diese
@@ -311,8 +318,22 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
    Daraus die Breite: vier Kacheln, drei Zwischenraeume, zwei
    Innenraender, zwei Rahmenlinien. Reicht es eines Tages nicht mehr,
    steht die Rechnung hier und ist in einer Zeile geaendert. */
-.arbeit .zeitstrahl.senkrecht{--kasten-b:calc(4 * var(--weg-kachel-b)
-     + 3 * 18px + 2 * var(--weg-innen) + 2px)}
+/* **Schmaler als waagerecht** (Rike, 28.08.2026): «Insgesamt ist mir
+   die Liste 1 2 3 4 doch zu breit. Ich hätte mir gewünscht, dass man,
+   wenn man das Hochkantvideo anschaut, nebendran alle vier Abschnitte
+   angezeigt sieht.»
+
+   Beides hängt zusammen: Kleinere Kacheln machen die Kästen nicht nur
+   schmaler, sondern auch flacher — und erst dadurch passen vier
+   nebeneinander an ein Hochkantvideo. Waagerecht bleibt alles wie es
+   war; dort gibt der gemeinsame Massstab den Kapiteln dieselbe
+   Kachelgrösse. */
+.arbeit .zeitstrahl.senkrecht{--weg-kachel-b:86px;--weg-kachel-h:34px;
+     --weg-rand:7px;--weg-innen:9px;
+     --kasten-b:calc(4 * var(--weg-kachel-b)
+     + 3 * 12px + 2 * var(--weg-innen) + 2px)}
+.arbeit .zeitstrahl.senkrecht .halt{font-size:9.5px}
+.arbeit .zeitstrahl.senkrecht .kopf{font-size:11px}
 .arbeit .zeitstrahl.senkrecht .strecke{display:grid;
      grid-auto-rows:min-content;justify-items:stretch;
      gap:var(--kastenluft,18px);width:var(--kasten-b);max-width:100%;
@@ -329,7 +350,7 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
    wegfaellt — also braucht es den Abstand ausdruecklich, und zwar
    denselben, den der Referenzkasten zwischen seinen vier Kacheln hat. */
 .arbeit .zeitstrahl.senkrecht .reihe{justify-content:flex-start;
-     gap:18px;row-gap:10px}
+     gap:12px;row-gap:8px}
 /* **Die Kacheln duerfen hier atmen.** Waagerecht muessen alle exakt
    gleich breit sein, damit die Kapitel denselben Massstab haben --
    `--weg-kachel-b` ist deshalb eine feste Breite, und lange Titel wie
@@ -2971,3 +2992,44 @@ body:has(.notizleiste){padding-right:52px;--randstreifen:52px}
 .daneben{margin-top:14px;display:flex;flex-direction:column;gap:12px}
 .daneben .fragekasten{margin:0}
 .daneben .ruhig{margin:.6em 0 0;font-size:13px}
+
+
+/* ---------- Der Weg senkrecht: die letzten Worte ------------------
+   **Warum hier unten und mit drei Klassen.** `.zeitstrahl.klein` steht
+   weiter oben in dieser Datei und setzt dieselben Variablen — bei
+   gleicher Genauigkeit gewinnt die spätere Regel, also gewann sie.
+   Meine schmaleren Masse kamen nie an, und die Breite von `100vw`
+   samt negativem Aussenabstand zog die Kästen über die Seite hinaus.
+   Gefunden am 28.08.2026 im Bild, nicht im Quelltext.
+
+   Rike: «Insgesamt ist mir die Liste 1 2 3 4 doch zu breit. Ich hätte
+   mir gewünscht, dass man, wenn man das Hochkantvideo anschaut,
+   nebendran alle vier Abschnitte angezeigt sieht.» */
+.arbeit .zeitstrahl.klein.senkrecht{
+  --weg-kachel-b:78px; --weg-kachel-h:32px;
+  --weg-rand:6px; --weg-innen:8px; --weg-luft:5px;
+  --kasten-b:calc(4 * var(--weg-kachel-b) + 3 * 10px
+                  + 2 * var(--weg-innen) + 2px);
+  width:auto; margin:0; margin-left:0; padding:0;
+}
+.arbeit .zeitstrahl.klein.senkrecht .strecke{
+  display:grid; grid-auto-rows:min-content; justify-items:stretch;
+  gap:12px; width:var(--kasten-b); max-width:100%; min-width:0;
+}
+.arbeit .zeitstrahl.klein.senkrecht .abschnitt{width:100%;
+  padding:var(--weg-rand) 8px calc(var(--weg-rand) + 2px)}
+.arbeit .zeitstrahl.klein.senkrecht .reihe{justify-content:flex-start;
+  gap:10px; row-gap:6px}
+.arbeit .zeitstrahl.klein.senkrecht .halt{
+  width:var(--weg-kachel-b); height:auto; min-height:var(--weg-kachel-h);
+  font-size:9px; padding:4px 5px; line-height:1.15}
+.arbeit .zeitstrahl.klein.senkrecht .abschnitt .wort{font-size:11px}
+.arbeit .zeitstrahl.klein.senkrecht .strich,
+.arbeit .zeitstrahl.klein.senkrecht .wegende{display:none}
+
+
+/* Die Ueberschrift der Erklaerung: Sie sagt, was aufgegangen ist —
+   der Fragezeichen-Knopf selbst ist zu klein fuer eine Aufschrift
+   (Rike, 28.08.2026). */
+.notizerklaerungkopf{margin:0 0 .6em;font-size:15px;font-weight:600;
+     color:var(--tinte)}

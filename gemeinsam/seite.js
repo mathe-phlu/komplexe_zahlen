@@ -756,6 +756,17 @@
     var feld = strahl.querySelector('.feld');
     var strecke = strahl.querySelector('.strecke');
     if (!feld || !strecke) return;
+    /* **Der senkrechte Weg wird nicht gestreckt.** Waagerecht zieht
+       diese Rechnung die Leiste auf die volle Breite, damit die
+       Kacheln überall gleich gross erscheinen. Senkrecht neben dem
+       Hochkantvideo ist genau das falsch: Sie blies die Kästen um den
+       Faktor 1,55 auf, und keine Angabe in der Stilvorlage kam dagegen
+       an — die Masse stimmten, das Bild nicht (28.08.2026). */
+    if (strahl.classList.contains('senkrecht')) {
+      strecke.style.transform = 'none';
+      feld.style.height = '';
+      return;
+    }
 
     function rechnen() {
       strecke.style.transform = 'none';

@@ -418,7 +418,22 @@
 
   function breite(px) {
     if (!streifen) return px;
-    var b = Math.min(window.innerWidth * 0.94, Math.max(SCHMAL, px));
+    /* **Höchstens die halbe Seite** (Rike, 28.08.2026): «Ich würde
+       dafür sorgen, dass man das Notizblatt maximal die Hälfte eines
+       Bildschirms ziehen kann.» Vorher liess es sich über 94 % der
+       Seite ziehen — dann war von dem, worüber man sich Notizen macht,
+       nichts mehr zu sehen.
+
+       **Auf schmalen Geräten gilt das nicht.** Auf einem hochkant
+       gehaltenen Tablet wäre die Hälfte zu wenig zum Schreiben, und
+       dort liegt die Seite ohnehin darunter statt daneben. Die Grenze
+       von 820 px trennt beides: darüber ein Fenster, in dem zwei Dinge
+       nebeneinander Platz haben, darunter eines, in dem sie es nicht
+       haben. */
+    var deckel = window.innerWidth > 820
+      ? window.innerWidth * 0.5
+      : window.innerWidth * 0.94;
+    var b = Math.min(deckel, Math.max(SCHMAL, px));
     leiste.style.setProperty('--notiz-breite', Math.round(b) + 'px');
     /* Solange es eingeschoben ist, nimmt die Fläche keine Berührung
        an. Sonst zöge ein Streifen von vierzig Pixeln am rechten Rand
