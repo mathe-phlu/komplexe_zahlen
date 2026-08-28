@@ -2560,6 +2560,41 @@ body:has(.notizleiste){padding-right:52px;--randstreifen:52px}
 /* Die Luecke trennt die beiden Gruppen: links das Arbeiten,
    rechts das Aufbewahren und Schliessen. */
 .notizbalken .notizhilfe{margin-left:auto}
+
+/* **Zwei Herunterladeknoepfe, und man sieht welcher welcher ist**
+   (Rike, 28.08.2026: «Wir wollten zwei Download-Button, kapitelweise
+   und alles»). Gebaut waren sie -- aber beide trugen dasselbe Zeichen,
+   und der Unterschied stand allein im Tooltip. Auf dem Tablet gibt es
+   keinen Tooltip. Also traegt jeder sein Wort. */
+.notizbalken .notizkapitel,
+.notizbalken .notizalle{width:auto;gap:5px;padding:0 9px}
+.notizbalken .umfang{font-size:12px;letter-spacing:.01em}
+.notizbalken .notizalle{border-color:var(--akzent);color:var(--akzent)}
+/* **Die Knoepfe schrumpfen nie.** Der Balken ist `overflow:hidden` --
+   was nicht passt, wird abgeschnitten statt umgebrochen. Ohne diese
+   Zeile waeren bei einem knappen Zettel ausgerechnet die beiden
+   Herunterladeknoepfe rechts aussen verschwunden, also das, was Rike
+   sichtbar haben wollte. Gemessen am 28.08.2026: Mit der langen
+   Hinweiszeile brauchte der Balken 608 px und passte erst ab 700. */
+.notizbalken button{flex:none}
+
+/* **Der Hinweis gehoert neben das Fragezeichen** (Rike, 28.08.2026).
+   Ein `title` ist auf dem Tablet unsichtbar und wird am Rechner erst
+   nach einer Sekunde Stillstand gezeigt -- beides taugt nicht fuer
+   einen Satz, den man VOR dem Arbeiten lesen soll. */
+.notizbalken .notizhilfe{width:auto;gap:6px;padding:0 9px}
+/* Der Hinweis ist das Einzige, was nachgeben darf: Er verkuerzt sich
+   mit Auslassungspunkten, bevor irgendein Knopf weichen muss. */
+.notizlies{font-size:12px;letter-spacing:.01em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* Im eingeschobenen Streifen ist kein Platz fuer den Satz -- dort
+   bleibt das Fragezeichen allein, und der Satz steht in der
+   Erklaerung, die es oeffnet. */
+.notizleiste.knapp .notizlies,
+.notizleiste.knapp .umfang{display:none}
+.notizleiste.knapp .notizhilfe,
+.notizleiste.knapp .notizkapitel,
+.notizleiste.knapp .notizalle{width:34px;padding:0}
 .notizstand{position:absolute;left:22px;bottom:50px;right:14px;
   font-size:12.5px;color:var(--matt);pointer-events:none;
   background:color-mix(in srgb,var(--karte) 88%,transparent);

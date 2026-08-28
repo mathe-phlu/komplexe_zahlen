@@ -158,13 +158,18 @@
   function merken() {
     clearTimeout(uhr);
     uhr = setTimeout(function () {
-      ablegen();
+      if (!ablegen()) {
+        stand.textContent = 'konnte nicht gemerkt werden — der Speicher '
+                          + 'ist voll. Bitte laden Sie Ihre Blätter herunter.';
+        stand.dataset.art = 'schlecht';
+        return;
+      }
       /* **Kein «wird gemerkt …» mehr.** Rike, 24.08.: «Immer wenn ich
          eine Bewegung mache, ploppt so ein weisser Balken auf.» Das
          war es. Gemerkt wird ohnehin bei jedem Strich und jedem
          gezogenen Kärtchen — davon jedes Mal zu berichten ist Lärm,
-         nicht Auskunft. Was zählt, sagt der Knopf «merken», und der
-         sagt es weiterhin. */
+         nicht Auskunft. Gemeldet wird nur noch der Fehlschlag oben:
+         Stille heisst, es hat geklappt. */
     }, 400);
   }
 
@@ -440,6 +445,13 @@
        jeden Wisch an sich, mit dem jemand die Seite rollen will — und
        hinterliesse einen Strich, den niemand gewollt hat. */
     leiste.classList.toggle('schmal', b < SCHWELLE);
+    /* **Die Woerter im Balken brauchen Platz** (28.08.2026). Der
+       Balken ist `overflow:hidden`; passt sein Inhalt nicht, faellt
+       rechts weg, was am wichtigsten ist — die beiden
+       Herunterladeknoepfe. Gemessen: mit «Kapitel», «alles» und
+       «bitte lesen» braucht er 431 px. Darunter tragen die Knoepfe
+       wieder nur ihr Zeichen, und was sie tun, sagt der Tooltip. */
+    leiste.classList.toggle('knapp', b < 470);
     return b;
   }
   breite(SCHMAL);
@@ -479,26 +491,17 @@
     merken();
   });
 
-  var merkknopf = leiste.querySelector('.notizmerken');
-  if (merkknopf) merkknopf.addEventListener('click', function () {
-    /* Gemerkt wird ohnehin dauernd, vierhundert Millisekunden nach dem
-       letzten Strich — daran ändert der Knopf nichts, und das ist
-       Absicht: Ein Blatt darf nicht verloren gehen, weil jemand
-       vergessen hat zu drücken. Was der Knopf leistet, ist die
-       BESTÄTIGUNG. Wer etwas Wichtiges hingeschrieben hat, will es
-       nicht glauben müssen, sondern sehen. */
-    clearTimeout(uhr);
-    var gut = ablegen();
-    stand.textContent = gut
-      ? 'gemerkt ✓ — bleibt auf diesem Gerät, auch nach dem Schliessen'
-      : 'konnte nicht gemerkt werden — der Speicher ist voll';
-    stand.dataset.art = gut ? 'gut' : 'schlecht';
-    setTimeout(function () {
-      stand.textContent = '';
-      delete stand.dataset.art;
-    }, 4000);
-  });
+  /* **Der Merken-Knopf ist weg** (Rike, 28.08.2026: «Wir machen den
+     Speicherknopf weg»). Er hat nie gespeichert — gemerkt wird
+     selbsttaetig, 400 ms nach dem letzten Strich. Er hat nur
+     bestaetigt, und dafuer einen Platz im engen Balken belegt.
 
+     **Was dabei nicht verlorengehen darf:** Er war die einzige Stelle,
+     an der ein VOLLER Speicher ueberhaupt zur Sprache kam. Ohne ihn
+     schluege ein misslungenes Ablegen still fehl — jemand schriebe
+     weiter und haette am Abend nichts. Darum meldet sich das
+     selbsttaetige Merken jetzt von sich aus, wenn es nicht geht. Das
+     ist besser als vorher: Vorher erfuhr es nur, wer drueckte. */
   var hilfeknopf = leiste.querySelector('.notizhilfe');
   var erklaerung = leiste.querySelector('.notizerklaerung');
   /* «Was heisst das?» in der stehenden Zeile oeffnet dieselbe
@@ -839,7 +842,20 @@
   var kapitelknopf = leiste.querySelector('.notizkapitel');
   var alleknopf = leiste.querySelector('.notizalle');
 
+  /* **Die Zeile im Fenster nennt den gewaehlten Umfang** (Rike,
+     28.08.2026). Vorher stand dort immer «Alle Blätter dieses Moduls»
+     — auch wenn jemand den Kapitel-Knopf gedrueckt hatte. Zwei
+     Knoepfe, eine Aussage: das ist ein Widerspruch, den niemand
+     aufloesen kann ausser durch Ausprobieren. */
+  var wasgesagt = fenster && fenster.querySelector('.was');
+
   function abgabefenster() {
+    if (wasgesagt) {
+      wasgesagt.innerHTML = (umfang === 'kapitel'
+        ? '<b>Die Blätter dieses Kapitels</b>'
+        : '<b>Alle Blätter dieses Moduls</b>')
+        + ' — Notizen und Sortierung — kommen in eine Datei.';
+    }
     fenster.hidden = false;
     danach.hidden = true;
     mangel.hidden = true;
@@ -854,16 +870,12 @@
     umfang = 'kapitel';
     abgabefenster();
   });
+  /* Beide Knoepfe gehen durch **dieselbe** Funktion. Vorher stand das
+     Oeffnen hier ein zweites Mal ausgeschrieben — und genau daran
+     waere die neue Umfangszeile vorbeigelaufen. */
   if (alleknopf && fenster) alleknopf.addEventListener('click', function () {
     umfang = 'modul';
-    fenster.hidden = false;
-    danach.hidden = true;
-    mangel.hidden = true;
-    if (namenslabel) namenslabel.hidden = true;
-    if (weiter) weiter.hidden = true;
-    zweiterSchritt(false);
-    for (var i = 0; i < wege.length; i++) wege[i].checked = false;
-    if (holen) holen.focus();
+    abgabefenster();
   });
   var zurueck = fenster && fenster.querySelector('.notizzurueck');
   if (zurueck) zurueck.addEventListener('click', function () {
