@@ -1258,3 +1258,40 @@ table.fahrplan .praesenz { font-size: .917rem; }
 }
 .reiterreihe .klapper[open] > summary::after { color: var(--weiss); }
 .reiterreihe .klapper .inhalt { max-width: 46rem; }
+
+
+/* ---------- Der Zettel «Diese Woche» --------------------------------
+   Rike, 28.08.2026: «Bei uns hat ja jede Station und jedes Kapitel eine
+   Farbe, und ich fänd's gut, wenn diese Boxen genau diese Farbe
+   hätten. Bei den komplexen Zahlen haben wir zudem die Bilder von den
+   Mathematikern — wenn die auch noch klein in den Boxen erschienen,
+   so eingefärbt wie bei den anderen Sachen, wäre das grandios.»
+
+   Die Farbe kommt als `--wochenfarbe` vom Skript, damit der Zettel
+   dasselbe sagt wie die Kachel im Material. Ein Streifen links statt
+   einer vollen Fläche: Der Zettel steht neben anderen, und eine ganz
+   eingefärbte Box zöge alles an sich. */
+.zettel.woche {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  border-left: .35rem solid var(--wochenfarbe, var(--kopfbraun));
+}
+.zettel.woche .wochentext { display: block; }
+/* **Das Porträt wird eingefärbt, nicht abgebildet.** Dieselbe Technik
+   wie bei den Symbolen im Material: Die Bilddatei gibt nur die Form,
+   die Farbe kommt vom Kapitel. So passt es zusammen, auch wenn die
+   Vorlagen verschieden hell sind. */
+.zettel.woche .wochenbild {
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--wochenfarbe, var(--kopfbraun));
+  -webkit-mask-image: var(--bildmaske);
+  mask-image: var(--bildmaske);
+}
+/* Wo es kein Ziel gibt — Herbstpause, Wiederholung —, ist der Zettel
+   kein Verweis und soll auch nicht wie einer aussehen. */
+.zettel.ruhig { cursor: default; opacity: .85; }

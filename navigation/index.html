@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="gemeinsam/schriften.css">
 <link rel="stylesheet" href="gemeinsam/navigation.css">
 </head>
-<body>
+<body class="m-komplexe_zahlen">
 
 <header class="kopf">
   <h1>Komplexe Zahlen</h1>
@@ -103,17 +103,17 @@
         <b>Online-Einführung</b>
         <span>bitte bis 07.09.25 ansehen</span>
       </a>
-      <!-- Rike, 24.08.2026: «Semesterstart führt direkt zu Kapitel 1.»
-           Bei den komplexen Zahlen heisst die Kapitelseite «station-1». -->
-      <a class="zettel" href="https://mathe-phlu.github.io/komplexe_zahlen/station-1/"
-         target="_blank" rel="noopener">
-        <b>Semesterstart</b>
-        <span>Woche 1 – Kapitel 1: Grundbegriffe</span>
-      </a>
+      <!-- **Was diese Woche ansteht** (Rike, 28.08.2026). Gefüllt von
+           `gemeinsam/diese-woche.js` aus `wochenplan.json` — im
+           Browser, nicht beim Bauen: Sonst müsste jede Woche jemand neu
+           bauen, und einmal vergessen hiesse, dass wochenlang das
+           falsche Kapitel dasteht. -->
+      <a class="zettel" data-diese-woche></a>
     </aside>
 
   </div>
 </div>
 
+<script src="gemeinsam/diese-woche.js"></script>
 </body>
 </html>

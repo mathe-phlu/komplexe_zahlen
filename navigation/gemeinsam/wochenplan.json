@@ -1,0 +1,430 @@
+{
+ "_lies_mich": [
+  "Was in welcher Woche ansteht — fuer den Zettel «Diese Woche» auf der",
+  "Navigationsseite. Rike, 28.08.2026: «Ich fände es cool, wenn in",
+  "dieser Woche immer genau das Kapitel aufgeführt ist, das dran ist —",
+  "dann muss niemand erst ins Material und die Station suchen.»",
+  "",
+  "Entschieden wird im Browser, nicht beim Bauen: Sonst muesste jede",
+  "Woche jemand neu bauen, und einmal vergessen hiesse, dass wochenlang",
+  "das falsche Kapitel dasteht.",
+  "",
+  "Abgeleitet aus den Fahrplaenen der drei Module. «ab» ist immer der",
+  "Montag der Woche."
+ ],
+ "form_und_raum": [
+  {
+   "ab": "2026-09-07",
+   "art": "kapitel",
+   "nr": 1,
+   "wort": "Kapitel",
+   "nummer": "1",
+   "titel": "Grundlegende Begriffe",
+   "farbe": "fach",
+   "portraet": null,
+   "weg": "kapitel-1/"
+  },
+  {
+   "ab": "2026-09-14",
+   "art": "kapitel",
+   "nr": 2,
+   "wort": "Kapitel",
+   "nummer": "2",
+   "titel": "Koordinatensysteme",
+   "farbe": "zugang",
+   "portraet": null,
+   "weg": "kapitel-2/"
+  },
+  {
+   "ab": "2026-09-21",
+   "art": "kapitel",
+   "nr": 3,
+   "wort": "Kapitel",
+   "nummer": "3",
+   "titel": "Symmetrie und Abbildung",
+   "farbe": "aktion",
+   "portraet": null,
+   "weg": "kapitel-3/"
+  },
+  {
+   "ab": "2026-09-28",
+   "art": "pause",
+   "titel": "Herbstpause",
+   "dazu": "Zeit zum Nacharbeiten — wir machen danach weiter."
+  },
+  {
+   "ab": "2026-10-05",
+   "art": "pause",
+   "titel": "Herbstpause",
+   "dazu": "Zeit zum Nacharbeiten — wir machen danach weiter."
+  },
+  {
+   "ab": "2026-10-12",
+   "art": "kapitel",
+   "nr": 4,
+   "wort": "Kapitel",
+   "nummer": "4",
+   "titel": "Kongruenzabbildungen",
+   "farbe": "beweis",
+   "portraet": null,
+   "weg": "kapitel-4/"
+  },
+  {
+   "ab": "2026-10-19",
+   "art": "kapitel",
+   "nr": 5,
+   "wort": "Kapitel",
+   "nummer": "5",
+   "titel": "Ähnlichkeitsabbildungen",
+   "farbe": "didaktik",
+   "portraet": null,
+   "weg": "kapitel-5/"
+  },
+  {
+   "ab": "2026-10-26",
+   "art": "ruhig",
+   "titel": "Wiederholung",
+   "dazu": "Zeit, Liegengebliebenes aufzuarbeiten."
+  },
+  {
+   "ab": "2026-11-02",
+   "art": "kapitel",
+   "nr": 6,
+   "wort": "Kapitel",
+   "nummer": "6",
+   "titel": "Geradlinige Figuren",
+   "farbe": "zugang",
+   "portraet": null,
+   "weg": "kapitel-6/"
+  },
+  {
+   "ab": "2026-11-09",
+   "art": "kapitel",
+   "nr": 7,
+   "wort": "Kapitel",
+   "nummer": "7",
+   "titel": "Krummlinige Figuren",
+   "farbe": "didaktik",
+   "portraet": null,
+   "weg": "kapitel-7/"
+  },
+  {
+   "ab": "2026-11-16",
+   "art": "kapitel",
+   "nr": 8,
+   "wort": "Kapitel",
+   "nummer": "8",
+   "titel": "Der Satz des Pythagoras",
+   "farbe": "beweis",
+   "portraet": null,
+   "weg": "kapitel-8/"
+  },
+  {
+   "ab": "2026-11-23",
+   "art": "kapitel",
+   "nr": 9,
+   "wort": "Kapitel",
+   "nummer": "9",
+   "titel": "Transversalen & Ortslinien",
+   "farbe": "fach",
+   "portraet": null,
+   "weg": "kapitel-9/"
+  },
+  {
+   "ab": "2026-11-30",
+   "art": "kapitel",
+   "nr": 10,
+   "wort": "Kapitel",
+   "nummer": "10 / 11",
+   "titel": "Dynamische Problemlösestrategie oder Die Kreisspiegelung",
+   "farbe": "aktion",
+   "portraet": null,
+   "weg": "kapitel-10/"
+  },
+  {
+   "ab": "2026-12-07",
+   "art": "ruhig",
+   "titel": "Wiederholung",
+   "dazu": "Zeit, Liegengebliebenes aufzuarbeiten."
+  }
+ ],
+ "daten_und_zufall": [
+  {
+   "ab": "2026-09-07",
+   "art": "kapitel",
+   "nr": 1,
+   "wort": "Kapitel",
+   "nummer": "1",
+   "titel": "Kombinatorik",
+   "farbe": "aktion",
+   "portraet": null,
+   "weg": "kapitel-1/"
+  },
+  {
+   "ab": "2026-09-14",
+   "art": "kapitel",
+   "nr": 2,
+   "wort": "Kapitel",
+   "nummer": "2",
+   "titel": "Ergebnisse und Ereignisse",
+   "farbe": "zugang",
+   "portraet": null,
+   "weg": "kapitel-2/"
+  },
+  {
+   "ab": "2026-09-21",
+   "art": "kapitel",
+   "nr": 3,
+   "wort": "Kapitel",
+   "nummer": "3",
+   "titel": "Das Laplace-Modell",
+   "farbe": "beweis",
+   "portraet": null,
+   "weg": "kapitel-3/"
+  },
+  {
+   "ab": "2026-09-28",
+   "art": "pause",
+   "titel": "Herbstpause",
+   "dazu": "Zeit zum Nacharbeiten — wir machen danach weiter."
+  },
+  {
+   "ab": "2026-10-05",
+   "art": "pause",
+   "titel": "Herbstpause",
+   "dazu": "Zeit zum Nacharbeiten — wir machen danach weiter."
+  },
+  {
+   "ab": "2026-10-12",
+   "art": "kapitel",
+   "nr": 4,
+   "wort": "Kapitel",
+   "nummer": "4",
+   "titel": "Der Wahrscheinlichkeitsbegriff",
+   "farbe": "fach",
+   "portraet": null,
+   "weg": "kapitel-4/"
+  },
+  {
+   "ab": "2026-10-19",
+   "art": "ruhig",
+   "titel": "Wiederholung",
+   "dazu": "Zeit, Liegengebliebenes aufzuarbeiten."
+  },
+  {
+   "ab": "2026-10-26",
+   "art": "ruhig",
+   "titel": "Wiederholung",
+   "dazu": "Zeit, Liegengebliebenes aufzuarbeiten."
+  },
+  {
+   "ab": "2026-11-02",
+   "art": "kapitel",
+   "nr": 5,
+   "wort": "Kapitel",
+   "nummer": "5",
+   "titel": "Bedingte Wahrscheinlichkeit",
+   "farbe": "zugang",
+   "portraet": null,
+   "weg": "kapitel-5/"
+  },
+  {
+   "ab": "2026-11-09",
+   "art": "ruhig",
+   "titel": "Praktikumsvorbereitung",
+   "dazu": "Diese Woche steht das Praktikum im Vordergrund."
+  },
+  {
+   "ab": "2026-11-16",
+   "art": "kapitel",
+   "nr": 6,
+   "wort": "Kapitel",
+   "nummer": "6",
+   "titel": "Zufallsgrössen",
+   "farbe": "fach",
+   "portraet": null,
+   "weg": "kapitel-6/"
+  },
+  {
+   "ab": "2026-11-23",
+   "art": "kapitel",
+   "nr": 7,
+   "wort": "Kapitel",
+   "nummer": "7",
+   "titel": "Bernoulli-Modelle",
+   "farbe": "beweis",
+   "portraet": null,
+   "weg": "kapitel-7/"
+  },
+  {
+   "ab": "2026-11-30",
+   "art": "kapitel",
+   "nr": 8,
+   "wort": "Kapitel",
+   "nummer": "8",
+   "titel": "Normalverteilung",
+   "farbe": "aktion",
+   "portraet": null,
+   "weg": "kapitel-8/"
+  },
+  {
+   "ab": "2026-12-07",
+   "art": "ruhig",
+   "titel": "Wiederholung",
+   "dazu": "Zeit, Liegengebliebenes aufzuarbeiten."
+  },
+  {
+   "ab": "2026-12-14",
+   "art": "ruhig",
+   "titel": "Wiederholung",
+   "dazu": "Zeit, Liegengebliebenes aufzuarbeiten."
+  }
+ ],
+ "komplexe_zahlen": [
+  {
+   "ab": "2026-09-07",
+   "art": "kapitel",
+   "nr": 1,
+   "wort": "Station",
+   "nummer": "I",
+   "titel": "Komplexe Zahlen",
+   "farbe": "fach",
+   "portraet": "portraet-1.png",
+   "weg": "station-1/"
+  },
+  {
+   "ab": "2026-09-14",
+   "art": "kapitel",
+   "nr": 1,
+   "wort": "Station",
+   "nummer": "I",
+   "titel": "Komplexe Zahlen",
+   "farbe": "fach",
+   "portraet": "portraet-1.png",
+   "weg": "station-1/"
+  },
+  {
+   "ab": "2026-09-21",
+   "art": "kapitel",
+   "nr": 1,
+   "wort": "Station",
+   "nummer": "I",
+   "titel": "Komplexe Zahlen",
+   "farbe": "fach",
+   "portraet": "portraet-1.png",
+   "weg": "station-1/"
+  },
+  {
+   "ab": "2026-09-28",
+   "art": "pause",
+   "titel": "Herbstpause",
+   "dazu": "Zeit zum Nacharbeiten — wir machen danach weiter."
+  },
+  {
+   "ab": "2026-10-05",
+   "art": "pause",
+   "titel": "Herbstpause",
+   "dazu": "Zeit zum Nacharbeiten — wir machen danach weiter."
+  },
+  {
+   "ab": "2026-10-12",
+   "art": "kapitel",
+   "nr": 2,
+   "wort": "Station",
+   "nummer": "II",
+   "titel": "Komplexe Funktionen",
+   "farbe": "zugang",
+   "portraet": "portraet-2.png",
+   "weg": "station-2/"
+  },
+  {
+   "ab": "2026-10-19",
+   "art": "kapitel",
+   "nr": 2,
+   "wort": "Station",
+   "nummer": "II",
+   "titel": "Komplexe Funktionen",
+   "farbe": "zugang",
+   "portraet": "portraet-2.png",
+   "weg": "station-2/"
+  },
+  {
+   "ab": "2026-10-26",
+   "art": "kapitel",
+   "nr": 2,
+   "wort": "Station",
+   "nummer": "II",
+   "titel": "Komplexe Funktionen",
+   "farbe": "zugang",
+   "portraet": "portraet-2.png",
+   "weg": "station-2/"
+  },
+  {
+   "ab": "2026-11-02",
+   "art": "kapitel",
+   "nr": 3,
+   "wort": "Station",
+   "nummer": "III",
+   "titel": "Komplexe Folgen",
+   "farbe": "beweis",
+   "portraet": "portraet-3.png",
+   "weg": "station-3/"
+  },
+  {
+   "ab": "2026-11-09",
+   "art": "ruhig",
+   "titel": "Praktikumsvorbereitung",
+   "dazu": "Diese Woche steht das Praktikum im Vordergrund."
+  },
+  {
+   "ab": "2026-11-16",
+   "art": "kapitel",
+   "nr": 3,
+   "wort": "Station",
+   "nummer": "III",
+   "titel": "Komplexe Folgen",
+   "farbe": "beweis",
+   "portraet": "portraet-3.png",
+   "weg": "station-3/"
+  },
+  {
+   "ab": "2026-11-23",
+   "art": "kapitel",
+   "nr": 4,
+   "wort": "Station",
+   "nummer": "IV",
+   "titel": "Komplexe Potenzen",
+   "farbe": "aktion",
+   "portraet": "portraet-4.png",
+   "weg": "station-4/"
+  },
+  {
+   "ab": "2026-11-30",
+   "art": "kapitel",
+   "nr": 4,
+   "wort": "Station",
+   "nummer": "IV",
+   "titel": "Komplexe Potenzen",
+   "farbe": "aktion",
+   "portraet": "portraet-4.png",
+   "weg": "station-4/"
+  },
+  {
+   "ab": "2026-12-07",
+   "art": "kapitel",
+   "nr": 4,
+   "wort": "Station",
+   "nummer": "IV",
+   "titel": "Komplexe Potenzen",
+   "farbe": "aktion",
+   "portraet": "portraet-4.png",
+   "weg": "station-4/"
+  },
+  {
+   "ab": "2026-12-14",
+   "art": "ruhig",
+   "titel": "Abgabe Leistungsnachweis",
+   "dazu": "Die letzte Woche des Semesters."
+  }
+ ]
+}
