@@ -148,9 +148,14 @@ a { color: inherit; text-decoration: none; }
   gap: 1.25rem;
   min-height: 8.125rem;                   /* 130 px */
   padding: .75rem 1.75rem .75rem 1.25rem;
-  background: var(--material-braun);
-  border: 0.208rem solid var(--material-braun-rand);   /* 2.5 pt */
-  color: var(--weiss);
+  /* **Dieselbe Farbe wie die Pinnwand** (Rike, 28.08.2026): «Ich will
+     das nicht dunkelbraun. Ich will's exakt in der Farbe, in der auch
+     die Pinnwand gefärbt ist, also da wo Aktuelles draufsteht.» Mein
+     erster Versuch war ein sattes Dunkelbraun — das machte den Knopf
+     zum lautesten Ding der Seite, und genau das war er vorher schon
+     als blauer Block. */
+  background: var(--aktuell);
+  border: 0.208rem solid var(--aktuell-rand);   /* 2.5 pt */
   border-radius: .569rem;                 /* roundRect 7000 auf 130 px */
   box-shadow: var(--schatten);
   transition: transform .12s ease, box-shadow .12s ease;
@@ -273,8 +278,12 @@ a:focus-visible .kachel, a:focus-visible .material,
 .zettel {
   display: block;
   padding: .875rem 1.25rem;
-  background: var(--zettel);
-  border: 0.083rem solid var(--zettel-rand);
+  /* Weiss, nicht blau (Rike, 28.08.2026: «Die Online-Einführung war
+     farblich schon gut, die muss nicht in Blau gesetzt sein»). Vom
+     braunen Rahmen bleibt nur eine feine Linie — er war 2 pt stark
+     und rahmte jeden Zettel ein wie ein Bild. */
+  background: var(--weiss);
+  border: 0.083rem solid var(--aktuell-rand);
   border-radius: .5rem;
   box-shadow: var(--schatten-klein);
   transition: transform .12s ease, box-shadow .12s ease;
@@ -1294,14 +1303,17 @@ table.fahrplan .praesenz { font-size: .917rem; }
    die Farbe kommt vom Kapitel. So passt es zusammen, auch wenn die
    Vorlagen verschieden hell sind. */
 .zettel.woche .wochenbild {
+  display: block;
   width: 2.6rem;
   height: 2.6rem;
   flex: 0 0 auto;
-  border-radius: 50%;
-  object-fit: cover;
+  /* Die Farbe ist der Grund, das Bild die Maske. `--bildmaske` gab es
+     nie — die Maske steht jetzt am Element selbst, mit dem Pfad des
+     Porträts (28.08.2026). */
   background: var(--wochenfarbe, var(--kopfbraun));
-  -webkit-mask-image: var(--bildmaske);
-  mask-image: var(--bildmaske);
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
 }
 /* Wo es kein Ziel gibt — Herbstpause, Wiederholung —, ist der Zettel
    kein Verweis und soll auch nicht wie einer aussehen. */
@@ -1310,5 +1322,3 @@ table.fahrplan .praesenz { font-size: .917rem; }
 
 /* Auf dunklem Grund muss die Schrift hell sein — sonst steht der
    Untertitel in Grau auf Braun und ist nicht mehr zu lesen. */
-.material b { color: var(--weiss); }
-.material span { color: rgba(255, 255, 255, .82); }

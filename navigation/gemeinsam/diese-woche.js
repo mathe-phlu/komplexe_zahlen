@@ -67,8 +67,18 @@
     kasten.style.setProperty('--wochenfarbe', farbe);
     kasten.innerHTML =
       (jetzt.portraet
-        ? '<img class="wochenbild" src="../gemeinsam/symbole/'
-          + text(jetzt.portraet) + '" alt="">'
+        /* **Eingefärbt, nicht abgebildet.** Das Bild gibt nur die
+           Form; die Farbe kommt vom Kapitel — dieselbe Technik wie bei
+           den Symbolen im Material. Beim ersten Versuch stand hier ein
+           schlichtes <img> mit einer Maske, die es nie gab: Das Foto
+           erschien unverändert (Rike, 28.08.2026: «Die Fotos sollen
+           bitte auch jeweils in Blau, Grün oder so eingefärbt sein, so
+           wie wir's an den anderen Stellen hatten»). */
+        ? '<span class="wochenbild" aria-hidden="true" style="'
+          + '-webkit-mask-image:url(../gemeinsam/symbole/'
+          + text(jetzt.portraet) + ');'
+          + 'mask-image:url(../gemeinsam/symbole/'
+          + text(jetzt.portraet) + ')"></span>'
         : '')
       + '<span class="wochentext">'
       + '<b>' + text(jetzt.wort) + ' ' + text(jetzt.nummer) + ' — '

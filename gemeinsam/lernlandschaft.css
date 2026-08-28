@@ -374,11 +374,25 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
    allerdings anders als alle anderen Kaesten in Magenta gesetzt ist,
    damit klar ist: hier ist der didaktische Input.» Vorher sagte es die
    Farbe des ganzen Kastens; jetzt muss es die Kachel selbst sagen. */
+/* **Hell wie die anderen, dunkel nur wo man steht** (Rike,
+   28.08.2026): «Auf dem Zeitstrahl sollte Schulpraxis dunkelrot sein,
+   wenn man drauf ist, und hellrot, wie die anderen hellgrün, helllila
+   oder hellblau sind.» Vorher war sie immer satt gefüllt und schrie
+   damit lauter als die Etappe, auf der man gerade stand. */
 .zeitstrahl .strecke .abschnitt .halt.didaktik,
 .zeitstrahl.klein .strecke .abschnitt .halt.didaktik{
+     background:color-mix(in srgb, var(--didaktik) 16%, #fff);
+     border-color:color-mix(in srgb, var(--didaktik) 34%, #fff);
+     color:var(--didaktik)}
+.zeitstrahl .strecke .abschnitt .halt.didaktik span{color:var(--didaktik)}
+.zeitstrahl .strecke .abschnitt .halt.didaktik[aria-current="page"]{
      background:var(--didaktik);border-color:var(--didaktik);color:#fff}
-.zeitstrahl .strecke .abschnitt .halt.didaktik span{color:#fff}
-.zeitstrahl .strecke .abschnitt .halt.didaktik:hover{filter:brightness(1.1)}
+.zeitstrahl .strecke .abschnitt .halt.didaktik[aria-current="page"] span{
+     color:#fff}
+.zeitstrahl .strecke .abschnitt a.halt.didaktik:hover{
+     background:color-mix(in srgb, var(--didaktik) 26%, #fff)}
+/* Solange sie nicht anklickbar ist, soll sie auch nicht so wirken. */
+.zeitstrahl .strecke .abschnitt .halt.didaktik.wartet{cursor:default}
 
 /* Der Loesungsband als Zeile, nicht als Kachel — er gehoert zum
    Skript, nicht neben es (Rike, 27.08.2026). */
@@ -3033,3 +3047,12 @@ body:has(.notizleiste){padding-right:52px;--randstreifen:52px}
    (Rike, 28.08.2026). */
 .notizerklaerungkopf{margin:0 0 .6em;font-size:15px;font-weight:600;
      color:var(--tinte)}
+
+
+/* Der Schulpraxis-Kasten am Ende der Uebungen — getoent wie im Skript,
+   in der Didaktik-Farbe, damit er dasselbe sagt wie die Kachel auf dem
+   Weg (28.08.2026). */
+.schulpraxiskasten{margin:1.6em 0 0;padding:14px 16px;
+     background:color-mix(in srgb, var(--didaktik) 7%, #fff);
+     border-left:3px solid var(--didaktik);border-radius:0 10px 10px 0}
+.schulpraxiskasten h4{margin:0 0 .4em;color:var(--didaktik);font-size:15px}
