@@ -46,17 +46,26 @@
     </div>
 
     <div>
-      <!-- ENTFERNT 28.08.2026 auf Rikes Wort: die vier Knöpfe
-           «Prüfung», die auf die selbst gebauten Prüfungsseiten
-           zeigten. Sie liegen oben und antworten, aber der Probelauf
-           (echte Aufnahme bis zur bestätigten Abgabe) fehlt noch —
-           und solange nichts auf sie zeigt, sind sie nicht auffindbar.
-           Das ist die Sperre aus `OFFEN.md`. Das Feedback bleibt eine
-           Moodle-Abgabe und darf stehen. -->
+      <!-- 28.08.2026: Die vier Knöpfe «Prüfung» stehen weiter da,
+           führen aber nirgendwohin. Rike: «Du sollst gar nicht die
+           Knöpfe entfernen, sondern nur den Link dahinter. Ich will
+           die Prüfungsseiten noch einmal testen und vielleicht leicht
+           anpassen, bevor ich sie freischalte.»
+
+           Die vier Seiten liegen oben und antworten mit 200; was sie
+           schützt, ist allein, dass nichts auf sie zeigt (Sperre in
+           `OFFEN.md`, aufgehoben erst nach dem Probelauf). Sichtbar
+           bleiben sie, damit man sieht, dass es sie gibt — dieselbe
+           Bauart wie überall sonst, wo etwas noch nicht offen ist.
+
+           `<span>` statt `<a>`: ein toter `href="#"` wäre schlimmer,
+           weil er beim Drücken so tut, als geschehe etwas. Das
+           Feedback zeigt nach Moodle und bleibt ein Verweis. -->
       <div class="stationen">
 
         <div class="station station-1">
           <div class="knoepfe">
+            <span class="wartet" aria-disabled="true" title="kommt in Kürze">Prüfung</span>
             <a href="https://moodle.phlu.ch/mod/assign/view.php?id=63606729" target="_top">Feedback</a>
           </div>
           <img src="gemeinsam/symbole/leistungsnachweis.png" alt="">
@@ -65,6 +74,7 @@
 
         <div class="station station-2">
           <div class="knoepfe">
+            <span class="wartet" aria-disabled="true" title="kommt in Kürze">Prüfung</span>
             <a href="https://moodle.phlu.ch/mod/assign/view.php?id=63606730" target="_top">Feedback</a>
           </div>
           <img src="gemeinsam/symbole/leistungsnachweis.png" alt="">
@@ -73,6 +83,7 @@
 
         <div class="station station-3">
           <div class="knoepfe">
+            <span class="wartet" aria-disabled="true" title="kommt in Kürze">Prüfung</span>
             <a href="https://moodle.phlu.ch/mod/assign/view.php?id=63606731" target="_top">Feedback</a>
           </div>
           <img src="gemeinsam/symbole/leistungsnachweis.png" alt="">
@@ -81,6 +92,7 @@
 
         <div class="station station-4">
           <div class="knoepfe">
+            <span class="wartet" aria-disabled="true" title="kommt in Kürze">Prüfung</span>
             <a href="https://moodle.phlu.ch/mod/assign/view.php?id=63606732" target="_top">Feedback</a>
           </div>
           <img src="gemeinsam/symbole/leistungsnachweis.png" alt="">

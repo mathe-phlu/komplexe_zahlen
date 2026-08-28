@@ -554,6 +554,25 @@ table.fahrplan .leer { background: none; border-color: transparent; }
   font-weight: 500;
 }
 .station .knoepfe a:hover { background: #F1F1F1; }
+/* **Der wartende Knopf** (28.08.2026). Die Pruefungsknoepfe stehen da,
+   fuehren aber noch nirgendwohin: Die Seiten sind gebaut, aber der
+   Probelauf fehlt, und bis dahin darf niemand hinein. Sie sollen
+   sichtbar bleiben -- man sieht, dass es sie gibt -- aber auf den
+   ersten Blick als noch nicht offen zu erkennen sein. Deshalb dieselbe
+   Form, nur matt, gestrichelt und ohne Zeigefinger. */
+.station .knoepfe .wartet {
+  flex: 1 1 0;
+  padding: .5rem .25rem;
+  background: transparent;
+  border: 1px dashed var(--weiss);
+  border-radius: .419rem;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--weiss);
+  opacity: .7;
+  cursor: default;
+}
 .station img {
   position: absolute;
   left: -.2rem; bottom: -.35rem;

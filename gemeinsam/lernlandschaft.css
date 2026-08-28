@@ -3091,3 +3091,13 @@ body:has(.notizleiste){padding-right:52px;--randstreifen:52px}
      background:color-mix(in srgb, var(--didaktik) 7%, #fff);
      border-left:3px solid var(--didaktik);border-radius:0 10px 10px 0}
 .schulpraxiskasten h4{margin:0 0 .4em;color:var(--didaktik);font-size:15px}
+
+
+/* **Der wartende Abschlussknopf** (28.08.2026). Am Ende jeder Station
+   steht der Knopf zur Pruefung -- sie ist gebaut, aber bis zum
+   Probelauf nicht zu betreten. Der Knopf bleibt sichtbar, damit man
+   sieht, dass die Station dort endet; er fuehrt nur nirgendwohin.
+   Gestrichelt statt gefuellt, matt, ohne Zeigefinger -- dieselbe
+   Sprache wie bei den Kacheln, die «kommt in Kuerze» sagen. */
+.abschlussknopf.wartet{opacity:.6;cursor:default;border-style:dashed}
+.abschlussknopf.wartet:hover{transform:none;box-shadow:none}
