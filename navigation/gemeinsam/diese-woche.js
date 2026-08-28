@@ -67,18 +67,18 @@
     kasten.style.setProperty('--wochenfarbe', farbe);
     kasten.innerHTML =
       (jetzt.portraet
-        /* **Eingefärbt, nicht abgebildet.** Das Bild gibt nur die
-           Form; die Farbe kommt vom Kapitel — dieselbe Technik wie bei
-           den Symbolen im Material. Beim ersten Versuch stand hier ein
-           schlichtes <img> mit einer Maske, die es nie gab: Das Foto
-           erschien unverändert (Rike, 28.08.2026: «Die Fotos sollen
-           bitte auch jeweils in Blau, Grün oder so eingefärbt sein, so
-           wie wir's an den anderen Stellen hatten»). */
-        ? '<span class="wochenbild" aria-hidden="true" style="'
-          + '-webkit-mask-image:url(../gemeinsam/symbole/'
-          + text(jetzt.portraet) + ');'
-          + 'mask-image:url(../gemeinsam/symbole/'
-          + text(jetzt.portraet) + ')"></span>'
+        /* **Dieselbe Bildbehandlung wie im Material**: das Foto über
+           der Stationsfarbe, mit `mix-blend-mode: luminosity`. Nur die
+           Helligkeit des Fotos bleibt, die Farbe kommt von unten.
+
+           Zwei Fehlversuche davor, beide am 28.08.2026: erst ein
+           schlichtes <img> mit einer Maske, die es nie gab — das Foto
+           blieb unverändert. Dann eine echte Maske aus dem Foto selbst
+           — und weil ein Foto überall undurchsichtig ist, wurde daraus
+           ein blaues Quadrat. Ein Foto ist keine Silhouette. */
+        ? '<span class="wochenbild" aria-hidden="true">'
+          + '<img src="../gemeinsam/symbole/' + text(jetzt.portraet)
+          + '" alt=""></span>'
         : '')
       + '<span class="wochentext">'
       + '<b>' + text(jetzt.wort) + ' ' + text(jetzt.nummer) + ' — '

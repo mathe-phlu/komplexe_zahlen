@@ -1302,18 +1302,28 @@ table.fahrplan .praesenz { font-size: .917rem; }
    wie bei den Symbolen im Material: Die Bilddatei gibt nur die Form,
    die Farbe kommt vom Kapitel. So passt es zusammen, auch wenn die
    Vorlagen verschieden hell sind. */
+/* **Das Porträt über der Stationsfarbe** — dieselbe Bildbehandlung
+   wie auf der Materialseite: `mix-blend-mode: luminosity` nimmt dem
+   Foto die eigene Farbe und lässt nur seine Helligkeit stehen, die
+   Farbe kommt vom Grund darunter. So wird aus Gauss ein blauer Gauss,
+   nicht ein blaues Quadrat (Rike, 28.08.2026). */
 .zettel.woche .wochenbild {
   display: block;
   width: 2.6rem;
   height: 2.6rem;
   flex: 0 0 auto;
-  /* Die Farbe ist der Grund, das Bild die Maske. `--bildmaske` gab es
-     nie — die Maske steht jetzt am Element selbst, mit dem Pfad des
-     Porträts (28.08.2026). */
+  overflow: hidden;
+  border-radius: 50%;
   background: var(--wochenfarbe, var(--kopfbraun));
-  -webkit-mask-size: contain; mask-size: contain;
-  -webkit-mask-position: center; mask-position: center;
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+}
+.zettel.woche .wochenbild img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+  display: block;
+  mix-blend-mode: luminosity;
+  opacity: .62;
 }
 /* Wo es kein Ziel gibt — Herbstpause, Wiederholung —, ist der Zettel
    kein Verweis und soll auch nicht wie einer aussehen. */
@@ -1322,3 +1332,34 @@ table.fahrplan .praesenz { font-size: .917rem; }
 
 /* Auf dunklem Grund muss die Schrift hell sein — sonst steht der
    Untertitel in Grau auf Braun und ist nicht mehr zu lesen. */
+
+/* **Die vier Prüfungen als Leiste** (Rike, 28.08.2026): «Es wäre
+   denkbar, dass wir die nicht in so einem zwei mal zwei setzen,
+   sondern alle nebeneinander — wir haben ja eh Platz auf zwei
+   Spalten. Ich glaub, das wäre hübscher.»
+
+   `auto-fit` mit 13.5 rem Mindestbreite brach bei dieser Seitenbreite
+   auf zwei Reihen um. Vier feste Spalten halten sie in einer Zeile;
+   auf schmalen Geräten fallen sie geordnet auf zwei und dann auf eine
+   zurück. */
+/* **Über die ganze Breite**, nicht nur in der linken Spalte: Vier
+   Karten auf 36 rem gequetscht schnitten «Feedback» ab und legten den
+   Stationsnamen über das Bild. Der Kasten mit den Regeln und der
+   Browser-Hinweis bleiben nebeneinander; die Prüfungen bekommen
+   darunter die volle Zeile. */
+.ln > div:has(.stationen) { grid-column: 1 / -1; }
+.ln .stationen { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 62rem) {
+  .ln .stationen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 34rem) {
+  .ln .stationen { grid-template-columns: minmax(0, 1fr); }
+}
+/* In der Leiste ist weniger Platz je Karte — der Titel darf umbrechen,
+   die Knöpfe rücken zusammen. */
+.ln .stationen .station { min-height: 9rem; padding: .75rem; }
+
+.hinweis .mehrdazu { margin: .75rem 0 0; }
+.hinweis .mehrdazu a { color: var(--kopfbraun); font-weight: 600;
+  text-decoration: none; }
+.hinweis .mehrdazu a:hover { text-decoration: underline; }
