@@ -694,7 +694,7 @@ table.fahrplan .pruefung { background: #FCBFD3; font-weight: 500; }
 
 /* **Werkstatt A und B unterscheiden sich sichtbar.** Rike, 24.08.2026:
    «Kann man das hübscher schreiben? Ist das übersichtlich genug?
-   Vielleicht Strategiewerkstatt A und B deutlicher voneinander
+   Vielleicht Strategieaufgaben A und B deutlicher voneinander
    abgrenzen.» Vorher trugen beide dieselbe Farbe und dieselbe
    Aufschrift, nur der Buchstabe unterschied sie — auf einer Zeile mit
    fünfzehn Wochen ist das zu wenig.
@@ -1200,7 +1200,7 @@ table.staffel td { padding: .5rem .75rem; border-bottom: 1px solid #EDE8E0; }
 table.staffel tr:nth-child(even) td { background: #F3F6F4; }
 
 /* Bei fester Tabellenbreite bricht ein langes Wort wie
- * «Strategiewerkstatt» nicht von selbst und laeuft aus der Zelle.
+ * «Strategieaufgaben» nicht von selbst und laeuft aus der Zelle.
  * Auf der Folie ist es von Hand getrennt; hier trennt der Browser. */
 table.fahrplan td { hyphens: auto; overflow-wrap: break-word; }
 table.fahrplan .praesenz { font-size: .917rem; }
