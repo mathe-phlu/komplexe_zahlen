@@ -302,13 +302,47 @@ a:focus-visible .kachel, a:focus-visible .material,
   margin-top: 2rem;
   min-height: 2.5rem;
   padding: .5rem 1rem;
-  border: 0.0625rem solid var(--aktuell-rand);
+  border: 0.0625rem solid transparent;
   border-radius: .5rem;
   color: var(--grau);
   font-size: 1rem;
+  text-decoration: none;
+  transition: border-color .12s, color .12s, background .12s;
 }
-.zurueck:hover { color: var(--kopfbraun); border-color: var(--kopfbraun); background: none; }
-.fuss { display: flex; justify-content: flex-end; }
+/* **Leise, bis man hinfaehrt** (Rike, 27.08.2026): «Mir gefaellt's am
+   besten so, dass da nur das Haeuschen mit Startseite ist, und wenn man
+   draufkommt, dann wird son feiner Kasten drumrum gesetzt.» Der Rand
+   stand vorher immer da — der Ausstieg soll aber nicht um
+   Aufmerksamkeit bitten, sondern unter dem Zeiger fassbar werden. */
+.zurueck:hover, .zurueck:focus-visible {
+  color: var(--kopfbraun);
+  border-color: var(--aktuell-rand);
+  background: none;
+}
+/* **Mittig, nicht rechts.** Ueberall sonst im Material steht der
+   Rueckweg unten in der Mitte; hier stand er als einziger rechts. */
+.fuss { display: flex; justify-content: center; gap: .75rem; flex-wrap: wrap; }
+
+/* **Der Inklusiv-Hinweis darf nicht übersehen werden** (Rike,
+   28.08.2026: «Das darf nicht übersehen werden, sonst wird unsere
+   Inklusiv-Beauftragte überrannt»). Deshalb abgesetzt, nicht als
+   weiterer Absatz im Fliesstext. */
+.hervor {
+  margin: 0 0 .8rem;
+  padding: .85rem 1rem;
+  border-left: .25rem solid var(--kopfbraun, #8a6a2f);
+  background: rgba(0, 0, 0, .03);
+  border-radius: 0 .4rem .4rem 0;
+}
+/* Der Wortlaut der Beauftragten, als Zitat kenntlich. */
+.amtlich {
+  margin: 1rem 0 0;
+  padding: .1rem 0 .1rem 1rem;
+  border-left: .125rem solid var(--aktuell-rand, #ddd);
+  color: var(--grau, #666);
+  font-size: .95rem;
+}
+.amtlich p { margin: .5rem 0; }
 
 /* --------------------------------------------------------- Enge ---- */
 

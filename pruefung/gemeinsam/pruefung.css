@@ -137,7 +137,11 @@ input.feld.unlesbar{border-color:var(--fast);background:#fdf6e8}
 .nebenblatt summary::before{content:'✎';color:var(--akzent);font-size:15px}
 .nebenblatt[open] summary{margin-bottom:8px}
 .skizze{border:1px solid var(--linie);border-radius:10px;background:#fff;
-        touch-action:none;display:block;width:100%;max-width:760px;cursor:crosshair}
+        touch-action:none;display:block;width:100%;max-width:760px;cursor:crosshair;
+        /* Der Stift auf dem iPad markierte sonst Text ausserhalb der Flaeche. */
+        user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* Solange gezeichnet wird, darf im ganzen Nebenblatt nichts markiert werden. */
+.nebenblatt.zeichnet{user-select:none;-webkit-user-select:none}
 .werkzeuge{display:flex;gap:8px;align-items:center;margin-top:7px;flex-wrap:wrap}
 
 /* ---------- Knöpfe ---------- */

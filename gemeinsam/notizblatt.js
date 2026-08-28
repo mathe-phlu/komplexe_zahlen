@@ -182,13 +182,52 @@
   function bogenhoehe(neu) {
     zustand.hoehe = Math.max(zustand.hoehe || 0, neu || 0);
     bogen.style.height = zustand.hoehe + 'px';
+    seitenmass();
+  }
+
+  /* **Die Seitenhoehe haengt an der Breite — und die steht erst fest,
+     wenn das Feld offen ist.**
+
+     Beim ersten Einbau wurde sie einmal beim Einrichten gerechnet. Da
+     war das Notizfeld aber noch zugeklappt und 24 Pixel breit; die
+     «Seite» war 55 Pixel hoch, und beim Aufklappen lagen die
+     Umbruchlinien im Zentimeterabstand uebereinander. Gefunden beim
+     Nachmessen im Browser, nicht beim Lesen des Codes.
+
+     Deshalb: bei jeder Groessenaenderung neu rechnen. Ein
+     `ResizeObserver` bekommt auch das Aufklappen mit, ohne dass
+     irgendwo ein Ereignis von Hand verdrahtet werden muss. */
+  function seitenmass() {
+    var h = seitenhoehe();
+    if (h > 200) bogen.style.setProperty('--notiz-seite', h + 'px');
+  }
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(seitenmass).observe(rolle);
+  } else {
+    window.addEventListener('resize', seitenmass);
+  }
+
+  /* **Das Blatt waechst in ganzen Seiten** (Rike, 27.08.2026): «Wir
+     koennten dafuer sorgen, dass sich die Notizseite nur so weit
+     ausziehen laesst, dass es am Ende einer DIN-A4-Seite entspricht.
+     Rauf- und Runterscrollen koennen wir einfach zwischendurch
+     abschneiden, und alles ist immer schoen einheitlich von der
+     Breite.»
+
+     Der Gewinn ist gross: Beim Ausgeben muss nichts mehr geschaetzt
+     oder gequetscht werden. Was auf dem Schirm eine Seite ist, ist im
+     PDF eine Seite — an derselben Stelle geschnitten. */
+  function seitenhoehe() {
+    /* A4 hochkant: 210 zu 297. Die Breite gibt das Fenster vor. */
+    return Math.round((sicht().width || 800) * 297 / 210);
   }
 
   function nachwachsen(bis) {
     /* **Vor dem Ende, nicht am Ende.** Wer bis zum Rand schreibt und
        dann erst Platz bekommt, hat schon abgesetzt. Fünfhundert Pixel
        Vorlauf sind etwa eine Handbreit. */
-    var h = sicht().height || 600;
+    var h = seitenhoehe();
     if (bis > zustand.hoehe - 500) bogenhoehe(Math.ceil((bis + 500) / h) * h);
   }
 
@@ -420,7 +459,7 @@
     zustand.striche = [];
     textlage.replaceChildren();
     zustand.hoehe = 0;
-    bogenhoehe((sicht().height || 600) * 3);
+    bogenhoehe(seitenhoehe());
     neuzeichnen();
     merken();
   });
@@ -447,6 +486,15 @@
 
   var hilfeknopf = leiste.querySelector('.notizhilfe');
   var erklaerung = leiste.querySelector('.notizerklaerung');
+  /* «Was heisst das?» in der stehenden Zeile oeffnet dieselbe
+     Erklaerung wie das Fragezeichen — ein Text, zwei Wege hin. */
+  var mehrknopf = leiste.querySelector('.notizmehr');
+  if (mehrknopf && hilfeknopf) {
+    mehrknopf.addEventListener('click', function () {
+      if (erklaerung && erklaerung.hidden) hilfeknopf.click();
+      if (erklaerung) erklaerung.scrollIntoView({ block: 'nearest' });
+    });
+  }
   if (hilfeknopf && erklaerung) hilfeknopf.addEventListener('click', function () {
     var auf = erklaerung.hidden;
     erklaerung.hidden = !auf;
@@ -465,7 +513,7 @@
   /* Die Höhe des Bogens stand früher im Aufklappen; seit es kein
      Aufklappen mehr gibt, steht sie hier. Drei Bildschirme zu Beginn,
      oder so hoch, wie das Blatt beim letzten Mal gewachsen war. */
-  bogenhoehe(zustand.hoehe || (sicht().height || 600) * 3);
+  bogenhoehe(zustand.hoehe || seitenhoehe());
   kartenlegen();
 
   /* **Der Browser sagt, wann die Fläche eine Grösse hat.** Vorher
@@ -711,10 +759,10 @@
   }
 
   /* ---- das Bild dieser Flaeche und ihr Paket ------------------- */
-  function dieses() {
+  function dieses(fuer_druck) {
     einsammeln();
     var m = ausmass(zustand, Math.round(sicht().width));
-    return blattbild(zustand, ORT, m[0], m[1]);
+    return blattbild(zustand, ORT, m[0], m[1], fuer_druck);
   }
 
   /* ═══════════ Alle Notizen herunterladen ═══════════
@@ -758,8 +806,41 @@
     if (wiederreihe) wiederreihe.hidden = !zeigen;
   }
 
+  /* **Kapitel oder Modul** (Rike, 28.08.2026). Der Normalfall ist das
+     Kapitel: Daran wird gearbeitet, und nur dafuer laesst sich
+     verlaesslich sagen, dass die Blaetter noch da sind. Das ganze
+     Modul bleibt moeglich fuer die, die durchgehend am selben Geraet
+     arbeiten. */
+  var umfang = 'kapitel';
+
+  /* Welcher Ordner ist «dieses Kapitel»? Der Pfad sagt es:
+     …/lernweg-3/etappe/  oder  …/kapitel-3/… oder …/station-2/…
+     Was davor liegt, gehoert zum Modul und nicht zum Kapitel. */
+  function kapitelmarke(pfad) {
+    var m = String(pfad).match(/\/(lernweg|kapitel|station)-([0-9]+)\//);
+    return m ? m[1] + '-' + m[2] : null;
+  }
+
+  var kapitelknopf = leiste.querySelector('.notizkapitel');
   var alleknopf = leiste.querySelector('.notizalle');
+
+  function abgabefenster() {
+    fenster.hidden = false;
+    danach.hidden = true;
+    mangel.hidden = true;
+    if (namenslabel) namenslabel.hidden = true;
+    if (weiter) weiter.hidden = true;
+    zweiterSchritt(false);
+    for (var i = 0; i < wege.length; i++) wege[i].checked = false;
+    if (holen) holen.focus();
+  }
+
+  if (kapitelknopf && fenster) kapitelknopf.addEventListener('click', function () {
+    umfang = 'kapitel';
+    abgabefenster();
+  });
   if (alleknopf && fenster) alleknopf.addEventListener('click', function () {
+    umfang = 'modul';
     fenster.hidden = false;
     danach.hidden = true;
     mangel.hidden = true;
@@ -818,7 +899,14 @@
       try { d = JSON.parse(localStorage.getItem(k)); } catch (_) { continue; }
       if (!d) continue;
       if (!(d.striche || []).length && !(d.texte || []).length) continue;
-      blaetter.push({ pfad: k.slice(vorsatz.length), daten: d });
+      var pfad = k.slice(vorsatz.length);
+      if (umfang === 'kapitel') {
+        var hier = kapitelmarke(location.pathname);
+        /* Ohne erkennbares Kapitel (Sortierflaeche, Unterlagen) bleibt
+           es beim ganzen Modul — sonst kaeme eine leere Datei. */
+        if (hier && kapitelmarke(pfad) !== hier) continue;
+      }
+      blaetter.push({ pfad: pfad, daten: d });
     }
     if (!blaetter.length) {
       mangel.textContent = 'Es ist noch nichts notiert oder sortiert.';
@@ -835,41 +923,84 @@
     if (wieder) wieder.disabled = true;
     stand.textContent = 'packe ' + wieviele + ' …';
 
-    Promise.all(blaetter.map(function (b, n) {
-      /* Jedes Blatt wird so gross, wie das ist, was daraufsteht —
-         das eigene wie die fremden. */
+    /* **Ein PDF statt eines ZIP voller PNG** (Rike, 27.08.2026).
+       Zuerst eine Titelseite mit dem Modul und dem Namen, dann je Blatt
+       so viele Seiten, wie es braucht. */
+    var titel = document.createElement('canvas');
+    titel.width = A4.b; titel.height = A4.h;
+    (function (g) {
+      g.fillStyle = '#fff'; g.fillRect(0, 0, A4.b, A4.h);
+      g.fillStyle = '#1c1c1c';
+      g.font = '72px "Patrick Hand", system-ui, sans-serif';
+      g.fillText('Meine Notizen', 90, 420);
+      g.font = '42px "Patrick Hand", system-ui, sans-serif';
+      g.fillStyle = '#6b6b6b';
+      g.fillText(MODUL, 90, 500);
+      var z = 560;
+      if (name) { g.fillText(name, 90, z); z += 60; }
+      /* **Welche Kapitel darin vorkommen** (Rike, 28.08.2026:
+         «Können wir den Kapitelnamen auf dem Deckblatt noch
+         aufschreiben?»). Die Herkunft steht in jedem Blatt als
+         «Kapitel 1 · Etappe 2 — Titel»; daraus die Kapitel, ohne
+         Doppelungen und in der Reihenfolge, in der sie vorkommen.
+         Mehr als vier waeren eine Liste statt einer Angabe — dann
+         steht nur, wie viele es sind. */
+      /* **Alle Kapitel, nicht nur eine Zahl** (Rike, 28.08.2026):
+         «Vielleicht ist genau das das, was wir wollen — dass man beim
+         Gesamtdokument immer sieht, welche Kapitel darin enthalten
+         sind.» Ein Inhaltsverzeichnis ist hier kein Nachteil, sondern
+         der Sinn: Man sieht auf einen Blick, was man hat.
+
+         Beim Kapitel-PDF ist es genau eine Zeile, und die sagt, um
+         welches Kapitel es geht. */
+      var kap = [];
+      blaetter.forEach(function (x) {
+        var m2 = String(x.daten.ort || '').match(/^([^·—]+)/);
+        var w = m2 ? m2[1].trim() : '';
+        if (w && kap.indexOf(w) < 0) kap.push(w);
+      });
+      kap.sort(function (a, b) {
+        var za = parseInt((a.match(/\d+/) || [0])[0], 10);
+        var zb = parseInt((b.match(/\d+/) || [0])[0], 10);
+        return za - zb;
+      });
+      /* Bei sehr vielen Kapiteln rueckt die Liste enger zusammen,
+         damit sie auf das Deckblatt passt, statt abgeschnitten zu
+         werden. */
+      var schritt = kap.length > 8 ? 40 : 52;
+      if (kap.length > 8) g.font = '32px "Patrick Hand", system-ui, sans-serif';
+      kap.forEach(function (w) { g.fillText(w, 90, z); z += schritt; });
+      if (kap.length > 8) g.font = '42px "Patrick Hand", system-ui, sans-serif';
+      z += 8;
+      g.fillText(blaetter.length + (blaetter.length === 1
+                 ? ' Blatt' : ' Blätter'), 90, z); z += 60;
+      g.fillText(new Date().toLocaleDateString('de-CH'), 90, z); z += 80;
+      if (kompensation) {
+        g.fillStyle = '#A6083D';
+        g.fillText('als Kompensation eingereicht', 90, z);
+      }
+    })(titel.getContext('2d'));
+
+    var seiten = [titel];
+    blaetter.forEach(function (b) {
       var m = ausmass(b.daten, breite);
       var c = (b.pfad === location.pathname)
-        ? dieses()
-        : blattbild(b.daten, b.daten.ort || b.pfad, m[0], m[1]);
-      return new Promise(function (fertig) {
-        c.toBlob(function (bild) {
-          bild.arrayBuffer().then(function (puffer) {
-            fertig({
-              name: String(n + 1).padStart(2, '0') + '_'
-                    + dateiname(b.daten.ort || b.pfad) + '.png',
-              daten: new Uint8Array(puffer)
-            });
-          });
-        });
-      });
-    })).then(function (dateien) {
-      /* **Eine Datei, wie Rike es wollte** — «wir laden alles am
-         Stück runter». Der Name steht im Dateinamen und in einer
-         kleinen Beilage, damit auch nach dem Auspacken klar bleibt,
-         von wem das Paket ist und ob es eine Kompensation sein soll. */
-      dateien.push({
-        name: 'abgabe.txt',
-        daten: new TextEncoder().encode(
-          'Modul:        ' + MODUL + '\n'
-          + 'Blätter:      ' + blaetter.length + '\n'
-          + 'Name:         ' + (name || '— nicht angegeben —') + '\n'
-          + 'Kompensation: ' + (kompensation ? 'ja' : 'nein') + '\n'
-          + 'Erstellt:     ' + new Date().toLocaleString('de-CH') + '\n')
-      });
-      herunterladen(paket(dateien),
+        ? dieses(true)
+        : blattbild(b.daten, b.daten.ort || b.pfad, m[0], m[1], true);
+      /* «Kapitel 1 · Etappe 2 — Das Zaehlprinzip» traegt schon zwei
+         Ebenen. Der Titel kommt oben hin, die Herkunft darunter. */
+      var ort = String(b.daten.ort || b.pfad);
+      var stueck = ort.split(' — ');
+      var kopf = stueck.length > 1 ? stueck.slice(1).join(' — ') : ort;
+      var unter = stueck.length > 1 ? stueck[0] : '';
+      seiten = seiten.concat(seiten_fuer(kopf, unter, c));
+    });
+
+    Promise.all(seiten.map(jpeg)).then(function (bilder) {
+      herunterladen(pdf(bilder),
                     'Notizen-' + MODUL
-                    + (name ? '-' + dateiname(name) : '') + '.zip');
+                    + (name ? '-' + dateiname(name) : '') + '.pdf');
+      stand.textContent = seiten.length + ' Seiten';
       holen.disabled = false;
       if (wieder) wieder.disabled = false;
       danach.hidden = false;
@@ -944,7 +1075,13 @@
     if (zeile) s.fillText(zeile, x, hoch);
   }
 
-  function blattbild(daten, ort, breite, hoehe) {
+  function blattbild(daten, ort, breite, hoehe, fuer_druck) {
+    /* **Karo und Creme bleiben auf dem Schirm** (Rike, 28.08.2026):
+       «Im Digitalen sind sie super — man kann besser schreiben, es
+       grenzt sich vom Rest ab. Aber fuer das PDF mehr Druckfarbe.»
+       Auf Papier tragen sie nichts bei und kosten eine ganze Seite
+       Toner; die Ueberschrift steht im PDF ohnehin schon oben auf der
+       Seite, also faellt der Kopfstreifen hier auch weg. */
     var f = 2;
     var c = document.createElement('canvas');
     c.width = breite * f;
@@ -952,21 +1089,23 @@
     var s = c.getContext('2d');
     s.setTransform(f, 0, 0, f, 0, 0);
 
-    s.fillStyle = '#fffdf7';
+    s.fillStyle = fuer_druck ? '#ffffff' : '#fffdf7';
     s.fillRect(0, 0, breite, hoehe + KOPF);
 
-    s.fillStyle = '#6b6355';
-    s.font = '13px "Iowan Old Style", Georgia, serif';
-    s.fillText(ort, RAND, 22);
-    s.strokeStyle = '#e3dccb';
-    s.lineWidth = 1;
-    s.beginPath();
-    s.moveTo(0, KOPF - 0.5); s.lineTo(breite, KOPF - 0.5);
-    s.stroke();
+    if (!fuer_druck) {
+      s.fillStyle = '#6b6355';
+      s.font = '13px "Iowan Old Style", Georgia, serif';
+      s.fillText(ort, RAND, 22);
+      s.strokeStyle = '#e3dccb';
+      s.lineWidth = 1;
+      s.beginPath();
+      s.moveTo(0, KOPF - 0.5); s.lineTo(breite, KOPF - 0.5);
+      s.stroke();
+    }
 
     s.save();
-    s.translate(0, KOPF);
-    s.strokeStyle = '#e8e0cc';
+    s.translate(0, fuer_druck ? 0 : KOPF);
+    s.strokeStyle = fuer_druck ? 'rgba(0,0,0,0)' : '#e8e0cc';
     s.lineWidth = 1;
     s.beginPath();
     for (var x = KARO; x < breite; x += KARO) { s.moveTo(x + 0.5, 0); s.lineTo(x + 0.5, hoehe); }
@@ -1063,6 +1202,169 @@
     return (ort || 'notiz')
       .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
       .replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'notiz';
+  }
+
+  /* ---------------------------------------------- Ein PDF am Stueck ---
+     Rike, 27.08.2026: «Im Moment speichern wir die Notizen einzeln als
+     Bilder und geben am Ende eine Datei mit allen Notizzetteln aus. Das
+     ist ehrlich gesagt ein bisschen unhandlich. Eigentlich waere es
+     angenehmer, wenn am Ende alle Bilder zu einem grossen PDF
+     zusammengebunden werden.»
+
+     **Ihre Sorge — «wir wissen nicht, wie gross die Bilder sind, weil
+     sie rein- und rauszoomen koennen» — loest sich von selbst:** Jede
+     Notiz wird auf eine feste Seite gelegt und dabei so skaliert, dass
+     sie ganz hineinpasst; das Seitenverhaeltnis bleibt. Ein breites
+     Blatt wird breit gesetzt, ein hohes hoch, beide passen.
+
+     **Und Patrick Hand bekommt sie auch.** Eine Schrift in ein PDF
+     einzubetten hiesse, eine Schriftdatei zu zerlegen. Statt dessen
+     werden die Ueberschriften **auf die Seite gezeichnet**, mit der
+     Schrift, die die Seite ohnehin geladen hat — im PDF ist die Seite
+     dann ein Bild, und die Schrift stimmt.
+
+     Ein PDF ist dabei erstaunlich wenig: ein Katalog, eine Seitenliste,
+     je Seite ein Inhaltsstrom und ein Bild. JPEG kann direkt hinein
+     (`DCTDecode`), ohne es auszupacken. */
+
+  var A4 = { b: 1240, h: 1754 };   /* 150 dpi, damit Striche sauber sind */
+
+  function jpeg(c) {
+    return new Promise(function (fertig) {
+      c.toBlob(function (b) {
+        b.arrayBuffer().then(function (p) { fertig(new Uint8Array(p)); });
+      }, 'image/jpeg', 0.86);
+    });
+  }
+
+  /* **Ein langes Blatt wird umgebrochen, nicht geschrumpft.**
+
+     Rike, 27.08.2026: «Mein Problem hat nichts mit der Groesse des PDFs
+     zu tun, sondern damit, dass wir sehr unterschiedliche Bildgroessen
+     erzeugen. Sie koennen das Zeichenbrett ja beliebig erweitern. Und
+     dann ist die Frage, wie das Sinn einer DIN-A4-Seite bekommt.»
+
+     Genau: Wer nach unten weiterzeichnet, hat am Ende ein Blatt, das
+     dreimal so hoch ist wie breit. Auf eine Seite gequetscht waere die
+     Schrift winzig. Deshalb wird **auf Seitenbreite skaliert** — die
+     Handschrift behaelt ueberall dieselbe Groesse, egal wie lang das
+     Blatt ist — und dann in Seiten geschnitten, wie man eine Papierrolle
+     schneidet.
+
+     **Mit Ueberlappung**, damit kein Strich genau an der Schnittkante
+     zerteilt wird und auf beiden Seiten halb erscheint. Die Folgeseiten
+     tragen «(Fortsetzung)», damit die Reihenfolge auch auf Papier
+     stimmt, wenn die Blaetter einmal durcheinandergeraten. */
+
+  /* **Keine Ueberlappung mehr noetig.** Seit das Blatt in ganzen
+     Seiten waechst, liegt jede Schnittkante dort, wo auf dem Schirm
+     ohnehin eine Seitengrenze war — und dort schreibt niemand quer
+     drueber, weil die gestrichelte Linie es zeigt. */
+  var UEBERLAPP = 0;
+
+  function seiten_fuer(kopf, unter, bild) {
+    var rand = 90;
+    var pb = A4.b - 2 * rand;
+    var grund = bild && bild.width ? pb / bild.width : 1;
+
+
+    var seiten = [], teil = 0, gelesen = 0;
+    do {
+      var f = grund;
+      var c = document.createElement('canvas');
+      c.width = A4.b; c.height = A4.h;
+      var g = c.getContext('2d');
+      g.fillStyle = '#fff'; g.fillRect(0, 0, A4.b, A4.h);
+      var y = rand + 30;
+      if (kopf) {
+        g.fillStyle = '#1c1c1c';
+        g.font = '46px "Patrick Hand", system-ui, sans-serif';
+        g.fillText(kopf + (teil ? '  (Fortsetzung)' : ''), rand, y);
+        y += 24;
+      }
+      if (unter && !teil) {
+        g.fillStyle = '#6b6b6b';
+        g.font = '30px "Patrick Hand", system-ui, sans-serif';
+        g.fillText(unter, rand, y + 24); y += 52;
+      }
+      if (kopf || unter) {
+        y += 18;
+        g.strokeStyle = '#e0ddd8'; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(rand, y); g.lineTo(A4.b - rand, y); g.stroke();
+        y += 30;
+      }
+      var platz = A4.h - y - rand;
+      if (bild && bild.width) {
+        /* Wieviel vom Blatt passt auf diese Seite — in Bildpunkten
+           der Vorlage gerechnet, nicht in Seitenpunkten. */
+        var passt = Math.round(platz / f);
+        var rest = bild.height - gelesen;
+        /* **Kein Krümel bekommt eine eigene Seite.** Beim ersten
+           Versuch entstand aus einem Blatt, das um zwei Prozent zu
+           hoch war, eine zweite, fast leere Seite mit «(Fortsetzung)»
+           darauf. Wo der Rest klein ist, wird das Blatt lieber um
+           diese paar Prozent kleiner gesetzt — das sieht niemand, eine
+           leere Seite dagegen schon. */
+        if (rest > passt && rest <= passt * 1.12) {
+          f = platz / rest;
+          passt = rest;
+        }
+        var nimm = Math.min(passt, rest);
+        g.drawImage(bild, 0, gelesen, bild.width, nimm,
+                    rand, y, Math.round(bild.width * f),
+                    Math.round(nimm * f));
+        gelesen += nimm;
+        /* Fuer die naechste Seite ein Stueck zurueck, damit nichts
+           genau auf der Kante zerschnitten wird. */
+        if (gelesen < bild.height) gelesen -= Math.round(UEBERLAPP / f);
+      }
+      seiten.push(c);
+      teil += 1;
+      /* Notbremse: mehr als 30 Seiten je Blatt kann nicht gewollt sein. */
+    } while (bild && gelesen < bild.height && teil < 30);
+    return seiten;
+  }
+
+  /* Der kleinste PDF, der ein paar Bilder traegt. */
+  function pdf(bilder) {
+    var teile = [], laenge = 0, versatz = [];
+    function schreiben(s) {
+      var d = (typeof s === 'string') ? new TextEncoder().encode(s) : s;
+      teile.push(d); laenge += d.length;
+    }
+    function objekt(n, txt) { versatz[n] = laenge; schreiben(n + ' 0 obj\n' + txt + '\nendobj\n'); }
+
+    schreiben('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+    var n = bilder.length;
+    var seitenIds = [];
+    for (var i = 0; i < n; i++) seitenIds.push(3 + i * 3);
+    objekt(1, '<< /Type /Catalog /Pages 2 0 R >>');
+    objekt(2, '<< /Type /Pages /Count ' + n + ' /Kids ['
+              + seitenIds.map(function (x) { return x + ' 0 R'; }).join(' ') + '] >>');
+    /* A4 in Punkten: 595 x 842. */
+    for (var j = 0; j < n; j++) {
+      var pid = 3 + j * 3, iid = pid + 1, cid = pid + 2;
+      objekt(pid, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] '
+                  + '/Resources << /XObject << /Bild ' + iid + ' 0 R >> >> '
+                  + '/Contents ' + cid + ' 0 R >>');
+      versatz[iid] = laenge;
+      schreiben(iid + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width '
+                + A4.b + ' /Height ' + A4.h
+                + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 '
+                + '/Filter /DCTDecode /Length ' + bilder[j].length + ' >>\nstream\n');
+      schreiben(bilder[j]);
+      schreiben('\nendstream\nendobj\n');
+      var inhalt = 'q 595 0 0 842 0 0 cm /Bild Do Q';
+      objekt(cid, '<< /Length ' + inhalt.length + ' >>\nstream\n' + inhalt + '\nendstream');
+    }
+    var xref = laenge, zahl = 3 + n * 3;
+    var z = 'xref\n0 ' + zahl + '\n0000000000 65535 f \n';
+    for (var k = 1; k < zahl; k++) {
+      z += String(versatz[k] || 0).padStart(10, '0') + ' 00000 n \n';
+    }
+    z += 'trailer\n<< /Size ' + zahl + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n';
+    schreiben(z);
+    return new Blob(teile, { type: 'application/pdf' });
   }
 
   function herunterladen(daten, name) {

@@ -993,13 +993,35 @@ function nebenblatt(aufgabeId, beschriftung){
     return [ Math.round((e.clientX - r.left) / r.width * leinwand.width),
              Math.round((e.clientY - r.top) / r.height * leinwand.height) ];
   };
+
+  /* --- Platz nachlegen ---
+     Das Blatt soll nie ausgehen: wer unten ankommt, bekommt eine
+     weitere Bahn. Der Inhalt bleibt stehen, denn eine Groessen-
+     aenderung leert die Leinwand. */
+  const BAHN = 320;
+  function stifteinstellung(){
+    g.lineWidth = 2.4; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.strokeStyle = '#2d2924';
+  }
+  function wachsen(um){
+    const bild = g.getImageData(0, 0, leinwand.width, leinwand.height);
+    leinwand.height = leinwand.height + um;
+    g.putImageData(bild, 0, 0);
+    stifteinstellung();
+  }
+
   leinwand.addEventListener('pointerdown', e => {
+    /* Ohne das markiert der Apple Pencil den Text neben dem Feld,
+       statt zu zeichnen. */
+    e.preventDefault();
     leinwand.setPointerCapture(e.pointerId);
+    d.classList.add('zeichnet');
     zeichnet = true; strich = [stelle(e)];
     g.beginPath(); g.moveTo(strich[0][0], strich[0][1]);
   });
   leinwand.addEventListener('pointermove', e => {
     if (!zeichnet) return;
+    e.preventDefault();
     const p = stelle(e);
     // nicht jeden Pixel merken - der Ereignisstrom soll schlank bleiben
     const l = strich[strich.length-1];
@@ -1010,7 +1032,11 @@ function nebenblatt(aufgabeId, beschriftung){
   const fertig = () => {
     if (!zeichnet) return;
     zeichnet = false;
+    d.classList.remove('zeichnet');
     if (strich.length > 1) AUF.M.strich(aufgabeId, strich);
+    /* Wer bis kurz vor den unteren Rand geschrieben hat, braucht gleich mehr. */
+    const tief = strich.reduce((m, p) => Math.max(m, p[1]), 0);
+    if (tief > leinwand.height - 90) wachsen(BAHN);
     strich = [];
   };
   leinwand.addEventListener('pointerup', fertig);
@@ -1023,6 +1049,10 @@ function nebenblatt(aufgabeId, beschriftung){
     g.clearRect(0,0,leinwand.width,leinwand.height);
     AUF.M.radiert(aufgabeId);
   };
+
+  const mehrPlatz = el('button', 'neben', '↓ Mehr Platz');
+  mehrPlatz.type = 'button';
+  mehrPlatz.onclick = () => wachsen(BAHN);
 
   const liste = el('div', 'blattliste');
   function gemeldet(text){
@@ -1103,7 +1133,8 @@ function nebenblatt(aufgabeId, beschriftung){
   });
   fotoKnopf.appendChild(fotoEingabe);
 
-  w.appendChild(radieren); w.appendChild(kameraKnopf); w.appendChild(fotoKnopf);
+  w.appendChild(radieren); w.appendChild(mehrPlatz);
+  w.appendChild(kameraKnopf); w.appendChild(fotoKnopf);
   d.appendChild(w);
   d.appendChild(sucher);
   d.appendChild(liste);

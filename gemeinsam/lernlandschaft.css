@@ -207,6 +207,187 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
      text-decoration:none;color:var(--matt);font-size:15px}
 .heimweg a .haus{font-size:18px;line-height:1}
 .heimweg a:hover{color:var(--akzent)}
+
+/* **Ein Rueckweg, ueberall gleich** (Rike, 27.08.2026): «Diese
+   Startseiten-Button sehen immer 'n bisschen anders aus — mal mit 'nem
+   Pfeil hoch, mal mit 'nem Haeuschen, mal ist die Box staerker
+   abgesetzt, mal ganz unscheinbar.» Sie hatte recht: Es gab fuenf
+   Bauarten fuer dieselbe Sache.
+
+   Das hier ist die eine. Leise im Ruhezustand, ein feiner Kasten erst
+   beim Draufkommen — der Ausstieg soll nicht um Aufmerksamkeit
+   bitten, aber unter dem Zeiger fassbar werden.
+
+   **Und er nennt, wo man landet, nicht wo man ist.** «Startseite» war
+   zweideutig: Von einer Etappe ist das das Material, vom Material die
+   Navigation. Darum steht dort «Material» oder «Navigation». */
+.heimknopf{margin:36px 0 0;text-align:center}
+.heimknopf a{display:inline-flex;align-items:center;gap:9px;
+     padding:9px 16px;border:1px solid transparent;border-radius:9px;
+     text-decoration:none;color:var(--matt);font-size:15px;
+     transition:border-color .12s, color .12s, background .12s}
+.heimknopf a .haus{font-size:18px;line-height:1}
+
+/* **Drei kleine Knoepfe nebeneinander** statt eines Kastens (Rike,
+   28.08.2026). Wo nur einer steht, sieht es aus wie vorher; wo drei
+   stehen, teilen sie sich die Breite der Spalte. */
+.etappe:has(.zeitstrahl.senkrecht) .unterlagen{display:flex;
+     flex-wrap:wrap;gap:8px}
+.etappe:has(.zeitstrahl.senkrecht) .unterlagen h3{flex:0 0 100%;margin:0}
+.etappe:has(.zeitstrahl.senkrecht) .unterlagen .ablage{flex:1 1 9rem;
+     min-width:9rem}
+
+/* Die stehende Zeile unter dem Notizblatt: leise, aber nie weg. */
+.notizfussnote{margin:8px 0 0;font-size:13px;color:var(--matt);
+     line-height:1.5}
+.notizfussnote .notizmehr{background:none;border:0;padding:0;
+     font:inherit;color:var(--akzent);text-decoration:underline;
+     cursor:pointer}
+
+/* **Die Seitengrenze auf dem Notizblatt.** Seit das Blatt in ganzen
+   A4-Seiten waechst, zeigt eine feine gestrichelte Linie, wo im PDF
+   der Schnitt kommt — wer sie sieht, schreibt nicht quer darueber.
+   Die Hoehe setzt das Skript als `--notiz-seite`. */
+
+
+/* ---------- Der Weg neben dem Video (Einstiegsseite) ------------
+   Rike, 27.08.2026: «Ich wuerde die zwei, drei oder vier
+   Navigationskaestchen von oben buendig nach unten bauen, immer mit
+   ein bisschen Abstand. Und ich wuerde den Skriptkasten von unten so
+   bauen, dass er buendig mit dem Video unten aufhoert. Es darf
+   zwischen den Navigationskaesten und dem Skriptkasten ein bisschen
+   mehr Abstand sein. Es soll auf keinen Fall weniger Abstand sein.»
+
+   Zwei Sorten Kasten mit zwei Aufgaben: Die **Abschnittskaesten**
+   springen an eine Stelle im Kapitel -- wer letzte Woche bei Etappe 3
+   aufgehoert hat, steigt dort wieder ein. Der **Skriptkasten** laedt
+   herunter. Deshalb sitzen sie nicht in derselben Reihe.
+
+   Ein gleichmaessiger Abstand fuer alle Faelle, und der Skriptkasten
+   per `margin-top:auto` an die Unterkante: Bei vier Abschnitten steht
+   er buendig, bei zweien faellt die Luft dorthin, wo sie hingehoert --
+   zwischen Navigation und Skript, nie dazwischen enger. */
+.etappe .arbeit:has(.zeitstrahl.senkrecht){display:flex;
+     flex-direction:column;gap:var(--kastenluft,18px)}
+.arbeit .zeitstrahl.senkrecht{margin:0}
+.arbeit .zeitstrahl.senkrecht .feld{overflow:visible}
+/* **Links buendig, rechts Flattersatz** (Rike, 27.08.2026): «Diese
+   Kaesten sind nicht immer gleich lang, weil sie manchmal mehr oder
+   weniger Etappen enthalten. Mein Vorschlag ist, dass wir sie links
+   buendig setzen, sodass wir dort eine klare Linie haben, die direkt
+   neben dem Video ist — und quasi so eine Art Flattersatz nach
+   rechts.»
+
+   Auf die Breite gedehnt saehen zwei Etappen aus wie vier, nur mit
+   Luft dazwischen. So sagt die Breite die Wahrheit: Ein Abschnitt mit
+   vier Etappen ist breiter als einer mit zweien. */
+/* **Gleich breite Kaesten, Flattersatz nur darin** (Rike,
+   27.08.2026, als Verbesserung ihres eigenen ersten Vorschlags): «Die
+   Abschnittskaesten alle gleich breit, und zwar so breit, wie sie's
+   benoetigen, damit der Abschnitt mit den meisten Etappen Platz hat —
+   und die Etappen innerhalb dieser Kaesten linksbuendig, sodass das
+   ein bisschen flatterhaft aussieht, wenn mehr oder weniger Etappen
+   auftauchen. Insgesamt sieht es aber einheitlich aus.»
+
+   Der Griff dafuer ist ein Raster mit `width:max-content`: Die Spalte
+   nimmt die Breite des breitesten Kastens an, und `justify-items`
+   dehnt alle anderen darauf. Kein gerechneter Wert, keine Zahl, die
+   veraltet, wenn ein Kapitel eine Etappe dazubekommt.
+
+   (Rikes weitergehende Idee -- eine Breite ueber ALLE Kapitel eines
+   Moduls -- braucht einen gerechneten Wert von aussen. Sie steht auf
+   der Liste; hier ist erst die Einheitlichkeit je Seite gebaut.) */
+/* **Eine feste Breite, einmal gemessen** (Rike, 27.08.2026): «Wir
+   muessen keine Rechnung von aussen machen. Die Anzahl der Etappen
+   wissen wir jetzt schon, die wird sich auch nicht gross veraendern.
+   Wir brauchen jetzt einmalig eine Rechnung, wie breit diese Kaesten
+   sein muessen.»
+
+   Gemessen ueber alle 23 Kapitel der drei Module: Der breiteste
+   Abschnitt hat **vier** Etappen (MA02.02, Kapitel 4, «Komplexe
+   Exponentialfunktion»). Die Verteilung: 18 Abschnitte mit einer, 39
+   mit zwei, 23 mit drei, 7 mit vier Etappen.
+
+   Daraus die Breite: vier Kacheln, drei Zwischenraeume, zwei
+   Innenraender, zwei Rahmenlinien. Reicht es eines Tages nicht mehr,
+   steht die Rechnung hier und ist in einer Zeile geaendert. */
+.arbeit .zeitstrahl.senkrecht{--kasten-b:calc(4 * var(--weg-kachel-b)
+     + 3 * 18px + 2 * var(--weg-innen) + 2px)}
+.arbeit .zeitstrahl.senkrecht .strecke{display:grid;
+     grid-auto-rows:min-content;justify-items:stretch;
+     gap:var(--kastenluft,18px);width:var(--kasten-b);max-width:100%;
+     /* **Die Mindestbreite gilt nur waagerecht.** Sie rechnet alle
+        Kacheln des Kapitels in EINE Reihe (damit die Kacheln ueber
+        alle Kapitel gleich gross sind). Senkrecht gestapelt zog sie
+        jeden Kasten ueber die ganze Seite hinaus. */
+     min-width:0}
+.arbeit .zeitstrahl.senkrecht .abschnitt{width:100%}
+/* Die Etappen darin stehen links und laufen um, statt sich zu dehnen. */
+/* **Die Etappen kleben nicht mehr aneinander.** Rike sah es im ersten
+   Bild: «Im Moment kleben die Etappen aneinander, und das wollen wir
+   ja auch nicht.» Waagerecht trennt sie ein Strich, der hier
+   wegfaellt — also braucht es den Abstand ausdruecklich, und zwar
+   denselben, den der Referenzkasten zwischen seinen vier Kacheln hat. */
+.arbeit .zeitstrahl.senkrecht .reihe{justify-content:flex-start;
+     gap:18px;row-gap:10px}
+/* **Die Kacheln duerfen hier atmen.** Waagerecht muessen alle exakt
+   gleich breit sein, damit die Kapitel denselben Massstab haben --
+   `--weg-kachel-b` ist deshalb eine feste Breite, und lange Titel wie
+   «Unterscheidung der Grundsituationen» wurden abgeschnitten. In der
+   Spalte gibt es diesen Zwang nicht: Dort ist Platz nach rechts, und
+   der Kasten waechst mit. */
+.arbeit .zeitstrahl.senkrecht .halt{width:var(--weg-kachel-b);
+     height:auto;min-height:var(--weg-kachel-h);padding:6px 8px}
+.arbeit .zeitstrahl.senkrecht .halt span{max-width:none;
+     overflow:visible;-webkit-line-clamp:none;white-space:normal}
+.arbeit .zeitstrahl.senkrecht .stelle{max-width:none}
+/* Die waagerechten Verbindungsstriche ergeben senkrecht keinen Sinn. */
+.arbeit .zeitstrahl.senkrecht .strich,
+.arbeit .zeitstrahl.senkrecht .wegende{display:none}
+.arbeit .zeitstrahl.senkrecht .reihe{flex-wrap:wrap}
+/* Der Skriptkasten sitzt unten, immer. */
+.etappe .arbeit .unterlagen{margin-top:auto}
+
+/* **Die Schulpraxis-Kachel traegt die Didaktik-Farbe**, auch wenn sie
+   jetzt im Kasten der Anwendungen sitzt (Rike, 27.08.2026): «Der
+   allerdings anders als alle anderen Kaesten in Magenta gesetzt ist,
+   damit klar ist: hier ist der didaktische Input.» Vorher sagte es die
+   Farbe des ganzen Kastens; jetzt muss es die Kachel selbst sagen. */
+.zeitstrahl .strecke .abschnitt .halt.didaktik,
+.zeitstrahl.klein .strecke .abschnitt .halt.didaktik{
+     background:var(--didaktik);border-color:var(--didaktik);color:#fff}
+.zeitstrahl .strecke .abschnitt .halt.didaktik span{color:#fff}
+.zeitstrahl .strecke .abschnitt .halt.didaktik:hover{filter:brightness(1.1)}
+
+/* Der Loesungsband als Zeile, nicht als Kachel — er gehoert zum
+   Skript, nicht neben es (Rike, 27.08.2026). */
+.loesungshinweis{max-width:var(--spalte);margin:14px auto 0;
+     font-size:15px;line-height:1.5;color:var(--matt)}
+.loesungshinweis a{color:var(--akzent)}
+.heimknopf a:hover,.heimknopf a:focus-visible{color:var(--akzent);
+     border-color:var(--linie);background:var(--karte)}
+
+/* **Die Folie an der Stelle des Videos.** Wo eine Kennung fehlt, steht
+   das Standbild der Kapitelfolie — gleiche Stelle, gleiches Format wie
+   eine Videobuehne, damit ein Kapitel ohne Video nicht wie ein Loch
+   aussieht, sondern wie ein Kapitel, dessen Video noch kommt. */
+/* **Hochkant, weil die Einfuehrungen Shorts werden** (Rike,
+   27.08.2026). Das Standbild hat dasselbe Format wie das Video, das
+   spaeter an seine Stelle tritt — sonst springt die Seite in der Woche
+   der Freischaltung.
+
+   Es darf dabei anders aussehen als die uebrigen Etappen: «Es darf
+   aber eben auch bewusst anders aussehen als die anderen Etappen, was
+   ich ehrlich gesagt sogar ganz schick finde.» Also nicht ueber die
+   ganze Spalte gezogen, sondern eine schmale stehende Karte, mittig,
+   mit Luft daneben. */
+.wartet:has(.folienbild){display:flex;flex-direction:column;
+     align-items:center;gap:0;padding:0;background:none;border:0}
+.wartet .folienbild{display:block;width:min(19rem,62%);height:auto;
+     border-radius:12px;border:1px solid var(--linie);
+     box-shadow:0 2px 14px rgba(0,0,0,.07)}
+.wartet:has(.folienbild) .leiste{margin-top:14px;border-radius:0;
+     background:none;text-align:center}
 .stufen button[aria-expanded="true"]{background:var(--akzent);color:#fff;
      border-color:var(--akzent)}
 /* **`.faltung` wird auf zwei Arten geoeffnet.** Ursprünglich hing sie
@@ -731,6 +912,9 @@ footer{border-top:1px solid var(--linie);background:var(--karte);
    hoeher. */
 footer:has(.phlu){padding:22px 18px}
 .seitenfuss .wer-zeile{display:block;margin-top:3px}
+/* Die Rechtezeile steht unter der Signatur, eine Spur leiser. */
+.seitenfuss .recht{display:block;margin-top:2px;font-size:12px;
+     opacity:.85}
 @media (max-width:640px){ .seitenfuss .phlu{height:24px} }
 .seitenfuss .pinnwand{color:var(--matt);text-decoration:none;
      border:1px solid var(--linie);border-radius:999px;padding:2px 11px}
@@ -841,8 +1025,27 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 /* Weniger Farbe: Mit `opacity:.88` lag der volle Akzent hinter dem
    Portraet, und die vier Karten leuchteten gegeneinander. Ein helleres
    Bild laesst die Farbe traeger durchscheinen. */
-.stationskarte img{width:100%;height:100%;object-fit:cover;object-position:top;
-     display:block;mix-blend-mode:luminosity;opacity:.62}
+/* **Weicher Uebergang zum Kopfteil, und alle Koepfe gleich gross.**
+   Rike, 27.08.2026, nach den Stationsfolien der Einfuehrung: «Mir
+   gefallen die vier Stationen gerade so sehr, dass ich ueberlege, ob
+   wir das so auch auf der Material-Hauptseite machen.»
+
+   Uebertragen ist die Bildbehandlung, nicht das Kartenformat: Das Bild
+   laeuft nach oben in die Stationsfarbe aus, statt an einer Kante
+   abzubrechen. Und `--zoom` holt einen naeher heran, der auf seiner
+   Vorlage weiter weg sitzt -- Riemann ist als ganze Figur
+   fotografiert, die anderen als Brustbild. */
+.stationskarte img{width:100%;height:100%;object-fit:cover;
+  object-position:var(--sitz,50% 0);
+  transform:scale(var(--zoom,1));transform-origin:50% 0;
+  display:block;mix-blend-mode:luminosity;opacity:.62;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 15%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 15%)}
+.stationskarte figure{overflow:hidden}
+/* An das Bild gebunden, nicht an die Position: Wenn die Stationen
+   einmal die Reihenfolge tauschen, wandert der Zoom mit dem Portraet
+   und nicht mit der zweiten Karte. */
+.stationskarte img[src*="portraet-2"]{--zoom:1.9}
 
 /* -- Kopf einer Stationsseite -- */
 .stationskopf{background:var(--akzent);color:#fff;display:flex;align-items:center;
@@ -1080,6 +1283,27 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 .etappe > .film{grid-area:film}
 .etappe > .arbeit{grid-area:arbeit}
 .etappe > .applet-buehne{grid-area:applet}
+
+/* **Die Einstiegsseite rechnet anders herum.** Auf einer Etappenseite
+   ist der Film das Grosse und die Aufgabenspalte das Schmale; hier
+   steht rechts der ganze Weg, und links ein Hochkantvideo.
+
+   Vor allem aber: `minmax(min-content, 1fr)` fuer die rechte Spalte
+   nimmt als Mindestmass die Breite ALLER Kaesten — und die Spalte wuchs
+   auf 1460 Pixel in einer 1120 Pixel breiten Seite. Alles quoll nach
+   rechts hinaus, und der Film wurde auf 240 Pixel zusammengedrueckt.
+   `minmax(0, 1fr)` laesst sie stattdessen kleiner werden als ihr
+   Inhalt; die Kaesten haben mit `max-width:100%` ohnehin ihre
+   Notbremse. */
+.etappe:has(.zeitstrahl.senkrecht){
+     grid-template-columns:minmax(220px,.75fr) minmax(0,1fr)}
+/* Das Hochkantbild darf die Spalte fuellen — es IST die Buehne. */
+.etappe:has(.zeitstrahl.senkrecht) .wartet .folienbild{
+     width:min(20rem,100%)}
+/* Der Skriptkasten gehoert unter den Weg, nicht ueber die ganze
+   Seite: Er steht in derselben Spalte wie die Kaesten. */
+.etappe:has(.zeitstrahl.senkrecht) .arbeit .unterlagen{
+     width:var(--kasten-b);max-width:100%}
 /* **Das Video bleibt stehen, solange es allein steht.** Es klebt oben,
    damit man beim Lesen der Aufgabe nicht das Bild verliert.
 
@@ -2248,6 +2472,25 @@ body:has(.notizleiste){padding-right:52px;--randstreifen:52px}
   background-image:linear-gradient(#e8e0cc 1px,transparent 1px),
                    linear-gradient(90deg,#e8e0cc 1px,transparent 1px);
   background-size:26px 26px}
+/* **Wo im PDF die Seite endet** (Rike, 27.08.2026): «Wenn auf dem
+   Notizblatt immer der Seitenumbruch markiert wird, wird kein
+   Studierender aus Versehen drueberschreiben — und damit gibt es
+   nicht die Gefahr, dass beim PDF Zeilen zerschnitten werden.»
+
+   Als eigene Lage ueber dem karierten Grund, nicht als weiterer
+   Hintergrund: Der erste Versuch setzte `background-image` auf
+   `.notizblatt` — und die spaetere Regel mit dem Karo warf ihn wieder
+   weg. Zwei Regeln um dieselbe Eigenschaft, und die letzte gewinnt.
+
+   `pointer-events:none`, damit die Linie das Zeichnen nicht stoert. */
+.notizblatt::after{content:"";position:absolute;inset:0;
+     pointer-events:none;
+     background-image:repeating-linear-gradient(to bottom,
+        transparent 0,
+        transparent calc(var(--notiz-seite, 100%) - 2px),
+        rgba(166,8,61,.30) calc(var(--notiz-seite, 100%) - 2px),
+        rgba(166,8,61,.30) var(--notiz-seite, 100%))}
+
 .notiztexte{position:absolute;inset:0}
 /* **`width` und `height` muessen dastehen.** Bei absolut gesetzten
    Ersatzelementen — und ein <canvas> ist eines — ignoriert CSS die

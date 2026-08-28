@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Begrüssung · Komplexe Zahlen</title>
+<link rel="stylesheet" href="../../gemeinsam/lernlandschaft.css">
+<style>
+/* Nur das, was die Einfuehrung von einer gewoehnlichen Etappe
+   unterscheidet -- alles andere kommt aus `lernlandschaft.css`. */
+.film video{width:100%;display:block;border-radius:.5rem;background:#000}
+/* **Die Begruessung bekommt ein eigenes Verhaeltnis.** Rike,
+   27.08.2026: «In den Videos am Anfang mit mir im Bild sieht man rechts
+   und links zu viel von meinem Büro. Ggf. mehr Platz für die
+   Einblendung, die Etappen-Dreiteilung deutlicher, und dann mich im
+   Video quadratisch zuschneiden und das eher etwas kleiner machen.»
+
+   Quadratisch heisst hier: beschnitten, nicht gestaucht. `object-fit:
+   cover` behaelt die Bildmitte und schneidet links und rechts weg --
+   genau das Buero. Das Video wird dabei nicht neu kodiert; wer es
+   spaeter woanders braucht, hat weiterhin das ganze Bild. */
+.etappe.mitbild{grid-template-columns:minmax(0,15rem) minmax(0,2.2fr)}
+/* **Das Format entscheidet das Video, nicht das Stylesheet.**
+   Rike, 27.08.2026: «Ich bin dabei, die Darstellung der
+   Einführungsvideos selbst zu ändern aufs Hochkantformat, weil ich das
+   gerne als Short auf YouTube haben möchte.»
+
+   Vorher stand hier ein erzwungenes Quadrat mit `cover` -- richtig für
+   ein Breitbild, aus dem links und rechts das Büro weggeschnitten
+   werden soll, aber falsch für ein Hochkantvideo: Dem würde oben und
+   unten etwas fehlen. Deshalb setzt das Skript unten `.hoch` oder
+   `.quer`, je nachdem, was die Datei mitbringt. Ohne Skript bleibt es
+   beim Quadrat -- das ist der Stand von heute. */
+.etappe.mitbild .film video{aspect-ratio:1;object-fit:cover;
+  border-radius:.7rem}
+.etappe.mitbild .film.hoch video{aspect-ratio:auto;object-fit:contain;
+  max-height:min(72vh,34rem);width:100%;background:#000}
+/* **Schneller hören.** Rike, 27.08.2026: «Dort sollte auch die
+   Möglichkeit sein, mich ein bisschen schneller zu schalten. Ich glaub,
+   das würde einigen Studierenden helfen.» Der eingebaute Abspieler kann
+   das zwar, aber nur versteckt im Kontextmenü -- hier steht es sichtbar
+   darunter. Die Wahl gilt für dieses Video und wird gemerkt, damit sie
+   nicht bei jedem Teil neu getroffen werden muss. */
+.film .tempo{display:flex;align-items:center;gap:.35rem;margin-top:.5rem;
+  font-family:var(--druck);font-size:.85rem;color:var(--matt)}
+.film .tempo span{margin-right:.15rem}
+.film .tempo button{border:1px solid var(--linie);background:var(--karte);
+  color:var(--tinte);border-radius:.4rem;padding:.18rem .5rem;
+  font:inherit;cursor:pointer;line-height:1.3}
+.film .tempo button:hover{border-color:var(--akzent);color:var(--akzent)}
+.film .tempo button[aria-pressed="true"]{background:var(--akzent);
+  border-color:var(--akzent);color:#fff}
+
+.danebenkasten{background:#fff;border-radius:.6rem;padding:1rem 1.1rem}
+.danebenkasten h4{margin:0 0 .2rem;font-family:var(--hand);
+  font-weight:400;font-size:1.35rem;color:var(--akzent)}
+/* `.ruhig` bringt in der Lernlandschaft einen eigenen Grund mit -- hier
+   soll aber alles auf einer weissen Flaeche stehen. */
+.danebenkasten .ruhig{margin:0 0 .7rem;background:none;border:0;
+  padding:0;font-size:.95rem;color:var(--matt)}
+.danebenkasten .ruhig a{color:var(--akzent)}
+/* Rike, 27.08.2026: «Einbettung etwas anderes Format, sodass alles
+   etwas kleiner dargestellt ist, um mehr am Stück gesehen zu werden.»
+   Die Seite wird deshalb verkleinert statt beschnitten -- der Rahmen
+   ist innen breiter als aussen und wird herunterskaliert. */
+/* **Feste Innenbreite, danach herunterskaliert.** Mit einer
+   prozentualen Breite blieb der Rahmen innen unter tausend Pixeln --
+   die Werkstattseite schaltete dort auf ihr schmales Layout, und das
+   Notizblatt legte sich ueber die ganze Etappe. Rike, 27.08.2026: «Bei
+   der zweiten Markierung ist jetzt nur das Notizblatt angezeigt, es
+   muesste die Station gezeigt werden.» Mit 1440 Pixeln innen sieht die
+   Seite aus wie auf einem Bildschirm. */
+.einblendrahmen{--innen:1440;margin:.2rem 0 .6rem;
+  border:1px solid var(--linie);border-radius:.5rem;overflow:hidden;
+  background:#fff;height:30rem;position:relative}
+.einblendrahmen iframe{position:absolute;top:0;left:0;border:0;
+  width:calc(var(--innen) * 1px);height:calc(30rem / var(--mass, .5));
+  transform:scale(var(--mass, .5));transform-origin:top left}
+/* **Der Streifen liegt auf einer Linie mit dem Titel.** Rike,
+   27.08.2026: «Können wir die Box mit Einführung ins Modul etwas
+   schmaler und breiter machen und so, dass es mit dem Titel Teil 1
+   von 3 liegt?»
+
+   Der Zeitstrahl einer Station bricht bewusst aus dem Textblock aus --
+   dort stehen bis zu neun Etappen nebeneinander und brauchen jeden
+   Pixel. Hier sind es drei; dann wirkt der Ausbruch wie ein Versehen.
+   Also: dieselbe linke Kante wie `main`, volle Breite, und flacher. */
+/* `main >` davor, weil `.zeitstrahl` selbst schon eine Breite von
+   `100vw` und einen negativen linken Rand setzt -- ohne den
+   Elementteil im Selektor gewinnt die Originalregel. */
+main > .zeitstrahl.klein{width:auto;margin-inline:0}
+main > .zeitstrahl.klein .feld,
+main > .zeitstrahl.klein .strecke,
+main > .zeitstrahl.klein .reihe{width:100%}
+main > .zeitstrahl.klein .abschnitt{flex:1 1 auto;width:100%;
+  margin-bottom:0}
+main > .zeitstrahl.klein .stelle{flex:1 1 0;min-width:0}
+main > .zeitstrahl.klein .halt{width:100%;min-height:2.9rem;
+  padding-block:.55rem;font-size:1rem}
+main > .zeitstrahl.klein .halt[aria-current]{
+  box-shadow:0 .25rem .8rem rgba(0,0,0,.18)}
+main > .zeitstrahl.klein .kopf .wort{font-size:1rem}
+</style>
+<body data-farbe="fach">
+<div class="stationskopf"><span class="wort">EINFÜHRUNG</span>
+  <h1>Komplexe Zahlen</h1></div>
+<main>
+<nav class="zeitstrahl klein" style="--weg-zweig-tief:0;--weg-zweig-oben:0;--weg-kachel-zahl:3;--weg-kasten-zahl:1" aria-label="Weg durch die Einführung"><div class="feld"><div class="strecke"><div class="abschnitt"><div class="kopf"><span class="wort">Einführung ins Modul</span></div><div class="reihe"><span class="strich rand" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" aria-current="page" href="../begruessung/index.html" title="Begrüssung"><span>Begrüssung</span></a></div><span class="strich" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../organisation/index.html" title="Organisation"><span>Organisation</span></a></div><span class="strich" aria-hidden="true"></span><div class="stelle"><a class="halt haupt voll" href="../material/index.html" title="Material"><span>Material</span></a></div><span class="strich rand" aria-hidden="true"></span></div></div></div></div></nav>
+<h2 class="etappentitel"><span class="stand">Teil 1 von 3</span>Begrüssung</h2>
+<div class="etappe mitbild">
+  <div class="film">
+    <video controls preload="metadata" src="https://api.cast.switch.ch/p/110/sp/11000/playManifest/entryId/0_3jimu1kb/format/url/protocol/https/video.mp4"></video>
+    <div class="tempo" role="group" aria-label="Abspielgeschwindigkeit">
+      <span>Tempo</span>
+      <button type="button" data-tempo="1" aria-pressed="true">1×</button>
+      <button type="button" data-tempo="1.25">1,25×</button>
+      <button type="button" data-tempo="1.5">1,5×</button>
+      <button type="button" data-tempo="1.75">1,75×</button>
+    </div>
+  </div>
+  <aside class="arbeit"><div class="tafeln"><article class="tafel" data-marke="0"><h3 class="nurzeit"><span class="zeit">0:00</span></h3><div class="blatt" data-blatt="0"><div class="danebenkasten"><h4>Die Unterlagen</h4><p class="ruhig">Alles zum Modul auf einer Seite.</p><div class="einblendrahmen"><iframe src="../../navigation/index.html" title="Die Unterlagen" loading="lazy"></iframe></div><p class="ruhig"><a href="../../navigation/index.html" target="_blank" rel="noopener">In eigenem Fenster öffnen</a></p></div></div></article></div></aside>
+</div>
+</main>
+<p class="heimknopf"><a href="../../index.html">
+  <span class="haus" aria-hidden="true">&#8962;</span>Material</a></p>
+<footer><div class="seitenfuss">
+  <span class="wo"><b>MA02.02</b> Komplexe Zahlen</span>
+  <span class="wer">Henrike Allmendinger · Herbstsemester 2026</span>
+</div></footer>
+<script src="../../gemeinsam/seite.js"></script>
+<script>
+/* Die eingebetteten Seiten passend verkleinern -- und in ihnen
+   aufraeumen, was hier nur stoert.
+ *
+ * Die Skalierung haengt an der wirklichen Breite des Rahmens, also
+ * rechnet sie das Skript aus statt sie im Stylesheet zu raten. Und das
+ * Notizblatt der eingebetteten Etappe wird weggeblendet, ausser die
+ * Einblendung handelt genau davon: Sonst deckt es die Seite zu, um die
+ * es gerade geht. */
+(function () {
+  'use strict';
+  function messen() {
+    [].forEach.call(document.querySelectorAll('.einblendrahmen'), function (k) {
+      var innen = parseFloat(getComputedStyle(k).getPropertyValue('--innen')) || 1440;
+      var breit = k.getBoundingClientRect().width;
+      if (breit) k.style.setProperty('--mass', (breit / innen).toFixed(4));
+    });
+  }
+  function aufraeumen(rahmen) {
+    var d;
+    try { d = rahmen.contentDocument; } catch (e) { return; }
+    if (!d || !d.body) return;
+    var leiste = d.querySelector('.notizleiste');
+    if (!leiste) return;
+    if (rahmen.dataset.notiz === 'auf') {
+      leiste.classList.remove('schmal');
+      leiste.style.setProperty('--notiz-breite', '520px');
+    } else {
+      leiste.style.display = 'none';
+    }
+  }
+  [].forEach.call(document.querySelectorAll('.einblendrahmen iframe'), function (r) {
+    r.addEventListener('load', function () { aufraeumen(r); });
+    if (r.contentDocument && r.contentDocument.readyState === 'complete') aufraeumen(r);
+  });
+  /* Hochkant oder quer? Das steht erst fest, wenn die Masse des Videos
+     da sind -- ein Short ist 9:16, eine Aufnahme aus der Webcam 16:9.
+     Beim Hochformat wird nichts beschnitten. */
+  var film = document.querySelector('.film');
+  var vid = film && film.querySelector('video');
+  if (film && vid) {
+    var formatSetzen = function () {
+      if (!vid.videoWidth || !vid.videoHeight) return;
+      film.classList.toggle('hoch', vid.videoHeight > vid.videoWidth);
+      film.classList.toggle('quer', vid.videoWidth >= vid.videoHeight);
+    };
+    vid.addEventListener('loadedmetadata', formatSetzen);
+    formatSetzen();
+  }
+
+  /* Der Tempowaehler. `localStorage` kann in strengen Einstellungen
+     fehlen -- dann laeuft alles wie vorher, nur ohne Gedaechtnis. */
+  var v = document.querySelector('.film video');
+  var waehler = document.querySelector('.film .tempo');
+  if (v && waehler) {
+    var kn = [].slice.call(waehler.querySelectorAll('button'));
+    function setzen(wert, merken) {
+      v.playbackRate = wert;
+      kn.forEach(function (b) {
+        b.setAttribute('aria-pressed',
+          parseFloat(b.dataset.tempo) === wert ? 'true' : 'false');
+      });
+      if (merken) { try { localStorage.setItem('einfuehrung-tempo', wert); } catch (e) {} }
+    }
+    kn.forEach(function (b) {
+      b.addEventListener('click', function () {
+        setzen(parseFloat(b.dataset.tempo), true);
+      });
+    });
+    var gemerkt = null;
+    try { gemerkt = parseFloat(localStorage.getItem('einfuehrung-tempo')); } catch (e) {}
+    if (gemerkt && kn.some(function (b) { return parseFloat(b.dataset.tempo) === gemerkt; })) {
+      setzen(gemerkt, false);
+    }
+    /* Manche Abspieler setzen die Rate beim Laden zurueck. */
+    v.addEventListener('loadedmetadata', function () {
+      var b = waehler.querySelector('button[aria-pressed="true"]');
+      if (b) v.playbackRate = parseFloat(b.dataset.tempo);
+    });
+  }
+
+  messen();
+  window.addEventListener('resize', messen);
+  /* Beim Wechsel der Marke wird eine Tafel erst sichtbar -- vorher hat
+     sie keine Breite, und die Rechnung ergaebe null. */
+  document.addEventListener('click', function (ev) {
+    if (ev.target.closest('.marken button')) setTimeout(messen, 30);
+  });
+})();
+</script>
+</body>
+</html>
