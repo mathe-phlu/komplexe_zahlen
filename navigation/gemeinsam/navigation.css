@@ -790,6 +790,26 @@ table.fahrplan .luecke { background: none; border-color: transparent; }
   transform: translateY(-.125rem);
   background: var(--aktuell);
 }
+/* **Die wartende Kachel** (28.08.2026). Dieselbe Form, aber matt und
+   gestrichelt: Man sieht, dass es die Aufgabe gibt und wo sie stehen
+   wird, und man sieht auf den ersten Blick, dass sie noch nicht offen
+   ist. Kein Schatten und kein Anheben beim Zeigen -- was nicht
+   reagiert, soll auch nicht so aussehen. */
+.werkstatt.wartet {
+  border-style: dashed;
+  background: transparent;
+  color: var(--matt, #6b6b6b);
+  box-shadow: none;
+  cursor: default;
+}
+.werkstatt.wartet:hover { transform: none; background: transparent; }
+.werkstatt.wartet small {
+  display: block;
+  margin-top: .25rem;
+  font-family: inherit;
+  font-size: .9rem;
+  opacity: .8;
+}
 
 /* --------------------------------------------- Zweispaltig -------- */
 
