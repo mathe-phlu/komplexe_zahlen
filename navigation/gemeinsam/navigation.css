@@ -247,15 +247,21 @@ a:focus-visible .kachel, a:focus-visible .material,
   outline-offset: .1875rem;
 }
 
-/* Auswaertige Ziele bekommen eine kleine Marke oben rechts. */
-.kachel.aus::after, .material.aus::after {
+/* Auswaertige Ziele bekommen eine kleine Marke oben rechts.
+
+   **Auch die Zettel unter «Aktuelles»** (Rike, 03.09.2026): Seit die
+   Online-Einfuehrung und das Kapitel der Woche in einem eigenen Fenster
+   aufgehen, muessen sie dasselbe Zeichen tragen wie Material und
+   Termine. Zwei Zeichen fuer dasselbe Verhalten waeren schlimmer als
+   keins. */
+.kachel.aus::after, .material.aus::after, .zettel.aus::after {
   content: "↗";
   position: absolute;
   top: .375rem; right: .5rem;
   font-size: .8rem;
   color: var(--grau);
 }
-.kachel, .material { position: relative; }
+.kachel, .material, .zettel { position: relative; }
 
 /* ----------------------------------------------------- Aktuelles --- */
 

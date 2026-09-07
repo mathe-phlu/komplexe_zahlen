@@ -62,8 +62,20 @@
     }
 
     var farbe = FARBEN[jetzt.farbe] || FARBEN.fach;
+    /* **Nach draussen, nicht in den Rahmen.** Rike, 03.09.2026: «Station
+       eins sollte auf jeden Fall, aehnlich wie wenn wir zum Material
+       gehen, nach draussen fuehren, also auf GitHub direkt uneingebettet
+       -- weil ich glaub, dann ist es uebersichtlicher, weil durch die
+       Einbettung geht uns ja noch Rand verloren.»
+
+       Dieselbe Behandlung wie der grosse Material-Knopf: Das Kapitel ist
+       eine Materialseite, keine Navigationsseite. Die Navigationsseiten
+       untereinander (Fahrplan, Meilensteine, Leistungsnachweis) bleiben
+       dagegen im Rahmen -- sie sind fuer die 760 px gebaut. */
     kasten.setAttribute('href', '../' + jetzt.weg);
-    kasten.className = 'zettel woche';
+    kasten.setAttribute('target', '_blank');
+    kasten.setAttribute('rel', 'noopener');
+    kasten.className = 'zettel woche aus';
     kasten.style.setProperty('--wochenfarbe', farbe);
     kasten.innerHTML =
       (jetzt.portraet
