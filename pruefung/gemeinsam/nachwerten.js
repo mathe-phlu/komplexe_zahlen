@@ -24,8 +24,8 @@
       es nicht gezeigt hat. Nur der erste Fehler ist gutzumachen.
 
    2  DIESELBEN VERGLEICHER WIE IN DER PRÜFUNG. Verglichen wird mit
-      `Zahl.*` und der Zuordnung aus `pruefung.js` — nicht mit einer
-      zweiten Fassung davon. Zwei Fassungen laufen mit der Zeit
+      `Zahl.*` und den Wurzelkriterien aus `wurzeln.js` — nicht mit
+      einer zweiten Fassung davon. Zwei Fassungen laufen mit der Zeit
       auseinander, und die Abweichung fiele niemandem auf.
 
    Was NICHT nachgewertet werden kann und deshalb offen bleibt:
@@ -74,7 +74,7 @@ function teilGegeben(sollRoh, stand){
     const drin = sollRoh.felder.filter(id => stand.karte[id] === sollRoh.feld);
     return drin.length ? drin.join(', ') : '—';
   }
-  if (sollRoh.art === 'polarMenge'){
+  if (sollRoh.art === 'wurzelschar'){
     return sollRoh.felder
       .map(paar => (stand.feld[paar[0]] || '?') + '∠' + (stand.feld[paar[1]] || '?'))
       .join('  ');
@@ -130,14 +130,31 @@ function teilStimmt(sollRoh, stand){
       return w ? Z.istLogarithmusWert(w, sollRoh.von) : false;
     }
 
-    case 'polarMenge': {
-      /* Über alle Zeilen zusammen, mit derselben Zuordnung wie in
-         der Prüfung - jede Eingabe bedient höchstens einen Sollwert. */
-      const gegeben = sollRoh.felder.map(paar => ({
+    case 'wurzelschar': {
+      /* Über alle Zeilen zusammen und mit DEMSELBEN Vergleicher wie in
+         der Prüfung: `wurzeln.js` steht genau einmal da, und beide Wege
+         rufen ihn. sollRoh trägt schon sollR, sollG0 und n - es ist
+         damit selbst der Sollwert. */
+      const zeilen = sollRoh.felder.map(paar => ({
         r: Z.liesReell(roh(paar[0]) || ''),
         g: Z.liesWinkelGrad(roh(paar[1]) || '')
       }));
-      return window.PIA.zuordnenGreedy(gegeben, sollRoh.soll)[sollRoh.k];
+      return !!window.PIA.Wurzeln.kriterien(zeilen, sollRoh)[sollRoh.kriterium];
+    }
+
+    case 'komplexTeil': {
+      /* Ein Feld, zwei Teile: gelesen wird einmal, verglichen wird
+         nur die eine Komponente. */
+      const w = Z.lies(roh(sollRoh.felder[0]) || '');
+      return w ? Z.nahe(w[sollRoh.teil], sollRoh.soll[sollRoh.teil]) : false;
+    }
+
+    case 'zahlTeil': {
+      const x = Z.liesReell(roh(sollRoh.felder[0]) || '');
+      if (x === null) return false;
+      return sollRoh.raster
+        ? Math.abs(x - sollRoh.soll) <= sollRoh.raster / 2 + 1e-12
+        : Z.nahe(x, sollRoh.soll);
     }
 
     case 'wahl':

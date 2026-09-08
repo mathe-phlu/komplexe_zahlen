@@ -54,7 +54,7 @@ function unterZeiger(x, y, wahl){
    ------------------------------------------------------------ */
 function flaeche(o){
   const fasst = o.fasst || 1;
-  const buehne = el('div', 'kartenbuehne');
+  const buehne = el('div', 'kartenbuehne' + (o.quer ? ' quer' : ''));
   const vorrat = el('div', 'kartenvorrat');
   vorrat.appendChild(el('div', 'kartenmarke', o.vorratMarke || 'Noch zuzuordnen'));
   const vorratBlatt = el('div', 'kartenblatt');
@@ -75,8 +75,10 @@ function flaeche(o){
     felderSeite.appendChild(d);
   });
 
-  buehne.appendChild(vorrat);
-  buehne.appendChild(felderSeite);
+  /* Quer: erst die Felder, dann der Vorrat darunter. Sonst Vorrat
+     links, Felder rechts. */
+  if (o.quer){ buehne.appendChild(felderSeite); buehne.appendChild(vorrat); }
+  else { buehne.appendChild(vorrat); buehne.appendChild(felderSeite); }
 
   function belegung(){
     const b = {};
@@ -154,19 +156,22 @@ function flaeche(o){
       window.addEventListener('pointercancel', los);
     });
 
-    /* Zurueck in den Vorrat, ohne zu ziehen. Auf dem Tablet ist das
-       oft der bequemere Weg. */
-    karte.addEventListener('dblclick', () => {
-      if (karte.parentElement === vorratBlatt) return;
-      vorratBlatt.appendChild(karte);
-      melden(karte.dataset.id, null);
-    });
+    /* HIER STAND EIN DOPPELKLICK, der zurueck in den Vorrat legen
+       sollte. Er hat nie ausgeloest: Die Ziehgeste ruft beim
+       pointerdown preventDefault() und haengt die Karte fuer die Dauer
+       des Ziehens an die Buehne. Ein dblclick verlangt zwei Klicks auf
+       DASSELBE Element ohne Umhaengen dazwischen - das kann so nicht
+       zustande kommen. Am 08.09.2026 aufgefallen, weil im Hinweistext
+       stand, was nicht ging.
+
+       Zurueckgelegt wird durch Ziehen in den Vorrat; das funktioniert
+       und ist die Geste, die man ohnehin schon kennt. */
   }
 
   o.karten.forEach(k => {
     const karte = el('div', 'kk', k.text);
     karte.dataset.id = k.id;
-    karte.title = 'Ziehen zum Zuordnen · Doppelklick legt zurück';
+    karte.title = 'Ziehen zum Zuordnen — und zum Zurücklegen in den Vorrat';
     ziehbar(karte);
     vorratBlatt.appendChild(karte);
   });

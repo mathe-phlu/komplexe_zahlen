@@ -103,11 +103,14 @@ function andererIndex(anzahl, ausser){
 function Bau(aufgabe, wurzel){
   const teile = [];
   let kasten = null;
+  /* Wohin ein neuer Kasten gehaengt wird. Normalerweise die Wurzel;
+     innerhalb von `nebeneinander` die jeweilige Spalte. */
+  let ziel = wurzel;
 
   function neuerKasten(titel){
     kasten = el('div', 'frage');
     if (titel) kasten.appendChild(el('h3', null, titel));
-    wurzel.appendChild(kasten);
+    ziel.appendChild(kasten);
     return kasten;
   }
   function K(){ return kasten || neuerKasten(); }
@@ -170,6 +173,26 @@ function Bau(aufgabe, wurzel){
     formel(html){ K().appendChild(el('p', 'formel', html)); return B; },
     hinweis(html){ K().appendChild(el('p', 'hinweis', html)); return B; },
     kasten(titel){ neuerKasten(titel); return B; },
+
+    /* ---- Gleichartige Teilaufgaben nebeneinander ----
+       Drei Zeichnungen untereinander heisst: oben schauen, unten
+       ankreuzen, scrollen, und das Nebenblatt liegt ganz woanders.
+       Nebeneinander steht jede Teilaufgabe fuer sich - Bild oben,
+       Auswahl direkt darunter. */
+    nebeneinander(bauer){
+      const g = el('div', 'reihe');
+      g.style.setProperty('--spalten', bauer.length);
+      wurzel.appendChild(g);
+      const merkZiel = ziel, merkKasten = kasten;
+      bauer.forEach(fn => {
+        const sp = el('div');
+        g.appendChild(sp);
+        ziel = sp; kasten = null;      // erzwingt einen eigenen Kasten je Spalte
+        fn(B);
+      });
+      ziel = merkZiel; kasten = merkKasten;
+      return B;
+    },
 
     /* ---- Zwei Spalten nebeneinander ----
        Bild links, Fragen rechts: das spart auf einer Aufgabenseite das
@@ -285,6 +308,40 @@ function Bau(aufgabe, wurzel){
       const f = feld(o.name, { lesen: Z.lies, platzhalter: o.platzhalter || 'z. B. 3 + 4i',
         lesehinweis: 'Das lese ich nicht als komplexe Zahl.' });
       zeileMit(o.vor, [f.eingabe, el('span', 'hinweis', o.nach || ''), f.stand]);
+
+      /* ---- getrennt: Realteil und Imaginaerteil sind zwei Teile ----
+
+         Ein Vorzeichenfehler im Imaginaerteil soll nicht die ganze
+         Rechnung kosten. Gelesen wird weiter EIN Feld; nur der
+         Vergleich zerfaellt in zwei.
+
+         GEKOPPELT, weil beide Teile in dasselbe Feld schreiben: Wer den
+         Realteil falsch setzt, macht den Imaginaerteil damit nicht mit
+         falsch - und das soll er auch nicht. Der Pruefstand geht solche
+         Teile einzeln durch. */
+      if (o.getrennt){
+        [['re', 'Realteil'], ['im', 'Imaginaerteil']].forEach(paar => {
+          const teil = paar[0], wort = paar[1];
+          teile.push({ name: o.name + '#' + teil, p: o.p / 2, art: 'komplex',
+            gekoppelt: o.name,
+            gefuellt: () => !!f.roh(),
+            pruefen: () => { const w = f.wert();
+                             return w ? Z.nahe(w[teil], o.soll[teil]) : false; },
+            gegeben: () => f.roh(),
+            soll: () => wort + ' ' + Z.zahlText(o.soll[teil], 3),
+            sollRoh: { art: 'komplexTeil', teil: teil, felder: [o.name], soll: o.soll },
+            setzen: (wie) => {
+              const z = wie === 'richtig' ? o.soll
+                : (teil === 're' ? Z.K(daneben(o.soll.re), o.soll.im)
+                                 : Z.K(o.soll.re, daneben(o.soll.im)));
+              schreiben(f, komplexText(z));
+              return true;
+            }
+          });
+        });
+        return B;
+      }
+
       teile.push({ name: o.name, p: o.p, art: 'komplex',
         gefuellt: () => !!f.roh(),
         pruefen: () => {
@@ -310,6 +367,34 @@ function Bau(aufgabe, wurzel){
       const fi = feld(o.name + '.im', { lesen: Z.liesReell, schmal: true, platzhalter: 'Im' });
       zeileMit(o.vor, [fr.eingabe, el('span', 'hinweis', '+'), fi.eingabe,
                        el('span', 'hinweis', 'i'), fr.stand, fi.stand]);
+
+      /* Getrennt bewerten. Hier braucht es KEINE Kopplung: Real- und
+         Imaginaerteil haben eigene Felder, jeder Teil setzt seines. */
+      if (o.getrennt){
+        [['re', fr, 'Realteil'], ['im', fi, 'Imaginaerteil']].forEach(paar => {
+          const teil = paar[0], fd = paar[1], wort = paar[2];
+          teile.push({ name: o.name + '#' + teil, p: o.p / 2, art: 'zahl',
+            gefuellt: () => !!fd.roh(),
+            pruefen: () => {
+              const x = fd.wert();
+              if (x === null) return false;
+              return o.raster ? Math.abs(x - o.soll[teil]) <= o.raster / 2 + 1e-12
+                              : Z.nahe(x, o.soll[teil]);
+            },
+            gegeben: () => fd.roh(),
+            soll: () => wort + ' ' + Z.zahlText(o.soll[teil], 3),
+            sollRoh: { art: 'zahlTeil', felder: [o.name + '.' + teil],
+                       soll: o.soll[teil], raster: o.raster },
+            setzen: (wie) => {
+              schreiben(fd, genau(wie === 'richtig' ? o.soll[teil]
+                                                   : daneben(o.soll[teil])));
+              return true;
+            }
+          });
+        });
+        return B;
+      }
+
       teile.push({ name: o.name, p: o.p, art: 'komplex',
         gefuellt: () => !!(fr.roh() || fi.roh()),
         pruefen: () => {
@@ -452,6 +537,29 @@ function Bau(aufgabe, wurzel){
       const fg = feld(o.name + '.phi', { lesen: Z.liesWinkelGrad, schmal: true, platzhalter: 'φ' });
       zeileMit(o.vor, [fr.eingabe, el('span', 'hinweis', '· cis('), fg.eingabe,
                        el('span', 'hinweis', '°)'), fr.stand, fg.stand]);
+      /* Getrennt: Betrag und Winkel sind zwei Einsichten, und ein
+         Winkelfehler soll den Betrag nicht mitreissen. Eigene Felder,
+         also keine Kopplung noetig. */
+      if (o.getrennt){
+        teile.push({ name: o.name + '#r', p: o.p / 2, art: 'zahl',
+          gefuellt: () => !!fr.roh(),
+          pruefen: () => Z.nahe(fr.wert(), o.sollR),
+          gegeben: () => fr.roh(), soll: () => 'Betrag ' + Z.zahlText(o.sollR, 3),
+          sollRoh: { art: 'zahl', felder: [o.name + '.r'], soll: o.sollR },
+          setzen: (wie) => { schreiben(fr, genau(wie === 'richtig' ? o.sollR
+                                                : daneben(o.sollR))); return true; }
+        });
+        teile.push({ name: o.name + '#phi', p: o.p / 2, art: 'winkel',
+          gefuellt: () => !!fg.roh(),
+          pruefen: () => Z.winkelGleich(fg.wert(), o.sollG),
+          gegeben: () => fg.roh(), soll: () => 'Winkel ' + Z.zahlText(o.sollG, 2) + '°',
+          sollRoh: { art: 'winkel', felder: [o.name + '.phi'], soll: o.sollG },
+          setzen: (wie) => { schreiben(fg, genau(wie === 'richtig' ? o.sollG
+                                                : o.sollG + 37)); return true; }
+        });
+        return B;
+      }
+
       teile.push({ name: o.name, p: o.p, art: 'polar',
         gefuellt: () => !!(fr.roh() || fg.roh()),
         pruefen: () => Z.polarGleich(fr.wert(), fg.wert(), o.sollR, o.sollG),
@@ -468,44 +576,73 @@ function Bau(aufgabe, wurzel){
       return B;
     },
 
-    /* ---- Mehrere Werte in Polarform, Reihenfolge egal ---- */
-    polarMenge(o){
+    /* ---- Eine Wurzelschar: n Loesungen in Polarform ----
+
+       Bewertet wird nicht, wie viele Loesungen getroffen wurden,
+       sondern welche der drei Einsichten dahinter da sind - Betrag,
+       Grundwinkel, Verteilung - und ob am Ende alles stimmt. Wer den
+       Grundwinkel verrechnet, aber weiss, dass die Loesungen
+       gleichmaessig auf einem Kreis liegen, bekommt dafuer Punkte.
+       Die Kriterien selbst stehen in `wurzeln.js`, weil die
+       Nachwertung dieselben braucht.
+
+       ALLE VIER TEILE SIND GEKOPPELT: Sie lesen dieselben Zeilen und
+       sollen sich ausdruecklich NICHT gemeinsam falsifizieren lassen -
+       ein falscher Betrag bei richtigen Winkeln muss «Betrag» kippen
+       und «Verteilung» stehen lassen. Der Pruefstand geht sie deshalb
+       einzeln durch. */
+    wurzelschar(o){
       const felder = [];
-      o.soll.forEach((s, k) => {
-        const fr = feld(o.name + '.' + k + '.r', { lesen: Z.liesReell, schmal: true, platzhalter: 'r' });
-        const fg = feld(o.name + '.' + k + '.phi', { lesen: Z.liesWinkelGrad, schmal: true, platzhalter: 'φ' });
-        zeileMit((o.vor || 'z') + '<sub>' + (k+1) + '</sub> =',
+      for (let k = 0; k < o.n; k++){
+        const fr = feld(o.name + '.' + k + '.r',
+                        { lesen: Z.liesReell, schmal: true, platzhalter: 'r' });
+        const fg = feld(o.name + '.' + k + '.phi',
+                        { lesen: Z.liesWinkelGrad, schmal: true, platzhalter: 'φ' });
+        zeileMit('z<sub>' + (k+1) + '</sub> =',
           [fr.eingabe, el('span','hinweis','· cis('), fg.eingabe,
            el('span','hinweis','°)'), fr.stand, fg.stand]);
         felder.push({ r: fr, g: fg });
-      });
-      B.hinweis('Die Reihenfolge spielt keine Rolle.');
+      }
+      /* «Die Reihenfolge spielt keine Rolle» steht schon im
+         Auftragsstreifen der Aufgabe - zweimal dasselbe liest niemand. */
+      const soll = { sollR: o.sollR, sollG0: o.sollG0, n: o.n };
+      const zeilen = () => felder.map(f => ({ r: f.r.wert(), g: f.g.wert() }));
+      const schritt = Math.round(360 / o.n);
+      const KRITERIEN = [
+        { schluessel: 'betrag',       wort: 'alle Zeilen mit dem Betrag ' + Z.zahlText(o.sollR, 3) },
+        { schluessel: 'grundwinkel',  wort: 'mindestens ein richtiger Winkel' },
+        { schluessel: 'verteilung',   wort: o.n + ' Zeilen, gleichmässig um ' + schritt + '° versetzt' },
+        { schluessel: 'vollstaendig', wort: 'alle ' + o.n + ' Lösungen richtig' }
+      ];
 
-      /* Ein Teil je Sollwert: wer zwei von drei Wurzeln hat,
-         bekommt zwei Drittel. Zugeordnet wird zuerst, was passt. */
-      o.soll.forEach((s, k) => {
-        teile.push({ name: o.name + '#' + (k+1), p: o.p, art: 'polar',
+      KRITERIEN.forEach(kr => {
+        teile.push({
+          name: o.name + '#' + kr.schluessel, p: o.p / KRITERIEN.length,
+          art: 'wurzelschar', gekoppelt: o.name,
           gefuellt: () => felder.some(f => f.r.roh() || f.g.roh()),
-          pruefen: () => {
-            const gegeben = felder.map(f => ({ r: f.r.wert(), g: f.g.wert() }));
-            const treffer = zuordnenGreedy(gegeben, o.soll);
-            return treffer[k];
-          },
-          gegeben: () => felder.map(f => f.r.roh()+'∠'+f.g.roh()).join('  '),
-          soll: () => Z.zahlText(s.r,3) + '·cis(' + Z.zahlText(s.g,2) + '°)',
-          /* Die ganze Schar, nicht nur der eigene Wert: Die Zuordnung
-             ist erst über alle Zeilen zusammen entscheidbar. */
-          sollRoh: { art: 'polarMenge', k: k,
-                     felder: o.soll.map((x, j) => [o.name + '.' + j + '.r',
+          pruefen: () => !!window.PIA.Wurzeln.kriterien(zeilen(), soll)[kr.schluessel],
+          gegeben: () => felder.map(f => (f.r.roh() || '?') + '∠' + (f.g.roh() || '?'))
+                                .join('  '),
+          soll: () => kr.wort,
+          /* Die ganze Schar, nicht nur eine Zeile: Jedes Kriterium ist
+             erst ueber alle Zeilen zusammen entscheidbar. */
+          sollRoh: { art: 'wurzelschar', kriterium: kr.schluessel,
+                     felder: felder.map((f, j) => [o.name + '.' + j + '.r',
                                                    o.name + '.' + j + '.phi']),
-                     soll: o.soll },
-          /* Jeder Teil füllt SEINE Zeile. Werden alle Teile gesetzt,
-             steht die ganze Schar da; wird nur einer gesetzt, bekommt
-             auch nur er seinen Punkt - genau das soll die Zuordnung
-             leisten. */
+                     sollR: o.sollR, sollG0: o.sollG0, n: o.n },
+          /* Richtig: die ganze Schar. Falsch: eine Schar, die GENAU
+             dieses Kriterium verletzt - gebaut in `wurzeln.js`, damit
+             der Falsifikator neben dem Kriterium steht. Zeilen, die
+             die falsche Schar nicht braucht, werden geleert. */
           setzen: (wie) => {
-            schreiben(felder[k].r, genau(wie === 'richtig' ? s.r : daneben(s.r)));
-            schreiben(felder[k].g, genau(wie === 'richtig' ? s.g : s.g + 37));
+            const W = window.PIA.Wurzeln;
+            const s = wie === 'richtig' ? W.schar(soll)
+                                        : W.scharFalsch(soll, kr.schluessel);
+            if (!s) return false;
+            felder.forEach((f, j) => {
+              schreiben(f.r, s[j] ? genau(s[j].r) : '');
+              schreiben(f.g, s[j] ? genau(s[j].g) : '');
+            });
             return true;
           }
         });
@@ -516,7 +653,7 @@ function Bau(aufgabe, wurzel){
     /* ---- Auswahl aus mehreren Möglichkeiten ---- */
     wahl(o){
       if (o.frage) K().appendChild(el('p', null, o.frage));
-      const w = el('div', 'wahl');
+      const w = el('div', 'wahl' + (o.quer ? ' quer' : ''));
       const gruppe = 'w' + Math.random().toString(36).slice(2);
       const reihenfolge = o.mischen === false
         ? o.optionen.map((t,k) => k) : mischen(o.optionen.map((t,k) => k));
@@ -854,7 +991,7 @@ function Bau(aufgabe, wurzel){
     kartenZuordnung(o){
       const fl = window.Karten.flaeche({
         karten: o.karten, felder: o.felder, fasst: o.fasst || 1,
-        vorratMarke: o.vorratMarke
+        vorratMarke: o.vorratMarke, quer: o.quer
       });
       K().appendChild(fl.element);
       o.felder.forEach(f => {
@@ -954,23 +1091,6 @@ function Bau(aufgabe, wurzel){
   return B;
 }
 
-/* Greedy: jede Eingabe darf höchstens einen Sollwert bedienen.
-   Liefert je Sollwert, ob er getroffen wurde. */
-function zuordnenGreedy(gegeben, soll){
-  const getroffen = soll.map(() => false);
-  const verbraucht = gegeben.map(() => false);
-  soll.forEach((s, k) => {
-    for (let j = 0; j < gegeben.length; j++){
-      if (verbraucht[j]) continue;
-      const g = gegeben[j];
-      if (g.r === null || g.g === null) continue;
-      if (Z.polarGleich(g.r, g.g, s.r, s.g)){
-        getroffen[k] = true; verbraucht[j] = true; break;
-      }
-    }
-  });
-  return getroffen;
-}
 
 /* ============================================================
    Nebenblatt: Zeichenfeld und Foto
@@ -1144,11 +1264,9 @@ function nebenblatt(aufgabeId, beschriftung){
   return { element: d, leinwand: leinwand };
 }
 
-window.PIA = { Bau: Bau, el: el, zufall: zufall, wuerfel: wuerfel,
-               mischen: mischen, nebenblatt: nebenblatt, SCHWELLE: SCHWELLE,
-               /* Von `nachwerten.js` gebraucht: Die Zuordnung mehrerer
-                  Werte zu mehreren Sollwerten soll nach einem Absturz
-                  GENAU SO laufen wie in der Prüfung - eine zweite
-                  Fassung davon würde irgendwann auseinanderlaufen. */
-               zuordnenGreedy: zuordnenGreedy };
+/* Zusammengefuegt, nicht gesetzt: `wurzeln.js` haengt sich hier ebenfalls
+   ein, und ein schlichtes window.PIA = {...} wuerde es wegwerfen. */
+window.PIA = Object.assign(window.PIA || {},
+             { Bau: Bau, el: el, zufall: zufall, wuerfel: wuerfel,
+               mischen: mischen, nebenblatt: nebenblatt, SCHWELLE: SCHWELLE });
 })();

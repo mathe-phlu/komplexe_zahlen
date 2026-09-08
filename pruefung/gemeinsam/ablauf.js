@@ -68,6 +68,23 @@ function pruefung(def){
   if (new URLSearchParams(location.search).has('werkstatt')){
     stand.person = 'Werkstatt';
     stand.kuerzel = 'werkstatt';
+
+    /* ?werkstatt&offen=4,5 spielt einen ZWEITEN DURCHGANG durch: Nur
+       diese Aufgaben werden gebaut, die uebrigen gelten als frueher
+       vollstaendig geloest und bringen ihre Punkte mit.
+
+       Ohne das liesse sich der Wiedereintritt gar nicht pruefen - der
+       echte Weg dorthin fuehrt ueber Kamera, Sperrfrist und Code, und
+       genau die Rechnung dahinter ist die heikle: Der Anteil muss
+       ueber die ganze Station gehen, nicht nur ueber die
+       wiedereroeffneten Aufgaben. */
+    const offenP = new URLSearchParams(location.search).get('offen');
+    if (offenP){
+      const nrn = offenP.split(',').map(x => parseInt(x, 10))
+                        .filter(n => n >= 1 && n <= def.aufgaben.length);
+      if (nrn.length){ stand.offen = nrn; stand.durchgang = 2; }
+    }
+
     aufgabenAufbauen();
     const band = el('div', 'warnung',
       '<b>Werkstattansicht.</b> Es wird nichts aufgezeichnet und nichts abgegeben. ' +
@@ -205,12 +222,34 @@ function pruefung(def){
 
     /* --- Zum Nachlesen --- */
     blatt.appendChild(ausklapp('Bitte vor der Prüfung lesen', def.startseite || ''));
+
+    /* «Wenn etwas schiefgeht» stand frueher auf einer eigenen Seite
+       INNERHALB der Pruefung - zusammen mit einer wortgleichen Kopie
+       von `startseite`, die hier eine Zeile darueber schon steht. Die
+       Seite ist weg; der Notfalltext gehoert ohnehin hierher.
+
+       Es ist die Stelle, an der jemand landet, dessen Rechner
+       abgestuerzt ist und der die Seite neu aufruft - und es ist der
+       letzte Moment vor der Aufnahme, in dem man in Ruhe liest, dass
+       man die Seite auf keinen Fall neu laden soll. */
+    const notfall = el('div');
+    notfall.innerHTML = WENN_ETWAS_SCHIEFGEHT;
+    blatt.appendChild(ausklapp('Wenn etwas schiefgeht', notfall));
+
     const tabellenHalter = el('div');
-    tabellenHalter.appendChild(punktetabelle(true));
     function tabelleErneuern(){
       tabellenHalter.innerHTML = '';
       tabellenHalter.appendChild(punktetabelle(true));
+      const punkte = def.aufgaben.reduce((x,a) => x + a.punkte, 0);
+      const offenePunkte = def.aufgaben.filter(a => stand.offen.indexOf(a.nr) >= 0)
+                                       .reduce((x,a) => x + a.punkte, 0);
+      tabellenHalter.appendChild(el('p', 'hinweis', stand.durchgang > 1
+        ? 'In diesem Durchgang sind ' + offenePunkte + ' von ' + punkte +
+          ' Punkten zu holen. Für das Bestehen zählen alle Durchgänge zusammen.'
+        : 'Zusammen ' + punkte + ' Punkte. Zum Bestehen brauchen Sie 80 % davon — ' +
+          'und die Erklärungen dazu.'));
     }
+    tabelleErneuern();
     blatt.appendChild(ausklapp('Aufgaben und Punkte', tabellenHalter));
 
     /* Liegt eine unterbrochene Prüfung? Dann zuerst die retten. */
@@ -551,13 +590,9 @@ function pruefung(def){
     /* Seiten: die offenen Aufgaben in ihrer Reihenfolge, dazwischen
        die Erklärstellen, die dahinter gehören. */
     stand.seiten = [];
-    if (def.startseite) stand.seiten.push({ art: 'start' });
     def.aufgaben.forEach(a => {
       if (stand.offen.indexOf(a.nr) < 0) return;
       stand.seiten.push({ art: 'aufgabe', aufgabe: a });
-      (def.erklaerstellen || []).forEach(e => {
-        if (e.nach === a.nr) stand.seiten.push({ art: 'erklaeren', frage: e.frage, nr: a.nr });
-      });
     });
     stand.seiten.push({ art: 'schluss' });
 
@@ -593,6 +628,13 @@ function pruefung(def){
       const nb = window.PIA.nebenblatt(s.aufgabe.id);
       halter.appendChild(nb.element);
       s.inhalt = halter;
+      /* Welche Frage kommt, entscheidet der Durchgang: Beim
+         Wiedereintritt bekommt dieselbe Aufgabe neue Zahlen - und
+         eine andere Frage. */
+      const fragen = s.aufgabe.erklaeren;
+      s.erklaerfrage = fragen && fragen.length
+        ? fragen[(stand.durchgang - 1) % fragen.length] : null;
+      s.erklaert = false;
       s.teile = bau.teile;
       const summe = bau.teile.reduce((x,t) => x + t.p, 0);
       if (Math.abs(summe - s.aufgabe.punkte) > 1e-6)
@@ -640,12 +682,11 @@ function pruefung(def){
       leiste.innerHTML = '';
       stand.seiten.forEach((s, k) => {
         const b = el('button', null,
-          s.art === 'start' ? 'So läuft es' :
-          s.art === 'aufgabe' ? 'Aufgabe ' + s.aufgabe.nr :
-          s.art === 'erklaeren' ? 'Erklären' : 'Abschluss');
+          s.art === 'aufgabe' ? 'Aufgabe ' + s.aufgabe.nr : 'Abschluss');
         b.type = 'button';
         if (k === stand.seite) b.setAttribute('aria-current', 'true');
-        if (s.art === 'aufgabe' && s.teile && s.teile.every(t => t.gefuellt()))
+        if (s.art === 'aufgabe' && s.teile && s.teile.every(t => t.gefuellt())
+            && (!s.erklaerfrage || s.erklaert))
           b.classList.add('fertig');
         b.onclick = () => zeigen(k);
         leiste.appendChild(b);
@@ -660,15 +701,7 @@ function pruefung(def){
       const blatt = el('div', 'blatt');
       haupt.appendChild(blatt);
 
-      if (s.art === 'start'){
-        auftrag.innerHTML = '';
-        auftrag.appendChild(el('span', 'rang', 'zum Lesen'));
-        auftrag.appendChild(el('span', 'titel', 'So läuft diese Station'));
-        auftrag.appendChild(el('span', 'text',
-          'Einmal durchlesen, dann geht es los. Sie können jederzeit hierher zurück.'));
-        blatt.appendChild(startBlatt());
-        AUF.merken('startseite');
-      } else if (s.art === 'aufgabe'){
+      if (s.art === 'aufgabe'){
         auftrag.innerHTML = '';
         auftrag.appendChild(el('span', 'rang', s.aufgabe.punkte +
           (s.aufgabe.punkte === 1 ? ' Punkt' : ' Punkte')));
@@ -676,13 +709,6 @@ function pruefung(def){
         auftrag.appendChild(el('span', 'text', s.aufgabe.auftrag));
         blatt.appendChild(s.inhalt);
         AUF.M.seite(s.aufgabe.nr, s.aufgabe.titel);
-      } else if (s.art === 'erklaeren'){
-        auftrag.innerHTML = '';
-        auftrag.appendChild(el('span', 'rang', 'ohne Punkte'));
-        auftrag.appendChild(el('span', 'titel', 'Erklären'));
-        auftrag.appendChild(el('span', 'text',
-          'Sagen Sie es laut. Diese Stelle wird in der Aufnahme markiert.'));
-        blatt.appendChild(erklaerBlatt(s));
       } else {
         auftrag.innerHTML = '';
         auftrag.appendChild(el('span', 'rang', 'Abschluss'));
@@ -694,8 +720,13 @@ function pruefung(def){
 
       zurueck.style.visibility = stand.seite === 0 ? 'hidden' : 'visible';
       weiter.style.visibility = stand.seite === stand.seiten.length-1 ? 'hidden' : 'visible';
-      const leer = s.art === 'aufgabe' ? s.teile.filter(t => !t.gefuellt()).length : 0;
-      void leer;
+      /* Gekoppelte Teile teilen sich dieselben Felder: Vier Kriterien
+         auf EINER Wurzelschar sind eine unausgefuellte Eingabe, nicht
+         vier. Ohne das Zusammenfassen meldete die Fusszeile «4 Felder
+         sind noch leer» fuer eine einzige leere Aufgabe. */
+      const leer = s.art !== 'aufgabe' ? 0
+        : new Set(s.teile.filter(t => !t.gefuellt())
+                         .map(t => t.gekoppelt || t.name)).size;
       fussWort.textContent = s.art !== 'aufgabe' ? ''
         : leer ? (leer === 1 ? 'Ein Feld ist noch leer.' : leer + ' Felder sind noch leer.')
         : 'Alles ausgefüllt.';
@@ -703,7 +734,12 @@ function pruefung(def){
     }
 
     zurueck.onclick = () => zeigen(stand.seite - 1);
-    weiter.onclick  = () => zeigen(stand.seite + 1);
+    weiter.onclick  = () => {
+      const s = stand.seiten[stand.seite];
+      if (s && s.art === 'aufgabe' && s.erklaerfrage && !s.erklaert)
+        return erklaerHof(s, () => zeigen(stand.seite + 1));
+      zeigen(stand.seite + 1);
+    };
 
     /* NEU (gemeinsam entschieden, 2026-08-21): Der Knopf «Ich erkläre
        jetzt» ist entfallen. Er sollte eine Sprungmarke in die
@@ -713,64 +749,113 @@ function pruefung(def){
 
        Rikes Einwand: «Ich verstehe den Button nicht ganz genau, es
        nimmt ja eh auf.» Sie hat recht gehabt. */
-    function erklaerBlatt(s){
+    /* ---- Die Erklaerfrage beim Weitergehen ----
+
+       Drei Anlaeufe hat diese Stelle gebraucht, und die ersten zwei
+       waren falsch herum:
+
+       1  Eine eigene Seite HINTER der Aufgabe. Dort erklaert man
+          rekonstruierend - und beim Wiedereintritt kam dieselbe Frage,
+          die schon beantwortet war.
+       2  Ein Kasten UEBER der Aufgabe. Der las sich wie «erst
+          erklaeren, dann rechnen», und genau andersherum ist es
+          gemeint.
+       3  Ein Knopf oben rechts. Der lud dazu ein, sofort zu druecken -
+          also wieder vor dem Rechnen.
+
+       Jetzt legt sich die Frage beim Klick auf «Weiter» vor die
+       Aufgabe. Damit steht sie zwangslaeufig NACH dem Loesen, sie ist
+       nicht zu uebersehen, und die Aufgabe bleibt dahinter sichtbar -
+       man soll ja sehen, worauf sich die Frage bezieht.
+
+       «Spaeter» gibt es trotzdem: Erzwingen laesst sich eine Erklaerung
+       nicht, sie gibt keine Punkte. Wer sie ueberspringt, findet sie
+       auf der Abschlussseite wieder aufgelistet. */
+    function erklaerHof(s, weitergehen){
+      const hof = el('div', 'erklaerhof');
       const d = el('div', 'erklaerstelle');
-      d.appendChild(el('div', 'augen', 'Erklärstelle nach Aufgabe ' + s.nr));
-      d.appendChild(el('h3', null, s.frage));
+      d.appendChild(el('div', 'augen', 'Zusätzlich zu Aufgabe ' + s.aufgabe.nr));
+      d.appendChild(el('h3', null, s.erklaerfrage));
       d.appendChild(el('p', null,
-        'Antworten Sie mündlich — es gibt hier nichts zu tippen und keine ' +
-        'Punkte zu holen. <b>Diese Seite ist in der Aufnahme markiert</b>, Ihre ' +
-        'Dozentin findet die Stelle also wieder. Nehmen Sie sich Zeit; gehen ' +
-        'Sie erst weiter, wenn Sie fertig sind.'));
-      AUF.M.erklaerung(s.nr, s.frage);
+        'Antworten Sie <b>mündlich</b>, es gibt hier nichts zu tippen. Nehmen Sie ' +
+        'sich Zeit — die Aufgabe bleibt dahinter stehen.'));
 
-      /* NEU (gemeinsam entschieden, 2026-08-21): Auch hier ein
-         Nebenblatt. Rike: «Falls Sie was aufnotieren wollen. Es ist
-         aber nicht zwingend notwendig.» Deshalb steht es zu, nicht
-         auf, und die Beschriftung sagt, dass es freiwillig ist. */
-      const halter = el('div');
-      halter.appendChild(d);
-      const nb = window.PIA.nebenblatt('erklaeren-' + s.nr,
-        'Nebenblatt — falls Sie sich etwas notieren möchten (freiwillig)');
-      halter.appendChild(nb.element);
-      return halter;
-    }
-
-    function startBlatt(){
-      const d = el('div', 'ergebnis');
-      d.innerHTML = (def.startseite || '') + WENN_ETWAS_SCHIEFGEHT;
-      d.appendChild(punktetabelle(true));
-      const punkte = def.aufgaben.reduce((x,a) => x + a.punkte, 0);
-      const offenePunkte = stand.seiten.filter(s => s.art === 'aufgabe')
-        .reduce((x,s) => x + s.aufgabe.punkte, 0);
-      d.appendChild(el('p', 'hinweis', stand.durchgang > 1
-        ? 'In diesem Durchgang sind ' + offenePunkte + ' von ' + punkte +
-          ' Punkten zu holen. Für das Bestehen zählen alle Durchgänge zusammen.'
-        : 'Zusammen ' + punkte + ' Punkte. Zum Bestehen brauchen Sie 80 % davon — ' +
-          'und die Erklärungen dazu.'));
-      return d;
+      const knoepfe = el('div', 'knoepfe');
+      const fertig = el('button', 'tat', 'Ich habe es erklärt');
+      fertig.type = 'button';
+      fertig.onclick = () => {
+        s.erklaert = true;
+        AUF.M.erklaerung(s.aufgabe.nr, s.erklaerfrage);
+        hof.remove(); leisteZeichnen(); weitergehen();
+      };
+      const spaeter = el('button', 'neben', 'Ich erkläre es später');
+      spaeter.type = 'button';
+      spaeter.onclick = () => { hof.remove(); weitergehen(); };
+      knoepfe.appendChild(fertig); knoepfe.appendChild(spaeter);
+      d.appendChild(knoepfe);
+      hof.appendChild(d);
+      document.body.appendChild(hof);
+      fertig.focus();
     }
 
     function schlussBlatt(){
       const d = el('div', 'ergebnis');
       d.appendChild(el('h3', null, 'Bevor Sie abgeben'));
       const t = el('table');
-      t.innerHTML = '<tr><th>Aufgabe</th><th>Stand</th></tr>';
+      t.innerHTML = '<tr><th>Aufgabe</th><th>Ausgefüllt</th><th>Erklärt</th></tr>';
+      const ohneErklaerung = [];
       stand.seiten.filter(s => s.art === 'aufgabe').forEach(s => {
-        const leer = s.teile.filter(x => !x.gefuellt()).length;
+        /* Gekoppelte Teile teilen sich Felder - hier dieselbe
+           Zusammenfassung wie in der Fusszeile. */
+        const leer = new Set(s.teile.filter(x => !x.gefuellt())
+                                    .map(x => x.gekoppelt || x.name)).size;
+        if (s.erklaerfrage && !s.erklaert) ohneErklaerung.push(s.aufgabe.nr);
         const tr = el('tr');
         tr.innerHTML = '<td>Aufgabe ' + s.aufgabe.nr + ' · ' + s.aufgabe.titel + '</td>' +
           '<td class="' + (leer ? 'teils' : 'ganz') + '">' +
-          (leer ? leer + ' Feld' + (leer>1?'er':'') + ' leer' : 'ausgefüllt') + '</td>';
+          (leer ? leer + (leer>1 ? ' Eingaben leer' : ' Eingabe leer') : 'ausgefüllt') +
+          '</td>';   /* die dritte Zelle kommt gleich, sie traegt einen Knopf */
+        const zelle = el('td');
+        if (!s.erklaerfrage){ zelle.textContent = '—'; }
+        else if (s.erklaert){ zelle.className = 'ganz'; zelle.textContent = 'ja'; }
+        else {
+          /* Nachholen, ohne zurueckblaettern zu muessen. Wer hier steht
+             und «Aufgabe 2 fehlt noch» liest, soll nicht erst suchen,
+             wie er dorthin kommt. */
+          zelle.className = 'teils';
+          const nach = el('button', 'neben', 'Jetzt erklären');
+          nach.type = 'button';
+          nach.onclick = () => erklaerHof(s, () => zeigen(stand.seite));
+          zelle.appendChild(nach);
+        }
+        tr.appendChild(zelle);
         t.appendChild(tr);
       });
       d.appendChild(t);
       d.appendChild(el('p', 'hinweis',
         'Leere Felder zählen als falsch. Wenn Sie etwas nicht wissen, sagen Sie ' +
         'es lieber in die Aufnahme, als es leer zu lassen.'));
+
       const knopf = el('button', 'tat', 'Prüfung abgeben');
       knopf.type = 'button';
       knopf.onclick = () => { knopf.disabled = true; abgeben(); };
+
+      /* KEINE ABGABE OHNE ERKLAERUNGEN. Sie geben zwar keine Punkte -
+         aber ohne sie ist die Pruefung nicht bestanden, das steht schon
+         auf der Startseite. Eine Abgabe zuzulassen, bei der von vornherein
+         etwas Notwendiges fehlt, waere eine Falle. */
+      if (ohneErklaerung.length){
+        knopf.disabled = true;
+        const w = el('p', null,
+          '<b>Noch nicht erklärt: ' + (ohneErklaerung.length === 1
+            ? 'Aufgabe ' + ohneErklaerung[0]
+            : 'Aufgaben ' + ohneErklaerung.join(', ')) + '.</b> ' +
+          'Holen Sie das oben in der Tabelle nach — abgeben können Sie erst danach. ' +
+          'Wer eine Aufgabe richtig hat, sie aber nicht erklären kann, hat sie ' +
+          'nicht bestanden.');
+        w.style.cssText = 'border-left:4px solid var(--akzent);padding-left:14px';
+        d.appendChild(w);
+      }
       d.appendChild(knopf);
       return d;
     }
@@ -794,18 +879,46 @@ function pruefung(def){
                ganz: teile.every(t => t.ok), teile: teile };
     });
 
-    const moeglich = ergebnis.reduce((x,a) => x + a.moeglich, 0);
     const erreicht = ergebnis.reduce((x,a) => x + a.erreicht, 0);
     const offen = ergebnis.filter(a => !a.ganz).map(a => a.nr);
-    const anteil = moeglich > 0 ? erreicht / moeglich : 0;
 
-    const code = offen.length
-      ? CODE.ausstellen({ station: def.station, durchgang: stand.durchgang,
-                          offen: offen, person: stand.person })
-      : null;
+    /* ---- Punkte aus frueheren Durchgaengen zaehlen mit ----
 
-    AUF.M.auswertung({ erreicht: erreicht, moeglich: moeglich, offen: offen,
-                       code: code, aufgaben: ergebnis });
+       Wer eine Aufgabe nicht mehr wiederholen musste, hatte sie
+       VOLLSTAENDIG richtig - also hat er ihre volle Punktzahl. Der
+       mitgebrachte Stand ist damit aus der Bitmaske des
+       Wiedereintrittscodes ableitbar, ohne ein einziges zusaetzliches
+       Bit.
+
+       Vorher rechnete der Anteil nur ueber die wiedereroeffneten
+       Aufgaben. Das konnte jemanden durchfallen lassen, der ueber die
+       ganze Station laengst ueber 80 % lag: drei Aufgaben ganz richtig
+       (9 P), zwei wiederholt und dort 4 von 6 - ueber die Station 13
+       von 15, also 87 %, nach alter Rechnung aber 67 %. Er waere an
+       der Bezugsgroesse gescheitert, nicht an seiner Leistung. */
+    const frueher = def.aufgaben.filter(a => stand.offen.indexOf(a.nr) < 0);
+    const mitgebracht = frueher.reduce((x,a) => x + a.punkte, 0);
+    const moeglich = def.aufgaben.reduce((x,a) => x + a.punkte, 0);
+    const gesamt = mitgebracht + erreicht;
+    const anteil = moeglich > 0 ? gesamt / moeglich : 0;
+
+    /* ---- Bestanden heisst 80 %, nicht 100 % ----
+
+       Hier stand frueher `anteil >= SCHWELLE && offen.length === 0`.
+       Sind null Aufgaben offen, ist jeder Teil richtig und der Anteil
+       damit 100 % - die zweite Bedingung machte die erste
+       bedeutungslos. Der Entwurf hatte die beiden Regeln ausdruecklich
+       auseinandergehalten: Teilpunkte entscheiden ueber die 80 %,
+       Ganzheit darueber, welche Aufgaben im naechsten Durchgang
+       wiederkommen. Zwei Fragen, nicht eine. */
+    const bestanden = anteil >= SCHWELLE;
+
+    const code = bestanden ? null
+      : CODE.ausstellen({ station: def.station, durchgang: stand.durchgang,
+                          offen: offen, person: stand.person });
+
+    AUF.M.auswertung({ erreicht: gesamt, moeglich: moeglich, offen: offen,
+                       code: code, bestanden: bestanden, aufgaben: ergebnis });
 
     document.body.innerHTML = '';
     const kopf = el('header');
@@ -828,10 +941,20 @@ function pruefung(def){
 
     /* --- Ergebnis --- */
     const d = el('div', 'ergebnis');
-    const geschafft = anteil >= SCHWELLE && offen.length === 0;
-    d.appendChild(el('h3', null, 'Ihr Ergebnis in diesem Durchgang'));
+    d.appendChild(el('h3', null, stand.durchgang > 1
+      ? 'Ihr Ergebnis über alle Durchgänge' : 'Ihr Ergebnis'));
     const t = el('table');
     t.innerHTML = '<tr><th>Aufgabe</th><th>Stand</th><th class="p">Punkte</th></tr>';
+    /* Die Station steht ganz da, nicht nur dieser Durchgang - sonst
+       liesse die Tabelle die mitgebrachten Punkte verschwinden, mit
+       denen die Prozentzahl darunter gerechnet ist. */
+    frueher.forEach(a => {
+      const tr = el('tr');
+      tr.innerHTML = '<td>Aufgabe ' + a.nr + ' · ' + a.titel + '</td>' +
+        '<td class="ganz">in einem früheren Durchgang gelöst</td>' +
+        '<td class="p">' + a.punkte + ' / ' + a.punkte + '</td>';
+      t.appendChild(tr);
+    });
     ergebnis.forEach(a => {
       const tr = el('tr');
       const klasse = a.ganz ? 'ganz' : a.erreicht > 0 ? 'teils' : 'nichts';
@@ -843,26 +966,48 @@ function pruefung(def){
       t.appendChild(tr);
     });
     const summe = el('tr');
+    /* Die Prozentzelle bleibt blank: Das Urteil steht als Ueberschrift
+       darunter, und `pruefstand/durchgang.html` liest diese Zeile mit
+       einem Muster aus - jedes Wort dazwischen bricht es. */
     summe.innerHTML = '<td><b>Zusammen</b></td><td>' +
       Math.round(anteil*100) + ' %</td><td class="p"><b>' +
-      Z.zahlText(erreicht,2) + ' / ' + moeglich + '</b></td>';
+      Z.zahlText(gesamt,2) + ' / ' + moeglich + '</b></td>';
     t.appendChild(summe);
     d.appendChild(t);
     blatt.appendChild(d);
 
     /* --- Wie es weitergeht --- */
     const w = el('div', 'ergebnis');
-    if (!offen.length){
+    /* Drei Faelle, nicht zwei. Frueher verzweigte diese Stelle allein
+       ueber `offen.length` - damit gab es «alles richtig» und «noch
+       offen», aber keinen Platz fuer den haeufigsten Fall: bestanden
+       mit ein paar Luecken. */
+    if (bestanden && !offen.length){
       w.appendChild(el('h3', null, 'Alle Aufgaben vollständig richtig'));
       w.appendChild(el('p', null,
         'Für diese Station ist rechnerisch alles erledigt. Es fehlt nur noch, ' +
         'dass Ihre Erklärungen angehört werden — die Rückmeldung dazu kommt ' +
         'über Moodle. <b>Bis dahin gilt die Station als noch nicht bestanden.</b>'));
+    } else if (bestanden){
+      w.appendChild(el('h3', null, 'Bestanden — Sie sind fertig'));
+      w.appendChild(el('p', null,
+        'Sie haben die 80 % erreicht. ' + (offen.length === 1
+          ? 'Aufgabe ' + offen[0] + ' ist zwar nicht vollständig richtig'
+          : 'Die Aufgaben ' + offen.join(', ') + ' sind zwar nicht vollständig richtig') +
+        ' — <b>wiederholen müssen Sie deshalb nichts.</b> Für das Bestehen zählen ' +
+        'die Punkte, nicht die Zahl der ganz gelösten Aufgaben.'));
+      w.appendChild(el('p', null,
+        'Es fehlt nur noch, dass Ihre Erklärungen angehört werden — die Rückmeldung ' +
+        'dazu kommt über Moodle. <b>Bis dahin gilt die Station als noch nicht ' +
+        'bestanden.</b>'));
     } else {
-      w.appendChild(el('h3', null, 'Was noch offen ist'));
-      w.appendChild(el('p', null, offen.length === 1
-        ? 'Aufgabe ' + offen[0] + ' ist noch nicht vollständig richtig.'
-        : 'Diese Aufgaben sind noch nicht vollständig richtig: ' + offen.join(', ') + '.'));
+      w.appendChild(el('h3', null, 'Noch nicht bestanden'));
+      w.appendChild(el('p', null,
+        'Sie haben ' + Math.round(anteil*100) + ' % erreicht; zum Bestehen brauchen ' +
+        'Sie 80 %. ' + (offen.length === 1
+          ? 'Zu wiederholen ist Aufgabe ' + offen[0] + '.'
+          : 'Zu wiederholen sind die Aufgaben ' + offen.join(', ') + '.') +
+        ' Was Sie schon vollständig richtig hatten, bleibt Ihnen erhalten.'));
       const frei = new Date(Date.UTC(2026,0,1) + (CODE.tagesnummer() + 1) * 86400000);
       w.appendChild(el('p', null,
         'Sie müssen nicht auf eine Rückmeldung warten — aber <b>heute nicht mehr</b>. ' +
