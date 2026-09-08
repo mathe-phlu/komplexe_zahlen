@@ -218,6 +218,12 @@ function Bau(aufgabe, wurzel){
     formelZeile(stuecke){
       const z = el('div', 'zeile formelzeile');
       const staende = [];
+      /* Die Felder DIESER Zeile, unter ihrem Namen. Gebraucht von
+         `passtZu` weiter unten: Ein Teil, der sich nach einem anderen
+         Feld richtet, muss dessen aktuellen Inhalt lesen koennen. Ueber
+         das Dokument zu suchen ginge nicht - waehrend des Bauens haengt
+         die Seite noch nicht im Dokument. */
+      const felderHier = {};
       stuecke.forEach(s => {
         if (typeof s === 'string'){
           z.appendChild(el('span', 'formelstueck', s));
@@ -264,6 +270,96 @@ function Bau(aufgabe, wurzel){
             ? 'Das lese ich nicht als komplexe Zahl.' : 'Das lese ich nicht als Zahl.' });
         z.appendChild(f.eingabe);
         staende.push(f.stand);
+        felderHier[s.name] = f;
+
+        /* ---- getrennt: Betrag und Winkel sind zwei Einsichten ----
+
+           Beim Aufstellen einer Drehstreckung traegt EINE Zahl den
+           Streckfaktor und den Drehwinkel. Wer den Winkel verrechnet,
+           den Faktor aber richtig hat, hat die halbe Einsicht - und
+           soll die halben Punkte bekommen. Gelesen wird weiter ein
+           Feld; nur der Vergleich zerfaellt.
+
+           Getrennt wird nach Betrag und Winkel, NICHT nach Real- und
+           Imaginaerteil: Das sind hier die beiden Groessen, nach denen
+           die Aufgabe fragt. Die Zerlegung folgt der Sache, nicht der
+           Schreibweise.
+
+           GEKOPPELT, weil beide Teile in dasselbe Feld schreiben. */
+        if (art === 'komplex' && s.getrennt === 'polar'){
+          [['betrag', 'Betrag'], ['winkel', 'Winkel']].forEach(paar => {
+            const teil = paar[0], wort = paar[1];
+            teile.push({ name: s.name + '#' + teil, p: s.p / 2, art: 'komplex',
+              gekoppelt: s.name,
+              gefuellt: () => !!f.roh(),
+              pruefen: () => {
+                const w = f.wert();
+                if (!w) return false;
+                return teil === 'betrag'
+                  ? Z.nahe(Z.betrag(w), Z.betrag(s.soll))
+                  : Z.winkelGleich(Z.gradAusArg(w), Z.gradAusArg(s.soll));
+              },
+              gegeben: () => f.roh(),
+              soll: () => wort + ' ' + (teil === 'betrag'
+                ? Z.zahlText(Z.betrag(s.soll), 3)
+                : Z.zahlText(Z.gradAusArg(s.soll), 2) + '°'),
+              sollRoh: { art: 'komplexPolarTeil', teil: teil,
+                         felder: [s.name], soll: s.soll },
+              /* Falsch heisst sicher falsch, und zwar GENAU in dieser
+                 einen Groesse: der Betrag wird gestreckt, der Winkel
+                 gedreht - das jeweils andere bleibt richtig. */
+              setzen: (wie) => {
+                let w = s.soll;
+                if (wie !== 'richtig'){
+                  w = teil === 'betrag'
+                    ? Z.mal(s.soll, Z.K(1.8, 0))
+                    : Z.mal(s.soll, Z.K(Math.cos(37*Math.PI/180),
+                                        Math.sin(37*Math.PI/180)));
+                }
+                schreiben(f, komplexText(w));
+                return true;
+              }
+            });
+          });
+          return;
+        }
+
+        /* ---- passtZu: die Folgefehlerregel ----
+
+           Manche Zahl haengt von einer anderen ab, die man selbst
+           eingetragen hat - b aus a beim Aufstellen einer
+           Drehstreckung. Wer a verrechnet und b daraus SAUBER
+           weiterrechnet, hat den Zusammenhang verstanden; es waere
+           falsch, ihm beides abzuziehen.
+
+           Verglichen wird deshalb gegen A + B · (was im anderen Feld
+           steht). Steht dort nichts Lesbares, gilt der wahre Wert.
+           Die Regel ist bewusst affin und nicht eine Funktion: So
+           uebersteht sie den Weg durch `sollRoh` ins JSON und die
+           Nachwertung kann sie nachrechnen. */
+        if (art === 'komplex' && s.passtZu){
+          const bez = s.passtZu;
+          const erwartet = () => {
+            const ander = felderHier[bez.feld];
+            const w = ander ? ander.wert() : null;
+            return w ? Z.plus(bez.A, Z.mal(bez.B, w)) : s.soll;
+          };
+          teile.push({ name: s.name, p: s.p, art: art,
+            gefuellt: () => !!f.roh(),
+            pruefen: () => { const w = f.wert(); return w ? Z.gleich(w, erwartet()) : false; },
+            gegeben: () => f.roh(),
+            soll: () => Z.normalform(erwartet(), 3),
+            sollRoh: { art: 'komplexAffin', felder: [s.name, bez.feld],
+                       A: bez.A, B: bez.B, soll: s.soll },
+            setzen: (wie) => {
+              schreiben(f, wie === 'richtig' ? komplexText(s.soll)
+                : komplexText(Z.K(daneben(s.soll.re), daneben(s.soll.im))));
+              return true;
+            }
+          });
+          return;
+        }
+
         teile.push({ name: s.name, p: s.p, art: art,
           gefuellt: () => !!f.roh(),
           pruefen: () => {

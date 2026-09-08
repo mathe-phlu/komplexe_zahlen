@@ -432,11 +432,11 @@ window.PIA.pruefung({
     'warum — auch wenn Sie nicht weiterkommen. Wer eine Aufgabe richtig hat, sie ' +
     'aber nicht erklären kann, hat sie nicht bestanden. Umgekehrt hilft eine gute ' +
     'Erklärung, auch wenn das Ergebnis daneben liegt. Zu jeder Aufgabe gibt es ' +
-    'ausserdem eine <b>Zusatzfrage</b>: Oben rechts steht ein Knopf ' +
-    '«Zusätzlich erklären». Drücken Sie ihn, <b>wenn Sie mit der Aufgabe fertig ' +
-    'sind</b> — dann erscheint die Frage daneben und die Stelle wird in der ' +
-    'Aufnahme markiert. Punkte gibt es dafür keine; zur Prüfung gehört sie ' +
-    'trotzdem.</p>' +
+    'ausserdem eine <b>Zusatzfrage</b>. Sie erscheint, wenn Sie auf «Weiter» ' +
+    'drücken — also dann, wenn Sie mit der Aufgabe fertig sind. Beantwortet wird ' +
+    'sie <b>mündlich</b>; Punkte gibt es dafür keine, zur Prüfung gehört sie ' +
+    'trotzdem. Wer sie überspringt, findet sie am Schluss noch einmal ' +
+    'aufgelistet.</p>' +
     '<p><b>Notizen sind für Sie, nicht für uns.</b> Unter jeder Aufgabe liegt ein ' +
     '<b>Nebenblatt</b> — zum Rechnen und Skizzieren, mit Maus, Finger oder Stift. ' +
     'Sie müssen dort keine ganzen Sätze schreiben. Es hilft nur, wenn Sie zeigen ' +

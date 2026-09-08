@@ -142,6 +142,29 @@ function teilStimmt(sollRoh, stand){
       return !!window.PIA.Wurzeln.kriterien(zeilen, sollRoh)[sollRoh.kriterium];
     }
 
+    case 'komplexPolarTeil': {
+      /* Ein Feld, zwei Teile - getrennt nach Betrag und Winkel, weil
+         das die beiden Groessen sind, nach denen gefragt war. */
+      const w = Z.lies(roh(sollRoh.felder[0]) || '');
+      if (!w) return false;
+      return sollRoh.teil === 'betrag'
+        ? Z.nahe(Z.betrag(w), Z.betrag(sollRoh.soll))
+        : Z.winkelGleich(Z.gradAusArg(w), Z.gradAusArg(sollRoh.soll));
+    }
+
+    case 'komplexAffin': {
+      /* Die Folgefehlerregel: verglichen wird gegen A + B · (was im
+         zweiten Feld steht), nicht gegen den wahren Wert. Steht dort
+         nichts Lesbares, gilt der wahre Wert. Dieselbe Rechnung wie in
+         `pruefung.js` - deshalb sind A und B in `sollRoh` mitgegeben
+         und nicht als Funktion, die kein JSON uebersteht. */
+      const w = Z.lies(roh(sollRoh.felder[0]) || '');
+      if (!w) return false;
+      const ander = Z.lies(roh(sollRoh.felder[1]) || '');
+      const soll = ander ? Z.plus(sollRoh.A, Z.mal(sollRoh.B, ander)) : sollRoh.soll;
+      return Z.gleich(w, soll);
+    }
+
     case 'komplexTeil': {
       /* Ein Feld, zwei Teile: gelesen wird einmal, verglichen wird
          nur die eine Komponente. */
