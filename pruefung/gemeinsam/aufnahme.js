@@ -72,7 +72,8 @@ const S = {
   offen: 0, gescheitert: 0,
   spur: null, aufnehmer: null, mitBild: false,
   blaetter: 0,                    // abfotografierte oder angehaengte Blaetter
-  behalten: []                    // nur wenn nicht hochgeladen wird
+  behalten: [],                   // nur wenn nicht hochgeladen wird
+  auswertung: null                // steht erst am Schluss, siehe beenden()
 };
 
 const WERKSTATT = new URLSearchParams(location.search).has('werkstatt');
@@ -192,6 +193,12 @@ function kopfdaten(){
                         && S.behalten[0].blob.type) || null,
     brocken: S.brockenNr, brockenGescheitert: S.gescheitert,
     blaetter: S.blaetter,
+    /* Bis zum Schluss `null`. Steht sie da, war die Pruefung FERTIG -
+       daran erkennt die Titelseite den Unterschied zwischen einer
+       abgebrochenen und einer abgeschlossenen, nur nicht bestaetigten
+       Pruefung. Frueher stand sie nur im Paket, also genau dort, wo
+       die Titelseite nicht nachsehen kann. */
+    auswertung: S.auswertung,
     fenster: [innerWidth, innerHeight],
     browser: navigator.userAgent,
     fassung: 1
@@ -558,14 +565,23 @@ async function beenden(auswertung){
   for (let i = 0; i < 40 && S.offen > 0; i++)
     await new Promise(f => setTimeout(f, 100));
 
+  S.auswertung = auswertung || null;
   const kopf = kopfdaten();
-  kopf.auswertung = auswertung || null;
   kopf.ende = new Date().toISOString();
   const protokoll = JSON.stringify({ kopf: kopf, ereignisse: S.ereignisse }, null, 1);
 
   const dateien = [{ name: 'protokoll.json', daten: textBytes(protokoll) }]
                   .concat(S.behalten);
   const paket = zip(dateien);
+
+  /* Noch einmal in die Datenbank, mit der Auswertung im Kopf.
+
+     Ohne das bliebe der zurueckgelegte Stand auf dem Zwischenspeicher
+     von vor hoechstens dreissig Ereignissen stehen - und die
+     Titelseite haette keine Moeglichkeit zu erkennen, dass diese
+     Sitzung fertig war. Geraeumt wird sie erst beim Bestaetigen; bis
+     dahin ist dies der einzige Ort, an dem das steht. */
+  zwischensichern();
 
   return {
     sitzung: S.sitzung, brocken: S.brockenNr, gescheitert: S.gescheitert,
@@ -604,10 +620,18 @@ async function angefangenes(){
 }
 
 /* Aus dem Angefangenen ein Paket schnueren - dieselbe Gestalt wie
-   nach einer regulaeren Pruefung. */
-function paketAus(angefangen){
+   nach einer regulaeren Pruefung.
+
+   `unterbrochen` steht im Protokoll und wird von
+   `werkzeuge/paket_auspacken.py` als [UNTERBROCHEN] ausgegeben. Es
+   stand hier bis zum 09.09.2026 fest auf `true` - auch bei einer
+   Pruefung, die vollstaendig durchlaufen und nur nicht bestaetigt
+   worden war. Das ist eine falsche Auskunft an genau der Stelle, an
+   der beurteilt wird. Wer rettet, sagt jetzt, was der Fall war. */
+function paketAus(angefangen, o){
+  const unterbrochen = !o || o.unterbrochen !== false;
   const protokoll = JSON.stringify(
-    { kopf: Object.assign({}, angefangen.kopf, { unterbrochen: true }),
+    { kopf: Object.assign({}, angefangen.kopf, { unterbrochen: unterbrochen }),
       ereignisse: angefangen.ereignisse }, null, 1);
   const dateien = [{ name: 'protokoll.json', daten: textBytes(protokoll) }]
     .concat(angefangen.stuecke.map(x => ({
@@ -617,7 +641,7 @@ function paketAus(angefangen){
            name: angefangen.sitzung + '.zip',
            mb: (paket.size / 1048576).toFixed(1),
            brocken: angefangen.stuecke.length, gescheitert: 0,
-           unterbrochen: true };
+           unterbrochen: unterbrochen };
 }
 
 /* Wo der Browser heruntergeladene Dateien anzeigt. Uebernommen aus
@@ -637,6 +661,16 @@ function fundort(){
   return 'Der Browser zeigt heruntergeladene Dateien meist oben rechts an.';
 }
 
+/* Ein Klick auf ein unsichtbares <a download>. Mehr geht nicht: Der
+   Browser meldet weder Erfolg noch Fehlschlag zurueck, es gibt kein
+   Ereignis und nichts abzufangen. Kein Platz, eine Download-Sperre auf
+   einem verwalteten Rechner, oder ein «Speichern unter?», das jemand
+   abbricht - hier sieht das alles gleich aus.
+
+   Deshalb steht die Frage, ob es geklappt hat, auf der SEITE und nicht
+   hier: `abgabeschritte()` in ablauf.js fragt nach, statt ein Haekchen
+   zu setzen, das niemand geprueft hat. (Auftrag «Der
+   Pruefungsabschluss», 09.09.2026, Abschnitt 3b.) */
 function herunterladen(blob, name){
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);

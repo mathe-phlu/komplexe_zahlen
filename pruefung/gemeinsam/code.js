@@ -21,10 +21,30 @@
 
    Das trägt hier, weil
      - das Paket von Durchgang eins bereits auf SWITCHdrive liegt,
-     - jedes Paket den eingelegten Code und die Browserzeit
+     - jedes Paket die Durchgangsnummer und die Browserzeit
        mitprotokolliert - eine vorgestellte Uhr faellt gegen den
-       Zeitstempel der Ablage auf,
+       Zeitstempel der Ablage von Durchgang eins auf,
      - und die Videokontrolle ohnehin das letzte Wort hat.
+
+   BERICHTIGT 09.09.2026 (Rikes Entscheidung): Hier stand «den
+   eingelegten Code und die Browserzeit». Der eingelegte Code steht
+   NICHT im Paket - er wird auf der Titelseite geprueft, in
+   `stand.offen` und `stand.durchgang` umgesetzt und ist danach weg.
+   An `AUF.starten()` gehen `person`, `kuerzel`, `station`,
+   `durchgang`, `spur`, `mitBild`; in `kopfdaten()` steht er ebenfalls
+   nicht.
+
+   Erwogen und verworfen wurde, ihn mitzuprotokollieren. Es haette
+   fast nichts gekostet und eine Faelschung nachtraeglich sichtbar
+   gemacht - aber nur, wenn jemand hinsieht, und der eigentliche
+   Schutz ist ohnehin die Videokontrolle. Was bleibt, traegt: Die
+   Durchgangsnummer steht im Paket, und wann Durchgang eins wirklich
+   war, sagt der Zeitstempel seiner Ablage.
+
+   Wer die Begruendung eines Tages wieder anfassen will: erst
+   nachsehen, was WIRKLICH im Paket steht (`kopfdaten()` in
+   aufnahme.js), dann schreiben. Genau daran ist dieser Satz
+   gescheitert.
 
    Aufbau, 40 Bit:
      3  Station        1..7

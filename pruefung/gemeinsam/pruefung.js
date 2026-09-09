@@ -1035,6 +1035,101 @@ function Bau(aufgabe, wurzel){
       return B;
     },
 
+    /* ---- Ein Punkt in EINEM von mehreren Bildern ----
+
+       Rike: «Wir machen drei Entscheidungen, jedes Mal mit drei
+       Bildern, und sie müssen entscheiden, welches Bild richtig ist —
+       und im richtigen Bild den Bildpunkt von A identifizieren.»
+
+       Zwei Fragen, aber EINE Geste. Wer in Bild 2 auf einen Punkt
+       klickt, sagt damit beides: dass Bild 2 das richtige ist und dass
+       dieser Punkt das Bild von A ist. Zwei getrennte Auswahlen
+       nebeneinander waeren dieselbe Aussage zweimal - und die zweite
+       muesste sich auf das erste beziehen, was ohne Verrat nicht geht:
+       Zeigte man den Punkt nur im richtigen Bild, waere die erste Frage
+       schon beantwortet.
+
+       Bewertet wird nach zwei Einsichten, aus demselben Klick gelesen:
+
+         bild    im richtigen Bild geklickt
+         punkt   und dort den richtigen Punkt getroffen
+
+       Wer das Bild erkennt, aber die Ecken verwechselt, bekommt die
+       Haelfte. GEKOPPELT, weil beide aus einem Klick kommen - der
+       Pruefstand geht sie deshalb einzeln durch.
+
+       o.bilder: [{flaeche, praefix}] - die Ziele jedes Bildes tragen
+                 seinen praefix, damit sich aus dem Klick ablesen
+                 laesst, in welchem Bild er lag
+       o.praefixRichtig, o.zielRichtig                                */
+    bildpunktwahl(o){
+      let gewaehlt = null;
+      const reihe = el('div', 'bildreihe');
+      const rahmen = [];
+
+      function malen(){
+        rahmen.forEach(r => Array.from(r.querySelectorAll('.ziel')).forEach(z => {
+          const t = z.querySelector('.treffer');
+          if (t) t.setAttribute('opacity',
+            z.getAttribute('data-ziel') === gewaehlt ? '0.3' : '0');
+        }));
+      }
+      function waehlen(ziel){
+        gewaehlt = (gewaehlt === ziel) ? null : ziel;
+        malen();
+        AUF.M.bildklick(o.name, gewaehlt || '—');
+      }
+
+      o.bilder.forEach((bd, k) => {
+        const r = ZE.rahmen(bd.flaeche, { waehlbar: true, marke: 'Bild ' + (k+1),
+          beiWahl: (ziel) => waehlen(ziel) });
+        rahmen.push(r);
+        reihe.appendChild(r);
+      });
+      K().appendChild(reihe);
+
+      const KRITERIEN = [
+        { schluessel: 'bild',  wort: 'das richtige Bild',
+          trifft: g => !!g && g.indexOf(o.praefixRichtig) === 0 },
+        { schluessel: 'punkt', wort: 'darin der Bildpunkt von A',
+          trifft: g => g === o.zielRichtig }
+      ];
+
+      KRITERIEN.forEach(kr => {
+        teile.push({ name: o.name + '#' + kr.schluessel, p: o.p / 2,
+          art: 'bildpunktwahl', gekoppelt: o.name,
+          gefuellt: () => gewaehlt !== null,
+          pruefen: () => kr.trifft(gewaehlt),
+          gegeben: () => gewaehlt || '—',
+          soll: () => kr.wort,
+          sollRoh: { art: 'bildpunkt', kriterium: kr.schluessel,
+                     felder: [o.name], praefix: o.praefixRichtig,
+                     ziel: o.zielRichtig },
+          /* Falsch heisst hier: GENAU dieses Kriterium verletzen.
+             Fuer «bild» ein Ziel in einem anderen Bild; fuer «punkt»
+             ein anderes Ziel im richtigen Bild - dann bleibt «bild»
+             stehen, und das ist der Sinn der Trennung. */
+          setzen: (wie) => {
+            const alle = rahmen.reduce((s, r) => s.concat(
+              Array.from(r.querySelectorAll('.ziel'))
+                   .map(z => z.getAttribute('data-ziel'))), []);
+            if (wie === 'richtig'){
+              gewaehlt = null; waehlen(o.zielRichtig);
+              return true;
+            }
+            const passt = kr.schluessel === 'bild'
+              ? (z => z.indexOf(o.praefixRichtig) !== 0)
+              : (z => z.indexOf(o.praefixRichtig) === 0 && z !== o.zielRichtig);
+            const z = alle.filter(passt)[0];
+            if (!z) return false;
+            gewaehlt = null; waehlen(z);
+            return true;
+          }
+        });
+      });
+      return B;
+    },
+
     /* ---- Eines von mehreren Bildern wählen ---- */
     bilderwahl(o){
       let gewaehlt = null;

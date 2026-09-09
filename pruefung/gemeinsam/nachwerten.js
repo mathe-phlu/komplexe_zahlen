@@ -142,6 +142,18 @@ function teilStimmt(sollRoh, stand){
       return !!window.PIA.Wurzeln.kriterien(zeilen, sollRoh)[sollRoh.kriterium];
     }
 
+    case 'bildpunkt': {
+      /* Ein Klick, zwei Kriterien: Lag er im richtigen Bild, und war
+         es dort der richtige Punkt? Der Ereignisstrom meldet das
+         zuletzt gewaehlte Ziel; sein Praefix sagt, in welchem Bild es
+         lag. */
+      const g = roh(sollRoh.felder[0]);
+      if (!g || g === '—') return false;
+      return sollRoh.kriterium === 'punkt'
+        ? g === sollRoh.ziel
+        : g.indexOf(sollRoh.praefix) === 0;
+    }
+
     case 'komplexPolarTeil': {
       /* Ein Feld, zwei Teile - getrennt nach Betrag und Winkel, weil
          das die beiden Groessen sind, nach denen gefragt war. */

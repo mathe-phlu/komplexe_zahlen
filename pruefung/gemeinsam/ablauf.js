@@ -252,17 +252,33 @@ function pruefung(def){
     tabelleErneuern();
     blatt.appendChild(ausklapp('Aufgaben und Punkte', tabellenHalter));
 
-    /* Liegt eine unterbrochene Prüfung? Dann zuerst die retten. */
+    /* Liegt eine unterbrochene Prüfung? Dann zuerst die retten.
+
+       ZWEI Fälle, nicht einer (Rike, 09.09.2026). Bis dahin hiess es
+       immer «unterbrochen» - auch bei jemandem, der die Prüfung
+       vollständig durchlaufen hatte und nur den Bestätigungsknopf
+       nicht mehr gedrückt hat. Der las dann, etwas sei schiefgegangen,
+       obwohl nichts schiefgegangen war.
+
+       Erkennbar ist der Unterschied an `kopf.auswertung`: Die steht
+       nur da, wenn `AUF.beenden()` gelaufen ist. */
     AUF.angefangenes().then(offen => {
       offen.filter(o => o.kopf && o.kopf.station === def.station).forEach(o => {
+        const fertig = o.kopf.auswertung;
         const w = el('div', 'warnung');
-        w.innerHTML = '<b>Eine unterbrochene Prüfung liegt noch hier.</b><br>' +
+        w.innerHTML = (fertig
+            ? '<b>Eine abgeschlossene Prüfung wurde noch nicht abgegeben.</b><br>'
+            : '<b>Eine unterbrochene Prüfung liegt noch hier.</b><br>') +
           (o.kopf.person || '') + ' · Durchgang ' + (o.kopf.durchgang || '?') +
           ' · ' + (o.gesichert ? new Date(o.gesichert).toLocaleString('de-CH') : '') +
           ' · ' + o.stuecke.length + ' Aufnahmestück' +
           (o.stuecke.length === 1 ? '' : 'e') + ' (' + o.mb + ' MB).<br>' +
-          'Alles bis zum Abbruch ist gesichert. Sie können daraus ein Paket ' +
-          'schnüren und abgeben — und dann neu beginnen.';
+          (fertig
+            ? 'Sie ist fertig ausgewertet — es fehlt nur die Abgabe. Schnüren Sie ' +
+              'das Paket und geben Sie es ab; Auswertung und Code bleiben, wie sie ' +
+              'waren.'
+            : 'Alles bis zum Abbruch ist gesichert. Sie können daraus ein Paket ' +
+              'schnüren und abgeben — und dann neu beginnen.');
         const k = el('button', 'tat', 'Paket schnüren und abgeben');
         k.type = 'button';
         k.style.marginTop = '10px';
@@ -304,9 +320,18 @@ function pruefung(def){
     };
   }
 
-  /* Eine unterbrochene Prüfung zum Abgeben bringen. Dieselbe
-     Abschlussseite wie sonst - nur ohne Auswertung, denn wie weit
-     jemand gekommen ist, steht im Protokoll und nicht hier. */
+  /* Eine liegengebliebene Prüfung zum Abgeben bringen.
+
+     ZWEI Wege, seit 09.09.2026. War die Prüfung fertig (`kopf.auswertung`
+     steht), wird sie NICHT neu bewertet - es wird nur noch abgegeben.
+
+     Warum das nötig war: Der Rettungsweg wertet aus dem Ereignisstrom
+     neu aus, und dort gilt «was sich nicht zurücklesen lässt, zählt
+     als nicht gelöst» (nachwerten.js, Regel 1). Er kann deshalb MEHR
+     Aufgaben als offen sehen als der reguläre Abschluss - und stellte
+     daraufhin einen ANDEREN Code aus als den, den die Person schon
+     notiert hatte. Zwei Codes für dieselbe Sache, und niemand konnte
+     sagen, welcher gilt. */
   function retten(angefangen){
     document.body.innerHTML = '';
     document.body.classList.add('titelseite');
@@ -331,15 +356,21 @@ function pruefung(def){
 
        Im Zweifel offen: Was sich nicht zurücklesen lässt, zählt als
        nicht gelöst. Siehe nachwerten.js, Regel 1. */
-    const nach = window.Nachwerten.bewerten(angefangen.ereignisse);
+    const fertig = angefangen.kopf && angefangen.kopf.auswertung;
+    const nach = fertig
+      ? { erreicht: fertig.erreicht, moeglich: fertig.moeglich,
+          aufgaben: fertig.aufgaben || [], unvollstaendig: false }
+      : window.Nachwerten.bewerten(angefangen.ereignisse);
     const geloest = nach.aufgaben.filter(a => a.ganz).map(a => a.nr);
-    const offen = def.aufgaben.map(a => a.nr).filter(nr => geloest.indexOf(nr) < 0);
+    const offen = fertig ? (fertig.offen || [])
+      : def.aufgaben.map(a => a.nr).filter(nr => geloest.indexOf(nr) < 0);
 
     /* Der Code wird auf GESTERN datiert. Sonst griffe die Sperrfrist
        (am Ausstellungstag gilt ein Code nicht) und der Wiedereintritt
        wäre bis morgen versperrt - bei einer Abgabe ist die Frist
        gewollt, hier wäre sie eine zweite Strafe für einen Stromausfall. */
-    const code = offen.length
+    const code = fertig ? (fertig.code || null)
+      : offen.length
       ? CODE.ausstellen({ station: def.station,
                           durchgang: (angefangen.kopf && angefangen.kopf.durchgang) || 1,
                           offen: offen, person: angefangen.kopf && angefangen.kopf.person,
@@ -349,55 +380,79 @@ function pruefung(def){
     /* Die Auswertung gehört INS PAKET, nicht nur auf den Bildschirm:
        Wer beurteilt, soll sie sehen, ohne sie nachrechnen zu müssen.
        Deshalb erst anhängen, dann schnüren - in dieser Reihenfolge. */
-    const bilanz = { erreicht: nach.erreicht, moeglich: nach.moeglich,
-                     offen: offen, code: code, gerettet: true,
-                     aufgaben: nach.aufgaben };
-    angefangen.ereignisse = (angefangen.ereignisse || [])
-      .concat([Object.assign({ t: 0, was: 'auswertung' }, bilanz)]);
-    /* Auch in den KOPF: Die Wiedergabe holt die Auswertung von dort
-       (`kopf.auswertung`), nicht aus dem Ereignisstrom. Ohne das stünde
-       eine gerettete Prüfung beim Beurteilen ohne Auswertung da. */
-    angefangen.kopf = Object.assign({}, angefangen.kopf, { auswertung: bilanz });
-    const paket = AUF.paketAus(angefangen);
+    if (!fertig){
+      const bilanz = { erreicht: nach.erreicht, moeglich: nach.moeglich,
+                       offen: offen, code: code, gerettet: true,
+                       aufgaben: nach.aufgaben };
+      angefangen.ereignisse = (angefangen.ereignisse || [])
+        .concat([Object.assign({ t: 0, was: 'auswertung' }, bilanz)]);
+      /* Auch in den KOPF: Die Wiedergabe holt die Auswertung von dort
+         (`kopf.auswertung`), nicht aus dem Ereignisstrom. Ohne das stünde
+         eine gerettete Prüfung beim Beurteilen ohne Auswertung da. */
+      angefangen.kopf = Object.assign({}, angefangen.kopf, { auswertung: bilanz });
+    }
+    const paket = AUF.paketAus(angefangen, { unterbrochen: !fertig });
 
-    blatt.appendChild(el('div', 'warnung',
-      '<b>Diese Prüfung wurde unterbrochen.</b> Was bis dahin aufgenommen ' +
-      'wurde, steckt im Paket. Geben Sie es ab — danach können Sie dort ' +
-      'weitermachen, wo es aufgehört hat.'));
+    blatt.appendChild(el('div', 'warnung', fertig
+      ? '<b>Diese Prüfung war fertig — nur abgegeben wurde sie nicht.</b> Die ' +
+        'Auswertung von damals steckt im Paket und bleibt, wie sie war. Es fehlt ' +
+        'nur noch die Abgabe.'
+      : '<b>Diese Prüfung wurde unterbrochen.</b> Was bis dahin aufgenommen ' +
+        'wurde, steckt im Paket. Geben Sie es ab — danach können Sie dort ' +
+        'weitermachen, wo es aufgehört hat.'));
 
     /* --- Was schon gelöst ist --- */
     const uebersicht = el('div', 'ergebnis');
-    uebersicht.appendChild(el('h3', null, 'Was bis zur Unterbrechung stand'));
+    uebersicht.appendChild(el('h3', null, fertig
+      ? 'Ihr Ergebnis' : 'Was bis zur Unterbrechung stand'));
     const t = el('table');
     t.innerHTML = '<tr><th>Aufgabe</th><th>Stand</th></tr>';
     def.aufgaben.forEach(a => {
       const x = nach.aufgaben.find(y => y.nr === a.nr);
-      const fertig = geloest.indexOf(a.nr) >= 0;
-      const wort = fertig ? 'vollständig richtig'
+      const gel = geloest.indexOf(a.nr) >= 0;
+      /* Im fertigen Fall wird berichtet, nicht aufgetragen: Wer
+         bestanden hat, muss nichts wiederholen, und «noch einmal zu
+         lösen» waere schlicht falsch. */
+      const wort = fertig
+                 ? (!x ? 'in einem früheren Durchgang gelöst'
+                    : x.ganz ? 'vollständig richtig'
+                    : x.erreicht > 0 ? 'teilweise richtig' : 'nicht richtig')
+                 : gel ? 'vollständig richtig'
                  : !x ? 'nicht begonnen'
                  : x.erreicht > 0 ? 'teilweise — noch einmal zu lösen'
                  : 'noch einmal zu lösen';
+      const klasse = fertig
+                   ? (!x || x.ganz ? 'ganz' : x.erreicht > 0 ? 'teils' : 'nichts')
+                   : gel ? 'ganz' : x && x.erreicht > 0 ? 'teils' : 'nichts';
       const tr = el('tr');
       tr.innerHTML = '<td>Aufgabe ' + a.nr + ' · ' + a.titel + '</td>' +
-        '<td class="' + (fertig ? 'ganz' : x && x.erreicht > 0 ? 'teils' : 'nichts') +
-        '">' + wort + '</td>';
+        '<td class="' + klasse + '">' + wort + '</td>';
       t.appendChild(tr);
     });
     uebersicht.appendChild(t);
 
-    if (offen.length === 0){
-      uebersicht.appendChild(el('p', null,
-        '<b>Alle Aufgaben sind gelöst.</b> Geben Sie das Paket ab und sagen Sie ' +
-        'Ihrer Dozentin Bescheid — die Auswertung steckt darin.'));
+    if (!code){
+      uebersicht.appendChild(el('p', null, fertig
+        ? '<b>Die Prüfung ist bestanden — Sie müssen nichts wiederholen.</b> ' +
+          'Geben Sie das Paket ab; die Auswertung steckt darin.'
+        : '<b>Alle Aufgaben sind gelöst.</b> Geben Sie das Paket ab und sagen Sie ' +
+          'Ihrer Dozentin Bescheid — die Auswertung steckt darin.'));
     } else {
       uebersicht.appendChild(el('p', null,
-        'Mit diesem Code steigen Sie wieder ein. Es sind dann nur noch die ' +
-        'Aufgaben zu lösen, die oben offen stehen.'));
+        'Mit diesem Code steigen Sie wieder ein. Es sind dann nur noch ' +
+        (offen.length === 1 ? 'Aufgabe ' + offen[0]
+                            : 'die Aufgaben ' + offen.join(', ')) + ' zu lösen.'));
       uebersicht.appendChild(el('p', 'code', code));
-      uebersicht.appendChild(el('p', 'hinweis',
-        'Der Code gilt sofort. Schreiben Sie ihn auf, bevor Sie das Fenster ' +
-        'schliessen. <b>Geben Sie zuerst das Paket ab</b> — ohne die Aufnahme ' +
-        'zählt der bisherige Teil nicht.'));
+      /* Der gerettete Code ist auf gestern datiert und gilt sofort; der
+         Code einer fertigen Prüfung ist der von damals und trägt seine
+         Sperrfrist mit. Beides zu sagen waere falsch. */
+      uebersicht.appendChild(el('p', 'hinweis', (fertig
+        ? 'Es ist derselbe Code, der schon am Ende der Prüfung dastand — nicht ' +
+          'ein zweiter. '
+        : 'Der Code gilt sofort. ') +
+        'Schreiben Sie ihn auf, bevor Sie das Fenster schliessen. ' +
+        '<b>Geben Sie zuerst das Paket ab</b> — ohne die Aufnahme zählt der ' +
+        'bisherige Teil nicht.'));
     }
     if (nach.unvollstaendig)
       uebersicht.appendChild(el('p', 'hinweis',
@@ -982,24 +1037,36 @@ function pruefung(def){
        ueber `offen.length` - damit gab es «alles richtig» und «noch
        offen», aber keinen Platz fuer den haeufigsten Fall: bestanden
        mit ein paar Luecken. */
+    /* Der Erfolg wird im selben Kasten nicht zurueckgenommen.
+
+       Bis zum 09.09.2026 endeten BEIDE Bestanden-Zweige mit «Bis dahin
+       gilt die Station als noch nicht bestanden» - unter einer
+       Ueberschrift, die das Gegenteil sagte. Die Abnahme faellt nicht
+       weg, sie wechselt die Richtung: aus der Einschraenkung wird eine
+       Zusage. Wortlaut von Rike abgenommen, 09.09.2026. */
+    const abnahme = () => el('p', null,
+      'Was jetzt noch kommt: <b>Ich höre mir Ihre Erklärungen an</b> und gebe ' +
+      'Ihnen über Moodle Rückmeldung. Damit haben Sie dann auch die Bestätigung, ' +
+      'dass die Station bestanden ist.');
+
     if (bestanden && !offen.length){
-      w.appendChild(el('h3', null, 'Alle Aufgaben vollständig richtig'));
+      w.appendChild(el('h3', null, 'Bestanden — alle Aufgaben vollständig richtig'));
       w.appendChild(el('p', null,
-        'Für diese Station ist rechnerisch alles erledigt. Es fehlt nur noch, ' +
-        'dass Ihre Erklärungen angehört werden — die Rückmeldung dazu kommt ' +
-        'über Moodle. <b>Bis dahin gilt die Station als noch nicht bestanden.</b>'));
+        'Sie haben <b>' + Math.round(anteil*100) + ' %</b> erreicht, und jede ' +
+        'Aufgabe war vollständig richtig. Damit ist die Prüfung bestanden, und ' +
+        'Sie brauchen keinen zweiten Durchgang.'));
+      w.appendChild(abnahme());
     } else if (bestanden){
-      w.appendChild(el('h3', null, 'Bestanden — Sie sind fertig'));
+      w.appendChild(el('h3', null, 'Bestanden — Sie müssen nichts wiederholen'));
       w.appendChild(el('p', null,
-        'Sie haben die 80 % erreicht. ' + (offen.length === 1
+        'Sie haben <b>' + Math.round(anteil*100) + ' %</b> erreicht. Damit ist die ' +
+        'Prüfung rechnerisch bestanden, und Sie brauchen keinen zweiten Durchgang.'));
+      w.appendChild(el('p', null, (offen.length === 1
           ? 'Aufgabe ' + offen[0] + ' ist zwar nicht vollständig richtig'
           : 'Die Aufgaben ' + offen.join(', ') + ' sind zwar nicht vollständig richtig') +
         ' — <b>wiederholen müssen Sie deshalb nichts.</b> Für das Bestehen zählen ' +
         'die Punkte, nicht die Zahl der ganz gelösten Aufgaben.'));
-      w.appendChild(el('p', null,
-        'Es fehlt nur noch, dass Ihre Erklärungen angehört werden — die Rückmeldung ' +
-        'dazu kommt über Moodle. <b>Bis dahin gilt die Station als noch nicht ' +
-        'bestanden.</b>'));
+      w.appendChild(abnahme());
     } else {
       w.appendChild(el('h3', null, 'Noch nicht bestanden'));
       w.appendChild(el('p', null,
@@ -1015,49 +1082,103 @@ function pruefung(def){
         'am <b>' + CODE.datumText(frei) + '</b> frei. Sehen Sie sich bis dahin an, ' +
         'was nicht geklappt hat. Danach öffnen Sie die Station erneut und tragen ' +
         'den Code ein; dann bekommen Sie nur noch die offenen Aufgaben, mit neuen ' +
-        'Zahlen:'));
-      w.appendChild(el('div', 'code', code));
-      const kopieren = el('button', 'neben', 'Code kopieren');
-      kopieren.type = 'button';
-      kopieren.onclick = () => {
-        navigator.clipboard.writeText(code).then(
-          () => { kopieren.textContent = '✓ kopiert'; },
-          () => { kopieren.textContent = 'bitte abschreiben'; });
-      };
-      w.appendChild(kopieren);
-      w.appendChild(el('p', 'hinweis',
-        'Schreiben Sie ihn sicherheitshalber auf. Der Code gehört zu Ihrem Namen ' +
-        'und zum heutigen Datum; weitergeben nützt niemandem.'));
+        'Zahlen.'));
+      /* Der Code selbst steht NICHT hier, sondern unten in Schritt 4.
+
+         Er stand bis zum 09.09.2026 an dieser Stelle, als grosser Block
+         vor den Abgabeschritten - die lasen sich danach wie Beiwerk.
+         Jetzt ordnet die Reihenfolge den Weg: Ergebnis, Urteil, dann
+         die vier Schritte. Wer den Code lesen will, hat die drei
+         anderen Schritte gesehen.
+
+         An ZWEI Stellen steht er ausdruecklich nicht (Rike, 09.09.):
+         Derselbe neunstellige Code doppelt laedt dazu ein, den falschen
+         abzuschreiben, sobald einmal nur eine der beiden nachgezogen
+         wird.
+
+         AUSNAHME WERKSTATT: Dort gibt es gar keine Abgabeschritte (kein
+         Paket, keine Abgabe) - der Code stuende also NIRGENDS. Genau das
+         hat `pruefstand/durchgang.html` am 09.09.2026 gemeldet: 48 von
+         48 Laeufen «kein Code ausgestellt». Es bleibt bei EINER Stelle,
+         sie liegt nur woanders: entweder hier oder in Schritt 4, nie
+         beides. */
+      if (paket && !paket.werkstatt){
+        w.appendChild(el('p', 'hinweis',
+          'Der Code steht unten in <b>Schritt 4</b>.'));
+      } else {
+        w.appendChild(el('div', 'code', code));
+        w.appendChild(el('p', 'hinweis',
+          'In der Prüfung steht dieser Code in Schritt 4 der Abgabe; hier gibt ' +
+          'es keine Abgabe, deshalb steht er an dieser Stelle.'));
+      }
     }
     blatt.appendChild(w);
 
-    /* --- Abgabe: speichern, ablegen, bestätigen --- */
+    /* --- Abgabe: speichern, ablegen, bestätigen, Code notieren --- */
     if (paket && !paket.werkstatt)
-      abgabeschritte(blatt, paket, () => AUF.aufraeumen(paket.sitzung));
+      abgabeschritte(blatt, paket, () => AUF.aufraeumen(paket.sitzung), code);
   }
 
   /* ============================================================
-     Der Abgabeweg — drei Schritte
+     Der Abgabeweg — drei Schritte, mit Code vier
 
      NEU (gemeinsam entschieden, 2026-08-21): Es wird nichts
      hochgeladen. SWITCHdrive nimmt kein PUT aus dem Browser
      entgegen - Rike hat das bei Kasper schon durchgespielt.
      Derselbe Weg wie dort: speichern, Abgabefenster oeffnen,
-     hineinziehen, bestaetigen. Jeder Schritt schaltet den naechsten
-     frei, damit niemand in der Mitte aufhoert.
+     hineinziehen, bestaetigen.
 
      Die heruntergeladene Datei bleibt liegen. Geht beim Ablegen
      etwas schief, laesst sie sich auf jedem anderen Weg schicken.
 
      Dieselben Schritte gelten fuer eine gerettete Aufnahme -
      deshalb steht das hier fuer sich und nicht in abgeben().
+     Der Rettungsweg ruft OHNE `code` auf: Er zeigt Code und
+     Uebersicht selbst, und derselbe Code an zwei Stellen waere
+     genau der Fehler, den Schritt 4 vermeidet.
+
+     UMBAU 09.09.2026 (Auftrag «Der Pruefungsabschluss»):
+
+     - Schritt 4 kam dazu. Der Wiedereintrittscode stand vorher als
+       grosser Block VOR den Schritten; die lasen sich danach wie
+       Beiwerk. Jetzt ordnet die Reihenfolge den Weg.
+
+     - Der Code ist dabei NICHT gesperrt und wird nicht
+       freigeschaltet. Grund ist der Download-Fall: Klemmt der
+       Download, darf Schritt 3 gar nicht gedrueckt werden - sonst
+       ist die einzige Kopie weg. Haenge der Code an Schritt 3, saesse
+       genau die Person ohne Code da, die ohnehin schon ein Problem
+       hat. Ein Code hinter einer Sperre ist ein Code, den jemand
+       nicht bekommt.
+
+     - Schritt 1 behauptet nicht mehr, was er nicht weiss. Ein Klick
+       auf <a download> meldet nichts zurueck; «✓ Gespeichert» war
+       eine Vermutung. Jetzt fragt die Seite nach, und erst das Ja
+       schaltet weiter. Das ist die einzige Stelle im Ablauf, an der
+       eine Selbstauskunft etwas wert ist: Die Person kann nachsehen,
+       die Seite nicht.
+
+     - Schritt 3 hat zwei Knoepfe. Wer ehrlich ist und bei wem der
+       Upload klemmt, konnte den einen Knopf nicht druecken - und
+       liess damit auch das Raeumen aus, obwohl seine Aufnahme laengst
+       sicher im Download-Ordner lag.
+
+     BEIDE Knoepfe in Schritt 3 raeumen, auch der Notfallknopf. Wer
+     bis dorthin kommt, hat Schritt 1 mit «Ja» bestaetigt; die Datei
+     ist gesichert, egal auf welchem Weg sie zur Dozentin kommt.
+     Geraeumt wird an Schritt 3 und nirgends frueher - sonst waere
+     die Aufnahme weg, bevor jemand merkt, dass der Download nicht
+     angekommen ist.
      ============================================================ */
-  function abgabeschritte(blatt, paket, beiBestaetigung){
+  function abgabeschritte(blatt, paket, beiBestaetigung, code){
     const a = el('div', 'ergebnis');
-    a.appendChild(el('h3', null, 'Noch drei Schritte — dann sind Sie durch'));
+    a.appendChild(el('h3', null, code
+      ? 'Noch vier Schritte — dann sind Sie durch'
+      : 'Noch drei Schritte — dann sind Sie durch'));
     a.appendChild(el('p', null,
       'Ihre Aufnahme ist fertig geschnürt. <b>Sie ist noch nirgends abgelegt.</b> ' +
-      'Bitte gehen Sie die drei Schritte durch, bevor Sie das Fenster schliessen.'));
+      'Bitte gehen Sie die Schritte der Reihe nach durch, bevor Sie das Fenster ' +
+      'schliessen.'));
 
     /* 1 · speichern */
     const s1 = el('div', 'schritt');
@@ -1066,6 +1187,36 @@ function pruefung(def){
     const speichern = el('button', 'tat', 'Aufnahme speichern (' + paket.mb + ' MB)');
     speichern.type = 'button';
     s1.appendChild(speichern);
+
+    /* Die Rueckfrage. Sie ersetzt das «✓ Gespeichert», das die Seite
+       nicht wissen konnte. */
+    const frage = el('div');
+    frage.style.display = 'none';
+    frage.style.marginTop = '12px';
+    frage.appendChild(el('p', null,
+      'Liegt <b>' + paket.name + '</b> jetzt in Ihrem Download-Ordner? ' +
+      'Bitte sehen Sie nach.'));
+    const jaKnopf = el('button', 'tat', 'Ja');
+    jaKnopf.type = 'button';
+    const neinKnopf = el('button', 'neben', 'Nein — nochmal versuchen');
+    neinKnopf.type = 'button';
+    neinKnopf.style.marginLeft = '8px';
+    frage.appendChild(jaKnopf);
+    frage.appendChild(neinKnopf);
+    s1.appendChild(frage);
+
+    /* Der Ausweg hier ist das GEGENTEIL von dem in Schritt 3: dort
+       «weitergehen und die Datei anders schicken», hier
+       «stehenbleiben und nichts raeumen». Beides muss dastehen, und
+       beides muss verschieden klingen. */
+    const klemmt = el('div', 'warnung',
+      '<b>Finden Sie die Datei nicht?</b> Drücken Sie noch einmal auf ' +
+      '«Aufnahme speichern». <b>Schliessen Sie dieses Fenster nicht und ' +
+      'drücken Sie unten nichts</b>, solange die Datei nicht da ist — bis dahin ' +
+      'ist Ihre Aufnahme nur hier im Browser gespeichert. Wenn Sie die Seite ' +
+      'später wieder öffnen, können Sie sie von dort holen.');
+    klemmt.style.display = 'none';
+    s1.appendChild(klemmt);
     a.appendChild(s1);
 
     /* 2 · ablegen */
@@ -1083,22 +1234,52 @@ function pruefung(def){
     if (AUF.ablage()) s2.appendChild(ablegen);
     a.appendChild(s2);
 
-    /* 3 · bestätigen */
+    /* 3 · bestätigen — zwei Wege, beide räumen */
     const s3 = el('div', 'schritt');
     s3.style.opacity = '.45';
     s3.appendChild(el('h2', null, '<span class="nr">3</span>Bestätigen'));
     s3.appendChild(el('p', null,
-      'Wenn die Datei drüben angekommen ist, drücken Sie hier. Erst dann gilt ' +
-      'die Prüfung als abgegeben.'));
+      'Ist die Datei drüben angekommen? Dann drücken Sie links. Hat die Abgabe ' +
+      'nicht geklappt, drücken Sie rechts — Ihre Datei liegt ja gesichert im ' +
+      'Download-Ordner, und Sie schicken sie dann auf einem anderen Weg.'));
     const bestaetigen = el('button', 'tat', 'Ich habe abgegeben');
     bestaetigen.type = 'button'; bestaetigen.disabled = true;
+    const notfall = el('button', 'neben',
+      'Die Abgabe hat nicht geklappt — ich schicke die Datei anders');
+    notfall.type = 'button'; notfall.disabled = true;
+    notfall.style.marginLeft = '8px';
     s3.appendChild(bestaetigen);
+    s3.appendChild(notfall);
+    const ansage = el('div', 'warnung');
+    ansage.style.display = 'none';
+    s3.appendChild(ansage);
     a.appendChild(s3);
 
-    a.appendChild(el('p', 'hinweis',
-      'So heisst Ihre Datei: <b>' + paket.name + '</b>. ' +
-      'Sie bleibt in Ihrem Download-Ordner liegen — geht beim Ablegen etwas ' +
-      'schief, können Sie sie auf jedem anderen Weg schicken.'));
+    /* 4 · Code — von Anfang an lesbar, nie freigeschaltet */
+    let s4 = null;
+    if (code){
+      s4 = el('div', 'schritt');
+      s4.appendChild(el('h2', null,
+        '<span class="nr">4</span>Wiedereintrittscode notieren'));
+      s4.appendChild(el('p', null,
+        'Für den zweiten Durchgang brauchen Sie diesen Code. Schreiben Sie ihn ' +
+        'auf, <b>nachdem</b> Sie die Schritte 1 bis 3 erledigt haben — ohne die ' +
+        'abgegebene Aufnahme zählt der bisherige Teil nicht.'));
+      s4.appendChild(el('div', 'code', code));
+      const kopieren = el('button', 'neben', 'Code kopieren');
+      kopieren.type = 'button';
+      kopieren.onclick = () => {
+        navigator.clipboard.writeText(code).then(
+          () => { kopieren.textContent = '✓ kopiert'; },
+          () => { kopieren.textContent = 'bitte abschreiben'; });
+      };
+      s4.appendChild(kopieren);
+      s4.appendChild(el('p', 'hinweis',
+        'Der Code gehört zu Ihrem Namen und zum heutigen Datum; weitergeben nützt ' +
+        'niemandem.'));
+      a.appendChild(s4);
+    }
+
     if (paket.gescheitert)
       a.appendChild(el('div', 'warnung', paket.gescheitert +
         ' Aufnahmestück(e) konnten nicht gesichert werden. Geben Sie die Datei ' +
@@ -1106,15 +1287,38 @@ function pruefung(def){
     blatt.appendChild(a);
 
     let fenster = null;
+
     speichern.onclick = () => {
       AUF.herunterladen(paket.paket, paket.name);
-      AUF.merken('gespeichert');
-      speichern.textContent = '✓ Gespeichert — nochmals speichern';
+      AUF.merken('download-versucht');
+      speichern.textContent = 'Nochmals speichern';
       speichern.className = 'neben';
+      frage.style.display = '';
+      klemmt.style.display = '';
+    };
+
+    /* Erst das Ja schaltet weiter. */
+    jaKnopf.onclick = () => {
+      AUF.merken('gespeichert');
+      frage.style.display = 'none';
+      klemmt.style.display = 'none';
+      s1.classList.add('getan');
+      s1.appendChild(el('p', 'hinweis',
+        'Gut — <b>' + paket.name + '</b> liegt in Ihrem Download-Ordner.'));
       s2.style.opacity = '';
       if (AUF.ablage()) ablegen.disabled = false;
-      else { bestaetigen.disabled = false; s3.style.opacity = ''; }
+      else { bestaetigen.disabled = false; notfall.disabled = false;
+             s3.style.opacity = ''; }
     };
+    neinKnopf.onclick = () => {
+      AUF.merken('download-fehlt');
+      frage.style.display = 'none';
+      speichern.className = 'tat';
+      speichern.textContent = 'Aufnahme speichern (' + paket.mb + ' MB)';
+      /* Die Warnung bleibt stehen: Sie ist jetzt der wichtigste Text
+         auf der Seite. */
+    };
+
     ablegen.onclick = () => {
       const br = Math.min(900, Math.round(screen.width * 0.62));
       const ho = Math.min(760, Math.round(screen.height * 0.74));
@@ -1128,17 +1332,36 @@ function pruefung(def){
       ablegen.className = 'neben';
       s3.style.opacity = '';
       bestaetigen.disabled = false;
+      notfall.disabled = false;
     };
-    bestaetigen.onclick = () => {
+
+    /* Beide Knoepfe enden hier - gleicher Abschluss, gleiches
+       Raeumen, verschiedene Ansage. */
+    function abschliessen(wort, text){
       if (fenster && !fenster.closed){ try { fenster.close(); } catch(e){} }
-      AUF.merken('abgegeben');
-      bestaetigen.disabled = true;
-      bestaetigen.textContent = '✓ Danke — Sie können das Fenster schliessen';
+      AUF.merken(wort);
+      bestaetigen.disabled = true; notfall.disabled = true;
+      bestaetigen.textContent = '✓ Danke';
+      notfall.style.display = 'none';
+      s3.classList.add('getan');
+      if (text){ ansage.innerHTML = text; ansage.style.display = ''; }
+      else s3.appendChild(el('p', 'hinweis',
+        'Sie können das Fenster schliessen.'));
       s1.style.opacity = '.45'; s2.style.opacity = '.45';
       /* Erst JETZT die Zwischensicherung raeumen. Vorher waere sie
          weg, bevor die Datei wirklich angekommen ist. */
       if (beiBestaetigung) beiBestaetigung();
-    };
+    }
+
+    bestaetigen.onclick = () => abschliessen('abgegeben', null);
+    notfall.onclick = () => abschliessen('abgabe-geklemmt',
+      /* Der Vermerk kann NICHT mehr ins Paket: Das ist bei Schritt 1
+         geschnuert und heruntergeladen, bevor Schritt 3 gedrueckt
+         wird. Deshalb steht hier, dass die Person es in die E-Mail
+         schreiben soll. */
+      'Ihre Datei <b>' + paket.name + '</b> liegt in Ihrem Download-Ordner. ' +
+      'Schicken Sie sie Ihrer Dozentin per E-Mail und schreiben Sie dazu, dass ' +
+      'die Abgabe über SWITCHdrive nicht funktioniert hat.');
   }
 }
 
