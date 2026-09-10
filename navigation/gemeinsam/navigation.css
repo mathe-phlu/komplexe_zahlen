@@ -774,6 +774,98 @@ table.fahrplan .luecke { background: none; border-color: transparent; }
 
 /* ----------------------------------------- Werkstatt-Kaertchen ---- */
 
+/* ============================================================
+   Die Materialkarte in der Navigation
+
+   **Dieselbe Karte wie auf der Materialseite** (Rike, 09.09.2026):
+   «Die gleichen Buttons wie bei Prüfungsähnliche Aufgaben auf der
+   Materialhauptseite. Diese Buttons im gleichen Stil hätte ich auch
+   gerne bei den Übungen.»
+
+   Sie heisst hier NICHT `.karte` -- den Namen trägt in der Navigation
+   schon etwas anderes (die grossen Kästen der Startseite), und zwei
+   Bedeutungen unter einem Namen wären genau die Sorte Falle, die man
+   erst bemerkt, wenn eine Seite anders aussieht als gedacht.
+
+   Masse, Farben und der Maskentrick sind aus
+   `bauen/gestalt/lernlandschaft.css` übernommen, nicht nachempfunden:
+   Die Zeichnung wird als Maske gelegt und aus `--braun` eingefärbt,
+   damit sie zur Navigation passt statt zur Stationsfarbe.
+   ============================================================ */
+.materialkarten {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: .875rem;
+}
+.materialkarte {
+  background: var(--weiss);
+  border: 1px solid #E4D9C7;
+  border-radius: .625rem;
+  padding: .875rem;
+  text-decoration: none;
+  color: var(--tinte);
+  display: block;
+  box-shadow: 0 1px 3px rgba(45,41,36,.07);
+  text-align: center;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+a.materialkarte:hover {
+  border-color: var(--braun);
+  box-shadow: 0 2px 8px rgba(45,41,36,.12);
+  transform: translateY(-.125rem);
+}
+.materialkarte .sym {
+  display: block;
+  height: 4.125rem;
+  width: 5.5rem;
+  margin: 0 auto .5rem;
+  background-color: var(--braun);
+  -webkit-mask-image: url(symbole/lernpfad.png);
+          mask-image: url(symbole/lernpfad.png);
+  -webkit-mask-repeat: no-repeat;  mask-repeat: no-repeat;
+  -webkit-mask-position: center;   mask-position: center;
+  -webkit-mask-size: contain;      mask-size: contain;
+}
+.materialkarte .name {
+  display: block;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.25rem;
+}
+.materialkarte .was {
+  display: block;
+  margin-top: .125rem;
+  font-size: .9rem;
+  color: var(--grau);
+}
+/* Auswaerts, wie bei den Kacheln oben: Marke ↗ und ein eigenes
+   Fenster. Die Strategiewerkstatt ist eine ARBEITSSEITE — sie nimmt
+   auf, und wer sie im Rahmen oeffnet, verliert bei jedem Zurueck die
+   laufende Aufnahme. Rike, 10.09.2026: «Alle Links, die zu
+   Arbeitsmaterial fuehren und nicht zu Informaterial, sollten auf
+   einer neuen Seite oeffnen.»
+
+   `.aus-text` ist dieselbe Regel fuer einen Verweis im Fliesstext —
+   dort kann die Marke nicht in der Ecke sitzen, also haengt sie
+   hinten an, mit geschuetztem Abstand, damit sie nicht allein
+   umbricht. */
+.materialkarte { position: relative; }
+.materialkarte.aus::after {
+  content: "↗";
+  position: absolute;
+  top: .375rem; right: .5rem;
+  font-size: .8rem;
+  color: var(--grau);
+}
+.aus-text::after { content: "\00a0↗"; font-size: .8em; }
+
+/* Wartend: matt und nicht anklickbar — dieselbe Sprache wie überall. */
+.materialkarte.wartet {
+  opacity: .45;
+  pointer-events: none;
+  border-style: dashed;
+  box-shadow: none;
+}
+
 .werkstatt-reihe { display: grid; gap: .875rem; }
 /* Farbneutral. Der frühere Verlauf stammte aus der Zeit, als Teil A
  * nur blaue und lila und Teil B nur grüne und gelbe Kacheln hatte —
@@ -796,6 +888,19 @@ table.fahrplan .luecke { background: none; border-color: transparent; }
   transform: translateY(-.125rem);
   background: var(--aktuell);
 }
+/* **Der Untertitel gehoert auf eine eigene Zeile — bei jeder Kachel.**
+   Diese Regel stand bis zum 09.09.2026 nur unter `.werkstatt.wartet`,
+   weil es bis dahin nur wartende Kacheln gab. Als die erste scharf
+   wurde, floss ihr Untertitel in die Ueberschriftszeile und brach
+   mitten im Satz um. */
+.werkstatt small {
+  display: block;
+  margin-top: .25rem;
+  font-family: inherit;
+  font-size: .9rem;
+  opacity: .8;
+}
+a.werkstatt { text-decoration: none; }
 /* **Die wartende Kachel** (28.08.2026). Dieselbe Form, aber matt und
    gestrichelt: Man sieht, dass es die Aufgabe gibt und wo sie stehen
    wird, und man sieht auf den ersten Blick, dass sie noch nicht offen
@@ -809,13 +914,7 @@ table.fahrplan .luecke { background: none; border-color: transparent; }
   cursor: default;
 }
 .werkstatt.wartet:hover { transform: none; background: transparent; }
-.werkstatt.wartet small {
-  display: block;
-  margin-top: .25rem;
-  font-family: inherit;
-  font-size: .9rem;
-  opacity: .8;
-}
+
 
 /* --------------------------------------------- Zweispaltig -------- */
 
