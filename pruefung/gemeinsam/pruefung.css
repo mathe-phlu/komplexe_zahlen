@@ -219,6 +219,29 @@ button.neben:hover{border-color:var(--akzent)}
 .fehl{background:#fdeeec;border:1px solid var(--falsch);border-radius:10px;
    padding:12px 16px;color:#8c2d24;font-size:14px;margin:10px 0}
 
+/* ---------- Die Skizze zum Abgabefenster ---------- */
+/* Gezeichnet, nicht fotografiert - Begruendung in ablauf.js. Sie
+   steht in ihrem eigenen Kasten, damit sie nicht wie ein Teil der
+   Pruefungsseite aussieht, sondern wie das, was sie ist: ein Bild
+   von einem fremden Fenster. */
+.skizze{margin:14px 0;padding:10px 12px;background:var(--creme);
+   border:1px solid var(--linie);border-radius:10px;text-align:center}
+.skizze svg{display:block;margin:0 auto}
+
+/* ---------- Die Merkliste waehrend der Abgabe ---------- */
+/* Sie erscheint erst, wenn das Abgabefenster offen ist. Das liegt
+   dann rechts ueber der Seite; sichtbar bleibt nur ein Streifen
+   links. Deshalb kurz, gross genug und mit kraeftigem Rand - sie
+   muss aus dem Augenwinkel lesbar sein. */
+.merkliste{margin:14px 0 4px;padding:12px 16px 12px 14px;
+   background:var(--papier);border:2px solid var(--akzent);
+   border-radius:10px;font-size:14.5px}
+/* Nur die Ueberschrift steht auf eigener Zeile - ein `b` INNERHALB
+   eines Listenpunktes darf den Satz nicht zerreissen. */
+.merkliste > b{display:block;margin-bottom:6px}
+.merkliste ol{margin:0;padding-left:20px}
+.merkliste li{margin:4px 0}
+
 /* ---------- Auswertung am Schluss ---------- */
 .ergebnis{background:var(--karte);border:1px solid var(--linie);border-radius:14px;
    padding:20px 24px;margin-bottom:14px}

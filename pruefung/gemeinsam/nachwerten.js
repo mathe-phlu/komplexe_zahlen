@@ -143,15 +143,15 @@ function teilStimmt(sollRoh, stand){
     }
 
     case 'bildpunkt': {
-      /* Ein Klick, zwei Kriterien: Lag er im richtigen Bild, und war
-         es dort der richtige Punkt? Der Ereignisstrom meldet das
-         zuletzt gewaehlte Ziel; sein Praefix sagt, in welchem Bild es
-         lag. */
+      /* Seit dem 17.09.2026 traegt der Klick nur noch EIN Kriterium:
+         War es in der angeklickten Zeichnung der Bildpunkt von A?
+         `zieleA` nennt je Zeichnung genau ein Ziel; liegt der Klick
+         auf einem davon, stimmt er - gleichgueltig, in welcher
+         Zeichnung. Die Wahl der Zeichnung wird daneben als eigene
+         Auswahl gefragt und eigens gewertet. */
       const g = roh(sollRoh.felder[0]);
       if (!g || g === '—') return false;
-      return sollRoh.kriterium === 'punkt'
-        ? g === sollRoh.ziel
-        : g.indexOf(sollRoh.praefix) === 0;
+      return (sollRoh.zieleA || []).indexOf(g) >= 0;
     }
 
     case 'komplexPolarTeil': {

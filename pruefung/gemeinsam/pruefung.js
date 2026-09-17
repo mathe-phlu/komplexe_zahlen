@@ -1062,70 +1062,127 @@ function Bau(aufgabe, wurzel){
                  seinen praefix, damit sich aus dem Klick ablesen
                  laesst, in welchem Bild er lag
        o.praefixRichtig, o.zielRichtig                                */
+    /* ---- Zeichnung und Punkt darin ----
+
+       UMBAU (2026-09-17). Vorher trug EIN Klick zwei Kriterien: «das
+       richtige Bild» und «darin der Bildpunkt von A». Rike: «Wenn
+       jemand nicht das richtige Bild findet, dann kann er auch schon
+       den zweiten Folgepunkt gar nicht mehr bekommen. Das ist
+       natuerlich problematisch.» Sie hat recht - und dazu merkte man
+       der Aufgabe nicht an, dass zwei Dinge gefragt sind.
+
+       Jetzt sind es zwei Entscheidungen, und beide werden einzeln
+       gewertet:
+
+         die ZEICHNUNG - ein Klick auf das Bild legt den Rahmen darum
+         der PUNKT     - ein Klick auf eine Marke darin
+
+       Ein Klick auf eine Marke sagt beides; wer nur die Zeichnung
+       erkennt, klickt sie an und laesst die Marke offen. So kostet die
+       eine Einsicht nichts mehr, wenn die andere fehlt.
+
+       DER FOLGEFEHLER IST DAMIT AUFGELOEST. Der Punkt wird RELATIV zu
+       der Zeichnung gewertet, in die geklickt wurde: `zieleA` nennt je
+       Zeichnung das Ziel, das dort das Bild von A ist. Wer die falsche
+       Zeichnung fuer die richtige haelt, dort aber sauber verfolgt,
+       wohin A geht, bekommt seinen halben Punkt - er hat die Einsicht
+       gezeigt, um die es hier geht. Dieselbe Regel wie `passtZu` bei
+       den Zahlen.
+
+       Zuerst stand die Bildwahl als Auswahlliste «Bild 1 / Bild 2 /
+       Bild 3» daneben. Rike: «Bei der ersten Pruefung konnte man immer
+       das Bild direkt anklicken und es ist ein Rahmen drumherum
+       erschienen. Ich glaube, das haette ich gerne.» Der Rahmen ist
+       `.bild.gewaehlt` und steht schon in `pruefung.css`. */
     bildpunktwahl(o){
-      let gewaehlt = null;
+      let bild = null, punkt = null;
       const reihe = el('div', 'bildreihe');
       const rahmen = [];
 
       function malen(){
-        rahmen.forEach(r => Array.from(r.querySelectorAll('.ziel')).forEach(z => {
-          const t = z.querySelector('.treffer');
-          if (t) t.setAttribute('opacity',
-            z.getAttribute('data-ziel') === gewaehlt ? '0.3' : '0');
-        }));
+        rahmen.forEach((r, k) => {
+          r.classList.toggle('gewaehlt', k === bild);
+          Array.from(r.querySelectorAll('.ziel')).forEach(z => {
+            const t = z.querySelector('.treffer');
+            if (t) t.setAttribute('opacity',
+              z.getAttribute('data-ziel') === punkt ? '0.3' : '0');
+          });
+        });
       }
-      function waehlen(ziel){
-        gewaehlt = (gewaehlt === ziel) ? null : ziel;
+      function bildWaehlen(k){
+        bild = k; malen();
+        AUF.M.auswahl(o.name + '.bild', 'Bild ' + (k+1));
+      }
+      function punktWaehlen(k, ziel){
+        punkt = (punkt === ziel) ? null : ziel;
+        /* Eine Marke liegt in einer Zeichnung - wer sie anklickt, hat
+           die Zeichnung damit auch gewaehlt. Beim Zuruecknehmen bleibt
+           die Zeichnung stehen; sie ist eine eigene Antwort. */
+        if (punkt !== null) bild = k;
         malen();
-        AUF.M.bildklick(o.name, gewaehlt || '—');
+        AUF.M.bildklick(o.name, punkt || '—');
+        if (punkt !== null) AUF.M.auswahl(o.name + '.bild', 'Bild ' + (k+1));
       }
 
       o.bilder.forEach((bd, k) => {
         const r = ZE.rahmen(bd.flaeche, { waehlbar: true, marke: 'Bild ' + (k+1),
-          beiWahl: (ziel) => waehlen(ziel) });
+          beiWahl: (ziel) => punktWaehlen(k, ziel) });
+        r.style.cursor = 'pointer';
+        /* Ein Klick NEBEN die Marken waehlt nur die Zeichnung. Die
+           Marken hat `ZE.rahmen` schon selbst an der Hand. */
+        r.addEventListener('click', e => {
+          if (e.target.closest && e.target.closest('.ziel')) return;
+          bildWaehlen(k);
+        });
         rahmen.push(r);
         reihe.appendChild(r);
       });
       K().appendChild(reihe);
 
-      const KRITERIEN = [
-        { schluessel: 'bild',  wort: 'das richtige Bild',
-          trifft: g => !!g && g.indexOf(o.praefixRichtig) === 0 },
-        { schluessel: 'punkt', wort: 'darin der Bildpunkt von A',
-          trifft: g => g === o.zielRichtig }
-      ];
+      /* GEKOPPELT: Beide Teile schreiben in denselben Zustand - ein
+         Punktklick waehlt die Zeichnung mit. Der Pruefstand muss sie
+         deshalb einzeln falsifizieren, sonst ueberschreibt der eine
+         die Einstellung des anderen und meldet einen Fehlalarm. */
+      teile.push({ name: o.name + '.bild', p: o.p / 2, art: 'bilderwahl',
+        gekoppelt: o.name,
+        gefuellt: () => bild !== null,
+        pruefen: () => bild === o.richtigesBild,
+        gegeben: () => bild === null ? '—' : 'Bild ' + (bild+1),
+        soll: () => 'Bild ' + (o.richtigesBild+1),
+        sollRoh: { art: 'wahl', felder: [o.name + '.bild'],
+                   richtigTexte: ['Bild ' + (o.richtigesBild+1)] },
+        setzen: (wie) => {
+          const k = wie === 'richtig' ? o.richtigesBild
+                                      : andererIndex(o.bilder.length, o.richtigesBild);
+          if (k < 0) return false;
+          bildWaehlen(k);
+          return true;
+        }
+      });
 
-      KRITERIEN.forEach(kr => {
-        teile.push({ name: o.name + '#' + kr.schluessel, p: o.p / 2,
-          art: 'bildpunktwahl', gekoppelt: o.name,
-          gefuellt: () => gewaehlt !== null,
-          pruefen: () => kr.trifft(gewaehlt),
-          gegeben: () => gewaehlt || '—',
-          soll: () => kr.wort,
-          sollRoh: { art: 'bildpunkt', kriterium: kr.schluessel,
-                     felder: [o.name], praefix: o.praefixRichtig,
-                     ziel: o.zielRichtig },
-          /* Falsch heisst hier: GENAU dieses Kriterium verletzen.
-             Fuer «bild» ein Ziel in einem anderen Bild; fuer «punkt»
-             ein anderes Ziel im richtigen Bild - dann bleibt «bild»
-             stehen, und das ist der Sinn der Trennung. */
-          setzen: (wie) => {
-            const alle = rahmen.reduce((s, r) => s.concat(
-              Array.from(r.querySelectorAll('.ziel'))
-                   .map(z => z.getAttribute('data-ziel'))), []);
-            if (wie === 'richtig'){
-              gewaehlt = null; waehlen(o.zielRichtig);
-              return true;
-            }
-            const passt = kr.schluessel === 'bild'
-              ? (z => z.indexOf(o.praefixRichtig) !== 0)
-              : (z => z.indexOf(o.praefixRichtig) === 0 && z !== o.zielRichtig);
-            const z = alle.filter(passt)[0];
-            if (!z) return false;
-            gewaehlt = null; waehlen(z);
+      teile.push({ name: o.name, p: o.p / 2, art: 'bildpunktwahl',
+        gekoppelt: o.name,
+        gefuellt: () => punkt !== null,
+        pruefen: () => o.zieleA.indexOf(punkt) >= 0,
+        gegeben: () => punkt || '—',
+        soll: () => 'der Bildpunkt von A in der gewählten Zeichnung',
+        sollRoh: { art: 'bildpunkt', kriterium: 'punkt',
+                   felder: [o.name], zieleA: o.zieleA },
+        setzen: (wie) => {
+          if (wie === 'richtig'){
+            punkt = null; punktWaehlen(o.richtigesBild, o.zieleA[o.richtigesBild]);
             return true;
           }
-        });
+          /* Falsch heisst: eine Marke, die in IHRER Zeichnung nicht das
+             Bild von A ist - dann faellt genau dieses Kriterium. */
+          const alle = rahmen.reduce((s, r, k) => s.concat(
+            Array.from(r.querySelectorAll('.ziel'))
+                 .map(z => ({ k: k, ziel: z.getAttribute('data-ziel') }))), []);
+          const z = alle.filter(x => o.zieleA.indexOf(x.ziel) < 0)[0];
+          if (!z) return false;
+          punkt = null; punktWaehlen(z.k, z.ziel);
+          return true;
+        }
       });
       return B;
     },

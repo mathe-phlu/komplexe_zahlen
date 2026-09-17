@@ -1170,6 +1170,97 @@ function pruefung(def){
      die Aufnahme weg, bevor jemand merkt, dass der Download nicht
      angekommen ist.
      ============================================================ */
+  /* ============================================================
+     Die Skizze zum Abgabefenster
+
+     Gezeichnet statt fotografiert. Ein Screenshot veraltet mit der
+     naechsten Fassung von SWITCHdrive, und niemand merkt es - die
+     Seite behauptet dann, wie es aussieht, und liegt falsch. Eine
+     Skizze behauptet nur, was gemeint ist.
+
+     Sie zeigt BEIDE Wege, weil beide vorkommen: den Klick unten, der
+     immer geht, und das Ziehen nach oben. Und sie zeigt den dritten,
+     der wie ein Weg aussieht und keiner ist - das Ziehen nach unten.
+
+     Alle Farben aus den Seitenvariablen, damit die Skizze zur Seite
+     passt und nicht wie ein Fremdkoerper wirkt.
+     ============================================================ */
+  function abgabeskizze(){
+    const d = el('div', 'skizze');
+    d.innerHTML =
+    '<svg viewBox="0 0 480 296" width="100%" style="max-width:480px;height:auto" ' +
+         'role="img" aria-label="Skizze des Abgabefensters: oben das gestrichelte ' +
+         'Feld zum Hineinziehen, unten der Knopf Hochladen zum Anklicken.">' +
+      '<defs>' +
+        '<marker id="pfeilgut" viewBox="0 0 10 10" refX="9" refY="5" ' +
+                'markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
+          '<path d="M0,0 L10,5 L0,10 z" fill="var(--richtig)"/></marker>' +
+        '<marker id="pfeilschlecht" viewBox="0 0 10 10" refX="9" refY="5" ' +
+                'markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
+          '<path d="M0,0 L10,5 L0,10 z" fill="var(--falsch)"/></marker>' +
+      '</defs>' +
+
+      /* das Fenster des Abgabeordners */
+      '<rect x="14" y="30" width="286" height="250" rx="8" ' +
+            'fill="var(--karte)" stroke="var(--linie)" stroke-width="1.5"/>' +
+      '<rect x="14" y="30" width="286" height="26" rx="8" fill="var(--creme)"/>' +
+      '<rect x="14" y="48" width="286" height="8" fill="var(--creme)"/>' +
+      '<line x1="14" y1="56" x2="300" y2="56" stroke="var(--linie)" stroke-width="1.5"/>' +
+      '<text x="26" y="48" font-size="12" fill="var(--matt)">Abgabeordner</text>' +
+
+      /* oben: das gestrichelte Ziehfeld */
+      '<rect x="30" y="70" width="254" height="62" rx="6" fill="none" ' +
+            'stroke="var(--akzent)" stroke-width="2" stroke-dasharray="7 5"/>' +
+      '<text x="157" y="96" font-size="12.5" text-anchor="middle" ' +
+            'fill="var(--tinte)">Dateien hierhin ziehen</text>' +
+      '<text x="157" y="114" font-size="11" text-anchor="middle" ' +
+            'fill="var(--matt)">erscheint erst beim Ziehen</text>' +
+
+      /* Mitte: die Dateiliste, nur angedeutet */
+      '<line x1="30" y1="152" x2="284" y2="152" stroke="var(--linie)"/>' +
+      '<line x1="30" y1="174" x2="284" y2="174" stroke="var(--linie)"/>' +
+      '<line x1="30" y1="196" x2="284" y2="196" stroke="var(--linie)"/>' +
+
+      /* unten: der Knopf */
+      '<rect x="30" y="228" width="112" height="30" rx="6" ' +
+            'fill="var(--papier)" stroke="var(--tinte)" stroke-width="1.5"/>' +
+      '<text x="86" y="248" font-size="12.5" text-anchor="middle" ' +
+            'fill="var(--tinte)">+ Hochladen</text>' +
+      /* der Mauszeiger darauf */
+      '<path d="M92,252 l0,17 l4.5,-4.5 l3,6.5 l3,-1.5 l-3,-6.5 l6,0 z" ' +
+            'fill="var(--tinte)"/>' +
+
+      /* Weg 1: klicken - geht immer */
+      '<path d="M330,243 C300,243 290,243 146,243" fill="none" ' +
+            'stroke="var(--richtig)" stroke-width="2" marker-end="url(#pfeilgut)"/>' +
+      '<text x="336" y="239" font-size="12.5" fill="var(--richtig)">' +
+        '<tspan x="336" dy="0">1 · hier klicken</tspan>' +
+        '<tspan x="336" dy="15" font-size="11" fill="var(--matt)">geht immer</tspan>' +
+      '</text>' +
+
+      /* Weg 2: ziehen, aber nach oben */
+      '<path d="M336,100 C320,100 310,100 290,100" fill="none" ' +
+            'stroke="var(--richtig)" stroke-width="2" marker-end="url(#pfeilgut)"/>' +
+      '<text x="342" y="96" font-size="12.5" fill="var(--richtig)">' +
+        '<tspan x="342" dy="0">2 · oder hierhin</tspan>' +
+        '<tspan x="342" dy="15" font-size="11" fill="var(--matt)">ziehen</tspan>' +
+      '</text>' +
+
+      /* der Irrweg: ziehen nach unten */
+      '<path d="M336,170 C300,170 250,196 152,236" fill="none" ' +
+            'stroke="var(--falsch)" stroke-width="2" stroke-dasharray="6 4" ' +
+            'marker-end="url(#pfeilschlecht)"/>' +
+      '<line x1="238" y1="186" x2="262" y2="210" stroke="var(--falsch)" stroke-width="2.5"/>' +
+      '<line x1="262" y1="186" x2="238" y2="210" stroke="var(--falsch)" stroke-width="2.5"/>' +
+      '<text x="342" y="166" font-size="12.5" fill="var(--falsch)">' +
+        '<tspan x="342" dy="0">nicht hierhin</tspan>' +
+        '<tspan x="342" dy="15" font-size="11" fill="var(--matt)">ziehen — es</tspan>' +
+        '<tspan x="342" dy="14" font-size="11" fill="var(--matt)">passiert nichts</tspan>' +
+      '</text>' +
+    '</svg>';
+    return d;
+  }
+
   function abgabeschritte(blatt, paket, beiBestaetigung, code){
     const a = el('div', 'ergebnis');
     a.appendChild(el('h3', null, code
@@ -1219,33 +1310,115 @@ function pruefung(def){
     s1.appendChild(klemmt);
     a.appendChild(s1);
 
-    /* 2 · ablegen */
+    /* 2 · ablegen
+
+       UMBAU 15.09.2026, nach der ersten echten Pruefung: Von zwei
+       Abgaben kam eine nicht an, obwohl die Person geschrieben hatte,
+       sie habe abgegeben. Am Code lag es nicht - nachgemessen wurde
+       alles, vom Abgabelink bis zum Speicherplatz.
+
+       Die Ursache ist die Oberflaeche von SWITCHdrive, und der Text
+       hier fuehrte hinein statt vorbei. Rike: «Das Ablagefeld
+       erscheint erst, wenn man irgendwie von seinem Ordner
+       rueberzieht, dann erscheint es da oben. Man schiebt es nicht
+       unten, da wo das Plus ist, rein, sondern muss es oben in dieses
+       Feld reinschieben. Und das hat [sie] nicht gemacht.»
+
+       Der alte Text sagte AUSSCHLIESSLICH «Ziehen Sie Ihre Datei
+       hinein» - also genau den Weg, der stumm scheitert. Der Knopf
+       unten ist immer sichtbar, das Ziehfeld oben erscheint erst
+       waehrend des Ziehens. Wer ziehen will, sieht den Knopf und
+       zielt nach unten. Dort wird nichts angenommen, und es kommt
+       keine Fehlermeldung.
+
+       Drei Aenderungen, alle aus Rikes Worten:
+
+       1  DER KLICKWEG STEHT ZUERST. «Wenn man einfach unten auf
+          hochladen klickt und sich ein Feld oeffnet, ist es kein
+          Problem.» Nicht das Ziehen ist der Fehler, sondern das
+          Ziehen nach UNTEN. Also wird der unproblematische Weg der
+          Hauptweg und das Ziehen die Alternative - mit der Warnung
+          dazu.
+
+       2  DER BALKEN IST DAS ERKENNUNGSZEICHEN. «Es muss nachher,
+          damit es klappt, so ein Balken erscheinen ... und wenn
+          dieser Balken nicht erscheint, dann wird auch nichts
+          hochgeladen. Und das muss den Studierenden klar sein.»
+
+       3  EINE SKIZZE, DIE BEIDE WEGE ZEIGT. Von Rike so abgenommen.
+          Gezeichnet, nicht fotografiert: Ein Screenshot veraltet mit
+          der naechsten Fassung von SWITCHdrive, und niemand merkt es.
+          Die Skizze zeigt, was gemeint ist, und behauptet nicht, wie
+          es heute aussieht. */
     const s2 = el('div', 'schritt');
     s2.style.opacity = '.45';
     s2.appendChild(el('h2', null, '<span class="nr">2</span>Datei abgeben'));
-    s2.appendChild(el('p', null, AUF.ablage()
-      ? 'Es öffnet sich ein Fenster mit dem Abgabeordner. Ziehen Sie Ihre Datei ' +
-        'hinein — der Ordner nimmt Dateien nur entgegen, Sie sehen darin nichts ' +
-        'von anderen.'
-      : 'Es ist noch kein Abgabeordner eingerichtet. Schicken Sie die gespeicherte ' +
+    if (AUF.ablage()){
+      s2.appendChild(el('p', null,
+        'Es öffnet sich das Fenster mit dem Abgabeordner. Der Ordner nimmt Dateien ' +
+        'nur entgegen; Sie sehen darin nichts von anderen.'));
+      s2.appendChild(el('p', null,
+        '<b>Der einfachste Weg:</b> unten auf <b>«+ Hochladen»</b> drücken und ' +
+        '<b>' + paket.name + '</b> auswählen.'));
+      s2.appendChild(el('p', null,
+        '<b>Wenn Sie die Datei lieber hineinziehen:</b> Das gestrichelte Feld dafür ' +
+        'liegt <b>oben</b> und erscheint erst, <i>während</i> Sie ziehen. Ziehen Sie ' +
+        '<b>nicht</b> auf «+ Hochladen» unten — dort nimmt der Ordner nichts an, ' +
+        'und es erscheint auch keine Fehlermeldung.'));
+      s2.appendChild(abgabeskizze());
+      s2.appendChild(el('p', 'warnung',
+        '<b>Kein Balken, keine Abgabe.</b> Wenn es klappt, läuft ein ' +
+        'Fortschrittsbalken; danach steht grün <b>«Dateien wurden hochgeladen»</b> ' +
+        'mit Ihrem Dateinamen darunter. Warten Sie darauf, bevor Sie weitergehen.'));
+    } else {
+      s2.appendChild(el('p', null,
+        'Es ist noch kein Abgabeordner eingerichtet. Schicken Sie die gespeicherte ' +
         'Datei Ihrer Dozentin.'));
+    }
     const ablegen = el('button', 'tat', 'Abgabefenster öffnen');
     ablegen.type = 'button'; ablegen.disabled = true;
     if (AUF.ablage()) s2.appendChild(ablegen);
+
+    /* Die Merkliste erscheint erst, wenn das Abgabefenster offen ist -
+       vorher waere sie eine Wiederholung. Sie steht bewusst KURZ da:
+       Das Abgabefenster liegt dann rechts ueber der Seite, und links
+       bleibt nur ein Streifen sichtbar. Was dort steht, muss auf einen
+       Blick lesbar sein. */
+    const merkliste = el('div', 'merkliste');
+    merkliste.style.display = 'none';
+    merkliste.innerHTML =
+      '<b>Im Abgabefenster:</b>' +
+      '<ol>' +
+      '<li>unten <b>«+ Hochladen»</b> drücken — oder <b>oben</b> ins gestrichelte ' +
+      'Feld ziehen</li>' +
+      '<li>den <b>Balken</b> abwarten</li>' +
+      '<li>auf <b>«Dateien wurden hochgeladen»</b> warten</li>' +
+      '<li>zurück auf diese Seite, Schritt 3</li>' +
+      '</ol>';
+    s2.appendChild(merkliste);
     a.appendChild(s2);
 
     /* 3 · bestätigen — zwei Wege, beide räumen */
     const s3 = el('div', 'schritt');
     s3.style.opacity = '.45';
     s3.appendChild(el('h2', null, '<span class="nr">3</span>Bestätigen'));
+    /* UMBAU 15.09.2026: Die Frage lautete «Ist die Datei drüben
+       angekommen?» - eine Frage nach dem Eindruck. Genau den hatte
+       die Person, deren Abgabe nie ankam: Sie hatte gezogen, nichts
+       war passiert, und sie hielt es fuer erledigt.
+
+       Gefragt wird deshalb nach der MELDUNG, nicht nach dem Gefuehl.
+       Sie ist das einzige, was von aussen belegt, dass etwas
+       angekommen ist - und sie steht in SWITCHdrives Fenster, nicht
+       in unserem. Wir koennen sie nicht pruefen; wir koennen nur
+       genau genug danach fragen, dass ein Nein auffaellt. */
     s3.appendChild(el('p', null,
-      'Ist die Datei drüben angekommen? Dann drücken Sie links. Hat die Abgabe ' +
-      'nicht geklappt, drücken Sie rechts — Ihre Datei liegt ja gesichert im ' +
-      'Download-Ordner, und Sie schicken sie dann auf einem anderen Weg.'));
-    const bestaetigen = el('button', 'tat', 'Ich habe abgegeben');
+      'Stand im Abgabeordner die grüne Meldung <b>«Dateien wurden ' +
+      'hochgeladen»</b> — mit <b>' + paket.name + '</b> darunter?'));
+    const bestaetigen = el('button', 'tat', 'Ja — die Bestätigung stand da');
     bestaetigen.type = 'button'; bestaetigen.disabled = true;
     const notfall = el('button', 'neben',
-      'Die Abgabe hat nicht geklappt — ich schicke die Datei anders');
+      'Nein — ich schicke die Datei anders');
     notfall.type = 'button'; notfall.disabled = true;
     notfall.style.marginLeft = '8px';
     s3.appendChild(bestaetigen);
@@ -1320,16 +1493,26 @@ function pruefung(def){
     };
 
     ablegen.onclick = () => {
-      const br = Math.min(900, Math.round(screen.width * 0.62));
-      const ho = Math.min(760, Math.round(screen.height * 0.74));
+      /* RECHTS statt in der Mitte. Vorher lag das Abgabefenster
+         mittig ueber der Seite und verdeckte alles, was man dort
+         gerade braucht. Am rechten Rand bleibt links ein Streifen
+         der Seite stehen - und genau dort steht die Merkliste.
+         Rikes Punkt: «Vielleicht koennten wir irgendwas, was wirklich
+         klar ist fuer die Studierenden.» Ein Merksatz, den man
+         waehrend des Abgebens noch sieht, ist klarer als einer, den
+         man vorher gelesen hat. */
+      const br = Math.min(860, Math.round(screen.width * 0.58));
+      const ho = Math.min(780, Math.round(screen.height * 0.78));
       fenster = window.open(AUF.ablage(), 'piaabgabe',
         'width=' + br + ',height=' + ho +
-        ',left=' + Math.round((screen.width - br)/2) +
-        ',top=' + Math.round((screen.height - ho)/2.6) + ',resizable=yes,scrollbars=yes');
+        ',left=' + Math.max(0, screen.width - br - 24) +
+        ',top=' + Math.round(screen.height * 0.08) + ',resizable=yes,scrollbars=yes');
       if (!fenster) window.open(AUF.ablage(), '_blank', 'noopener');
       AUF.merken('abgabefenster');
       ablegen.textContent = 'Abgabefenster nochmals öffnen';
       ablegen.className = 'neben';
+      merkliste.style.display = '';
+      merkliste.scrollIntoView({ block: 'center' });
       s3.style.opacity = '';
       bestaetigen.disabled = false;
       notfall.disabled = false;
@@ -1361,7 +1544,7 @@ function pruefung(def){
          schreiben soll. */
       'Ihre Datei <b>' + paket.name + '</b> liegt in Ihrem Download-Ordner. ' +
       'Schicken Sie sie Ihrer Dozentin per E-Mail und schreiben Sie dazu, dass ' +
-      'die Abgabe über SWITCHdrive nicht funktioniert hat.');
+      'im Abgabeordner <b>keine Bestätigung</b> erschienen ist.');
   }
 }
 

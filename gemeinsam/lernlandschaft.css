@@ -2498,6 +2498,28 @@ body:has(.notizleiste){padding-right:52px;--randstreifen:52px}
    Seite weg, sobald man den ersten Strich zieht. */
 .notizrolle[data-modus="schreiben"]{touch-action:none}
 .notizrolle[data-modus="tippen"]{touch-action:pan-y;cursor:text}
+.notizrolle[data-modus="radieren"]{touch-action:none;cursor:cell}
+/* **Sobald ein Stift im Spiel ist, rollt der Finger wieder.** Ohne
+   das naehme `touch-action:none` zwar dem Handballen den Strich, aber
+   auch dem Finger das Rollen -- und der Bogen ist mehrere Schirme
+   lang. Gesetzt wird das Merkmal vom Skript, beim ersten `pen`. */
+.notizrolle[data-stift="ja"]{touch-action:pan-y}
+
+/* **Die Auswahl bleibt in ihrem Kasten.** Ein Studierender am
+   17.09.2026, iPad Pro mit Stift: «der Notizblock ... zwingt mir
+   aufgrund falsch interpretierter Handballenimpulse immer wieder eine
+   Vollbildauswahl auf, die ich nur durch Loeschen des Inhalts wieder
+   wegbekomme.» Die Textkaesten sind `contenteditable`; eine Beruehrung
+   daneben begann auf iOS eine Auswahl, die nichts aufhielt, und lief
+   ueber das ganze Blatt.
+
+   `user-select:none` auf der Flaeche haelt sie auf, `user-select:text`
+   auf dem Kasten laesst das Bearbeiten unveraendert. `touch-callout`
+   nimmt die Lupe samt Menue dazu, die beim Aufliegen aufgeht. */
+.notizrolle{-webkit-user-select:none;user-select:none;
+  -webkit-touch-callout:none}
+.notiztext{-webkit-user-select:text;user-select:text;
+  -webkit-touch-callout:default}
 
 /* Die Karos sitzen auf dem Bogen, nicht auf dem Fenster -- sie
    muessen mitrollen. Gezeichnet statt geladen: eine Datei weniger,

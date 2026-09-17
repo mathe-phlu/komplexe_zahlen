@@ -276,9 +276,124 @@
             Math.round((e.clientY - r.top + rolle.scrollTop) * 10) / 10];
   }
 
-  var malt = null;
+  /* ---- Der Handballen -----------------------------------------------
+
+     Rückmeldung eines Studierenden am 17.09.2026, iPad Pro 13 M5:
+     «der Notizblock mit der Stifteingabe zwingt mich aufgrund falsch
+     interpretierter Handballenimpulse immer wieder eine
+     Vollbildauswahl auf, die ich nur durch Löschen des Inhalts wieder
+     wegbekomme.»
+
+     Zwei Fehler, nicht einer.
+
+     **Erstens zeichnete der Handballen mit.** Im Schreiben-Modus galt
+     `pointerType === 'pen' || modus === 'schreiben'` — der zweite Teil
+     nimmt jede Berührung an, also auch die Handfläche, die beim
+     Schreiben auf dem Glas liegt.
+
+     **Zweitens riss die Auswahl aus.** Die Textkästen sind
+     `contenteditable`. Eine Berührung auf einem von ihnen kam mit
+     `return` davon, ohne `preventDefault` — iOS begann dann eine
+     Textauswahl, und weil ringsherum nichts sie aufhielt, lief sie
+     über das ganze Blatt. Das ist die «Vollbildauswahl». Herauskommen
+     konnte er nur, indem er das Geschriebene wegwarf.
+
+     **Die Antwort: Der Stift schlägt den Finger.** Sobald diese Fläche
+     einmal einen echten Stift gesehen hat, zeichnet und radiert auf
+     ihr nur noch der Stift; Berührungen rollen den Bogen. Kein
+     Zeitfenster, kein Raten an der Grösse des Druckpunkts — der
+     Handballen kommt oft vor der Stiftspitze auf, ein Fenster käme
+     also zu spät. Wer mit dem Finger schreiben will, tut es auf einem
+     Gerät ohne Stift; dort ändert sich nichts.
+
+     Dazu hält `user-select` in der Gestaltung die Auswahl in ihrem
+     Kasten, und jeder neue Strich räumt eine stehengebliebene Auswahl
+     weg. Damit gibt es einen Weg heraus, der nichts kostet. */
+  var stiftgesehen = false;
+
+  /* **Nur Berührungen, nicht die Maus.** Eine Maus ist nie ein
+     Handballen, und am iPad hängt manchmal eine Tastatur mit
+     Zeigefläche. Abgewiesen wird darum `touch`, nicht «alles ausser
+     `pen`». */
+  function handballen(e) {
+    return stiftgesehen && e.pointerType === 'touch';
+  }
+
+  function stift_merken(e) {
+    if (e.pointerType !== 'pen' || stiftgesehen) return;
+    stiftgesehen = true;
+    /* Von jetzt an rollt der Finger, statt zu zeichnen — sonst nähme
+       `touch-action:none` dem Handballen zwar den Strich, aber auch
+       dem Finger das Rollen. */
+    rolle.dataset.stift = 'ja';
+  }
+
+  /* Eine stehengebliebene Auswahl verschwindet, sobald jemand wieder
+     auf dem Blatt ansetzt. */
+  function auswahl_loesen() {
+    var s = window.getSelection && window.getSelection();
+    if (s && !s.isCollapsed) { try { s.removeAllRanges(); } catch (_) {} }
+  }
+
+  /* ---- Radieren ------------------------------------------------------
+
+     Rike, 17.09.2026: «eine Sache, die problematisch ist, ist, dass
+     man immer nur das Ganze löschen kann und nicht gezielt einzelne
+     Striche weglöschen kann. Und das ist wirklich nervig, wenn man nur
+     mal kurz was verbessern möchte.»
+
+     **Ganze Striche, nicht Stücke** — ihre Entscheidung vom selben
+     Tag. Der Radierer nimmt jeden Strich mit, den er berührt. Das ist
+     vorhersagbar, es lässt die gespeicherte Form unverändert (ein
+     Strich bleibt eine Folge von Punkten), und es kann nichts
+     halbieren, was später niemand mehr zusammensetzt.
+
+     Getippte Kästen bleiben unangetastet: Ein leerer Kasten
+     verschwindet ohnehin von selbst, sobald man ihn verlässt. */
+  var RADIUS = 13;
+
+  function nah_dran(s, px, py) {
+    for (var i = 1; i < s.length; i++) {
+      var ax = s[i - 1][0], ay = s[i - 1][1];
+      var bx = s[i][0], by = s[i][1];
+      var dx = bx - ax, dy = by - ay;
+      var laenge = dx * dx + dy * dy;
+      /* Der Fusspunkt des Lots, auf das Stück begrenzt. */
+      var t = laenge ? ((px - ax) * dx + (py - ay) * dy) / laenge : 0;
+      t = t < 0 ? 0 : (t > 1 ? 1 : t);
+      var ex = px - (ax + t * dx), ey = py - (ay + t * dy);
+      if (ex * ex + ey * ey <= RADIUS * RADIUS) return true;
+    }
+    /* Ein Strich aus einem einzigen Punkt kommt nicht vor (er wird
+       beim Absetzen verworfen) — geprüft wird er trotzdem. */
+    return s.length === 1
+        && (px - s[0][0]) * (px - s[0][0])
+         + (py - s[0][1]) * (py - s[0][1]) <= RADIUS * RADIUS;
+  }
+
+  function radieren(p) {
+    var vorher = zustand.striche.length;
+    zustand.striche = zustand.striche.filter(function (s) {
+      return !nah_dran(s, p[0], p[1]);
+    });
+    if (zustand.striche.length === vorher) return;
+    neuzeichnen();
+    merken();
+  }
+
+  var malt = null, radiert = false;
   rolle.addEventListener('pointerdown', function (e) {
+    stift_merken(e);
+    if (handballen(e)) return;                       /* der Ballen liegt nur */
+    if (modus === 'radieren') {
+      radiert = true;
+      rolle.setPointerCapture(e.pointerId);
+      radieren(punkt(e));
+      e.preventDefault();
+      return;
+    }
     if (e.target.closest('.notiztext')) return;      /* schon am Tippen */
+    auswahl_loesen();
     var zeichnen = e.pointerType === 'pen' || modus === 'schreiben';
     if (zeichnen) {
       malt = [punkt(e)];
@@ -292,6 +407,7 @@
     }
   });
   rolle.addEventListener('pointermove', function (e) {
+    if (radiert) { radieren(punkt(e)); return; }
     if (!malt) return;
     var p = punkt(e), v = malt[malt.length - 1];
     malt.push(p);
@@ -303,6 +419,7 @@
   });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (t) {
     rolle.addEventListener(t, function () {
+      radiert = false;
       if (!malt) return;
       if (malt.length < 2) zustand.striche.pop();    /* ein Punkt ist kein Strich */
       else nachwachsen(Math.max.apply(null, malt.map(function (p) { return p[1]; })));
@@ -450,8 +567,15 @@
        rechts weg, was am wichtigsten ist — die beiden
        Herunterladeknoepfe. Gemessen: mit «Kapitel», «alles» und
        «bitte lesen» braucht er 431 px. Darunter tragen die Knoepfe
-       wieder nur ihr Zeichen, und was sie tun, sagt der Tooltip. */
-    leiste.classList.toggle('knapp', b < 470);
+       wieder nur ihr Zeichen, und was sie tun, sagt der Tooltip.
+
+       **Seit dem 17.09.2026 steht ein Knopf mehr im Balken** — der
+       Radiergummi. Er kostet 34 px und eine Lücke von 6, die gemessene
+       Schwelle steigt also von 431 auf 471. Der Wert hier geht auf
+       510: Wer die Grenze genau auf das Gemessene legt, verliert beim
+       nächsten Zeichen wieder etwas, ohne es zu merken — der Balken
+       schneidet stillschweigend ab. */
+    leiste.classList.toggle('knapp', b < 510);
     return b;
   }
   breite(SCHMAL);

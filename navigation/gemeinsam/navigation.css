@@ -666,6 +666,14 @@ table.fahrplan .leer { background: none; border-color: transparent; }
 .notiz--braun { background: var(--aktuell); border: 0.108rem solid var(--braun); }
 .notiz--braun b { color: var(--braun); }
 
+/* Eine Liste im Notizkasten: Bis zum 10.09.2026 kam keine vor, deshalb
+   fehlte die Regel. Auf `form_und_raum/studienleistung.html` stehen jetzt
+   die zwei Wege zum Abschluss eines Kapitels untereinander -- ohne diese
+   Zeilen setzte der Browser seinen eigenen Aussenabstand, und der Kasten
+   bekaeme unten Luft, die die anderen nicht haben. */
+.notiz ul { margin: .4rem 0 0; padding-left: 1.2rem; }
+.notiz li { margin: .3rem 0; }
+
 /* -------------------------------------------------- Fliesstext ---- */
 
 .text { max-width: 46rem; font-size: 1.167rem; }
