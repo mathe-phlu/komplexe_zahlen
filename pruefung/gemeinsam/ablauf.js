@@ -674,7 +674,8 @@ function pruefung(def){
       s.bild = {
         aufgabe: s.aufgabe.id, nr: s.aufgabe.nr, titel: s.aufgabe.titel,
         punkte: s.aufgabe.punkte,
-        teile: bau.teile.map(t => ({ name: t.name, art: t.art, p: t.p,
+        teile: bau.teile.map(t => ({ name: t.name, zeigt: t.zeigt || null,
+                                    art: t.art, p: t.p,
                                     soll: t.soll(), sollRoh: t.sollRoh || null })),
         html: halter.innerHTML
       };
@@ -853,12 +854,75 @@ function pruefung(def){
       fertig.focus();
     }
 
+    /* ---- Notizen nachreichen, ohne zurueckzublaettern ----
+
+       Derselbe Sucher, derselbe Ausloeser, dieselbe Aufgaben-Id wie
+       am Nebenblatt: `blattFoto` ist aus `nebenblatt()` herausgeloest,
+       damit hier nichts nachgebaut wird. Das Blatt geht ueber
+       AUF.blattAbgeben() ins Paket - fortlaufend gezaehlt, mit der
+       Aufgabe im Dateinamen, nichts wird ueberschrieben.
+
+       Der Hof schliesst sich nicht von selbst, wenn ein Blatt
+       ankommt: Wer zwei Seiten Papier hat, soll beide aufnehmen
+       koennen, ohne den Knopf erneut zu suchen. */
+    function notizHof(s){
+      /* Dieselbe Gestaltung wie der Erklaerhof, aber ein eigener Name
+         daneben: Der Pruefstand und spaetere Leser sollen die beiden
+         auseinanderhalten koennen. */
+      const hof = el('div', 'erklaerhof notizhof');
+      const d = el('div', 'erklaerstelle');
+      d.appendChild(el('div', 'augen', 'Notizen zu Aufgabe ' + s.aufgabe.nr));
+      d.appendChild(el('h3', null, s.aufgabe.titel));
+      d.appendChild(el('p', null,
+        'Halten Sie Ihr Blatt vor die Kamera oder hängen Sie ein Foto an. ' +
+        'Mehrere Blätter sind möglich — jedes kommt einzeln ins Paket.'));
+
+      const foto = window.PIA.blattFoto(s.aufgabe.id);
+      const knoepfe = el('div', 'knoepfe');
+      knoepfe.appendChild(foto.kamera); knoepfe.appendChild(foto.datei);
+      d.appendChild(knoepfe);
+      d.appendChild(foto.sucher);
+      d.appendChild(foto.liste);
+
+      const zu = el('div', 'knoepfe');
+      const fertig = el('button', 'tat', 'Fertig');
+      fertig.type = 'button';
+      fertig.onclick = () => { hof.remove(); zeigen(stand.seite); };
+      zu.appendChild(fertig);
+      d.appendChild(zu);
+
+      hof.appendChild(d);
+      document.body.appendChild(hof);
+      foto.kamera.focus();
+    }
+
+    /* Wer «Ich hatte keine Notizen» gedrueckt hat. Steht am Stand und
+       nicht an der Seite, weil schlussBlatt() bei jedem Zeichnen neu
+       entsteht. */
+    stand.ohneNotizen = stand.ohneNotizen || {};
+
     function schlussBlatt(){
       const d = el('div', 'ergebnis');
       d.appendChild(el('h3', null, 'Bevor Sie abgeben'));
       const t = el('table');
-      t.innerHTML = '<tr><th>Aufgabe</th><th>Ausgefüllt</th><th>Erklärt</th></tr>';
+      t.innerHTML = '<tr><th>Aufgabe</th><th>Ausgefüllt</th><th>Erklärt</th>' +
+                    '<th>Notizen</th></tr>';
       const ohneErklaerung = [];
+
+      /* ---- Was an Notizen da ist, steht im Ereignisstrom ----
+
+         Blaetter kommen ueber `blatt` mit der Aufgaben-Id, der
+         Notizblock ueber `strich` - der schreibt die Aufgaben-Id als
+         Feld mit (pruefung.js, nebenblatt). Wer digital gerechnet
+         hat, wird also gar nicht erst gefragt. Das war Rikes
+         ausdruecklicher Punkt: Eine Frage, deren Antwort schon
+         dasteht, ist keine Hilfe, sondern Laerm. */
+      const strom = AUF.ereignisse ? AUF.ereignisse() : [];
+      const blaetterVon = {}, notizblock = {};
+      strom.forEach(e => {
+        if (e.was === 'blatt' && e.aufgabe) blaetterVon[e.aufgabe] = (blaetterVon[e.aufgabe]||0) + 1;
+        else if (e.was === 'strich' && e.feld) notizblock[e.feld] = true;
+      });
       stand.seiten.filter(s => s.art === 'aufgabe').forEach(s => {
         /* Gekoppelte Teile teilen sich Felder - hier dieselbe
            Zusammenfassung wie in der Fusszeile. */
@@ -884,9 +948,62 @@ function pruefung(def){
           zelle.appendChild(nach);
         }
         tr.appendChild(zelle);
+
+        /* ---- Vierte Spalte: die Notizen ----
+
+           WARUM HIER UND NICHT BEIM ABGABEFELD. Rikes erster
+           Vorschlag war, das Nachreichen erst im Abgabefenster
+           anzubieten. Das geht nicht: abgeben() ruft AUF.beenden(),
+           und dort wird das ZIP geschnuert; abgabeschritte() kommt
+           danach. Ein Blatt, das dort angehaengt wuerde, kaeme nicht
+           mehr ins Paket - es saehe aus wie abgegeben und waere weg.
+           schlussBlatt() liegt VOR dem Schnueren, hier kommt es mit.
+
+           UND HIER WIRD NICHT GESPERRT. Bei den Erklaerungen ist die
+           Sperre richtig - ohne sie ist die Pruefung nicht bestanden,
+           das steht auf der Startseite. Hier nicht: Wer haengen
+           bliebe, waere die ehrliche Person mit einer klemmenden
+           Kamera, kurz vor Schluss. Fragen, sichtbar machen,
+           durchlassen. */
+        const id = s.aufgabe.id;
+        const nz = el('td');
+        const anzahl = blaetterVon[id] || 0;
+        if (anzahl){
+          nz.className = 'ganz';
+          nz.textContent = '✓ ' + anzahl + (anzahl === 1 ? ' Blatt' : ' Blätter');
+        } else if (notizblock[id]){
+          nz.className = 'ganz';
+          nz.textContent = '✓ auf dem Notizblock';
+        } else if (stand.ohneNotizen[id]){
+          nz.className = 'ganz';
+          nz.appendChild(el('span', null, '✓ keine Notizen'));
+          /* Ein Fehlgriff soll nicht das Letzte sein, was zu dieser
+             Aufgabe moeglich war. */
+          const doch = el('button', 'neben', 'Doch fotografieren');
+          doch.type = 'button';
+          doch.style.marginLeft = '8px';
+          doch.onclick = () => { delete stand.ohneNotizen[id]; notizHof(s); };
+          nz.appendChild(doch);
+        } else {
+          const jetzt = el('button', 'neben', 'Jetzt fotografieren');
+          jetzt.type = 'button';
+          jetzt.onclick = () => notizHof(s);
+          const keine = el('button', 'neben', 'Ich hatte keine Notizen');
+          keine.type = 'button';
+          keine.onclick = () => {
+            stand.ohneNotizen[id] = true;
+            AUF.M.keineNotizen(id);
+            zeigen(stand.seite);
+          };
+          nz.appendChild(jetzt); nz.appendChild(keine);
+        }
+        tr.appendChild(nz);
         t.appendChild(tr);
       });
       d.appendChild(t);
+      d.appendChild(el('p', 'hinweis',
+        'Wenn Sie auf Papier gerechnet haben, fotografieren Sie Ihre Notizen jetzt — ' +
+        'später geht es nicht mehr.'));
       d.appendChild(el('p', 'hinweis',
         'Leere Felder zählen als falsch. Wenn Sie etwas nicht wissen, sagen Sie ' +
         'es lieber in die Aufnahme, als es leer zu lassen.'));
@@ -926,7 +1043,13 @@ function pruefung(def){
 
     /* Teilpunkte für die 80 %, Vollständigkeit für den Wiedereintritt. */
     const ergebnis = aufgabenSeiten.map(s => {
-      const teile = s.teile.map(t => ({ name: t.name, p: t.p, ok: !!t.pruefen(),
+      /* `zeigt` ist die Aufschrift in der Sprache der Aufgabe - was im
+         Kasten steht und wovon darin die Rede ist. `name` bleibt
+         daneben stehen: Er verbindet den Teil mit dem Ereignisstrom
+         und mit dem Schnappschuss, und ohne ihn liesse sich im Bild
+         nichts markieren. Angezeigt wird `zeigt`. */
+      const teile = s.teile.map(t => ({ name: t.name, zeigt: t.zeigt || null,
+                                        p: t.p, ok: !!t.pruefen(),
                                         gegeben: t.gegeben(), soll: t.soll() }));
       const erreicht = teile.reduce((x,t) => x + (t.ok ? t.p : 0), 0);
       return { nr: s.aufgabe.nr, id: s.aufgabe.id, titel: s.aufgabe.titel,

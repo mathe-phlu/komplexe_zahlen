@@ -285,6 +285,27 @@ function rahmen(flaecheObj, o){
   return d;
 }
 
+/* ---- Was an einem Ziel SICHTBAR steht ----
+
+   Die Kennung eines Ziels - `w1`, `g120`, `a3p1` - ist eine interne
+   Kennung. Beschriftet ist die Stelle im Bild oft anders: «120°»,
+   «z₀». Eine Rueckmeldung muss das nennen, was dasteht; wer «g120
+   ist falsch» liest, ist nicht kluger als vorher. Gibt es keine
+   Beschriftung, bleibt die Kennung - sie steht dann auch im Bild
+   nirgends anders, und ein leeres Feld waere schlechter.
+
+   Die Marke haengt im selben `g.ziel` wie die Trefferflaeche (siehe
+   `pfeil` und `punkt`), darum genuegt hier ein Blick in die Gruppe. */
+function aufschrift(wo, name){
+  if (!wo || !name) return name || '';
+  const el = wo.svg || wo;
+  if (!el.querySelector) return name;
+  const g = el.querySelector('.ziel[data-ziel="' + name + '"]');
+  const t = g && g.querySelector('text');
+  const wort = t && t.textContent.trim();
+  return wort || name;
+}
+
 /* Das gewählte Ziel hervorheben - eine Fläche, ein Ziel. */
 function hervorheben(rahmenEl, name){
   rahmenEl.querySelectorAll('.ziel').forEach(g => {
@@ -298,5 +319,6 @@ function hervorheben(rahmenEl, name){
 }
 
 window.Zeichnen = { flaeche: flaeche, rahmen: rahmen,
-                    hervorheben: hervorheben, achseFuer: achseFuer };
+                    hervorheben: hervorheben, achseFuer: achseFuer,
+                    aufschrift: aufschrift };
 })();

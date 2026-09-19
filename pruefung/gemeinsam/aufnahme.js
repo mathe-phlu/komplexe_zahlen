@@ -538,6 +538,14 @@ const M = {
   aufgabeGebaut: (bild) => merken('aufgabe-gebaut', bild),
 
   erklaerung: (nr, frage) => merken('erklaerstelle', { nr: nr, frage: frage }),
+
+  /* «Ich hatte keine Notizen» aus der Schlussuebersicht.
+
+     DREI ANTWORTEN SIND EINE ANTWORT, DIE LEERSTELLE IST KEINE. Ohne
+     diesen Eintrag stuende in der Wiedergabe unter «Nebenblatt» nur
+     nichts - und niemand wuesste, ob jemand nichts hatte oder es
+     vergessen hat. Genau diese Frage blieb am 18.09. offen. */
+  keineNotizen: (aufgabeId) => merken('keine-notizen', { aufgabe: aufgabeId }),
   aufgabeFertig: (id) => merken('aufgabe-fertig', { aufgabe: id }),
   auswertung: (stand) => merken('auswertung', stand)
 };

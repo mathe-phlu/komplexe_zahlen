@@ -282,6 +282,9 @@ button.neben:hover{border-color:var(--akzent)}
 .sucher video{width:100%;max-width:520px;border-radius:8px;background:#000;display:block}
 .sucher p{margin:0 0 8px}
 .blattliste{margin-top:8px}
+/* Die Notizenspalte der Schlussuebersicht traegt zwei Knoepfe nebeneinander;
+   auf dem Tablet sollen sie umbrechen statt die Tabelle zu sprengen. */
+.ergebnis td button{margin:2px 4px 2px 0}
 .blattliste .hinweis{margin:3px 0}
 .zeile.formelzeile select.formelwahl{font:inherit;font-size:16px;width:auto;
   padding:7px 8px;border:1px solid var(--linie);border-radius:8px;

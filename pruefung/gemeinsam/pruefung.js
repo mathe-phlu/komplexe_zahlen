@@ -107,13 +107,66 @@ function Bau(aufgabe, wurzel){
      innerhalb von `nebeneinander` die jeweilige Spalte. */
   let ziel = wurzel;
 
+  /* ---- Die Aufschrift des Kastens, in dem gerade gebaut wird ----
+
+     Sie ist das, was auf der Seite STEHT - «a) Eine Grundrechenart»,
+     «Ordnen Sie zu». Jeder Teil nimmt sie mit, damit eine
+     Rueckmeldung sagen kann, WO etwas falsch war, statt `S1A4.a` zu
+     nennen. Der interne Name bleibt, wofuer er da ist: als Kennung
+     im Ereignisstrom. */
+  let kastenWort = null;
+
+  /* ---- Und die Teilmarke «a)», «b)» ----
+
+     Nicht jede Aufgabe teilt sich in Kaesten. Aufgabe 1 der Station 1
+     hat EINEN Kasten ohne Titel und darin zwei Rechnungen, die mit
+     «a)» und «b)» beginnen - fuer die Studierende der einzige
+     Unterschied zwischen den beiden Feldern. Wer nur den Kastentitel
+     mitnimmt, kann hinterher nicht sagen, welches der beiden gemeint
+     ist.
+
+     Gelesen wird sie aus der zuletzt gesetzten Formelzeile, und zwar
+     nur, wenn die Zeile wirklich so anfaengt. Ein Rateverfahren ist
+     das nicht: «a)» am Zeilenanfang heisst in diesen Aufgaben immer
+     dasselbe. Steht die Marke schon im Kastentitel, kommt sie kein
+     zweites Mal. */
+  let teilMarke = null;
+  function marke(html){
+    const t = String(html).replace(/<[^>]*>/g, '').trim();
+    const m = t.match(/^([a-h])\)/);
+    if (m) teilMarke = m[1] + ')';
+  }
+
   function neuerKasten(titel){
     kasten = el('div', 'frage');
+    kastenWort = titel || null;
+    teilMarke = null;
     if (titel) kasten.appendChild(el('h3', null, titel));
     ziel.appendChild(kasten);
     return kasten;
   }
   function K(){ return kasten || neuerKasten(); }
+
+  /* ---- Jeder Aufgabenteil bekommt eine Aufschrift ----
+
+     `zeigt` ist die Bezeichnung in der Sprache der Aufgabe: was im
+     Kasten steht, und - wo der Baustein mehr weiss - wovon darin die
+     Rede ist («Realteil», die Zahl auf dem Kaertchenfeld). Fehlt
+     beides, bleibt `zeigt` leer und die Anzeige faellt auf `name`
+     zurueck; ein leeres Feld waere schlechter als ein Kuerzel.
+
+     ENTSTANDEN AM 18.09.2026. Rike, nach der ersten Durchsicht:
+     «mit p0 ist falsch ist mir nicht soviel geholfen, wenn es p3
+     sein muesste. Das muesste fuer jemanden gemacht sein, der nur
+     die Pruefung sieht.» */
+  function nimm(t){
+    const innen = t.zeigt || null;
+    const marke = (teilMarke && (kastenWort || '').indexOf(teilMarke) < 0)
+                ? teilMarke : null;
+    t.zeigt = [kastenWort, marke, innen].filter(Boolean).join(' · ') || null;
+    teile.push(t);
+    return t;
+  }
 
   /* --- Ein Textfeld mit sofortiger Formatprüfung --- */
   function feld(name, opt){
@@ -169,8 +222,8 @@ function Bau(aufgabe, wurzel){
     teile: teile,
 
     /* ---- Text ---- */
-    satz(html){ K().appendChild(el('p', null, html)); return B; },
-    formel(html){ K().appendChild(el('p', 'formel', html)); return B; },
+    satz(html){ marke(html); K().appendChild(el('p', null, html)); return B; },
+    formel(html){ marke(html); K().appendChild(el('p', 'formel', html)); return B; },
     hinweis(html){ K().appendChild(el('p', 'hinweis', html)); return B; },
     kasten(titel){ neuerKasten(titel); return B; },
 
@@ -237,12 +290,13 @@ function Bau(aufgabe, wurzel){
         if (s.optionen){
           const w = document.createElement('select');
           w.className = 'feld formelwahl';
+          w.dataset.feld = s.name;   /* siehe wahl(): dasselbe Merkmal, derselbe Grund */
           w.appendChild(new Option('?', ''));
           s.optionen.forEach((o, k) => w.appendChild(new Option(o, String(k))));
           w.addEventListener('change', () => AUF.M.auswahl(s.name,
             w.value === '' ? '—' : s.optionen[w.value]));
           z.appendChild(w);
-          teile.push({ name: s.name, p: s.p, art: 'wahl',
+          nimm({ name: s.name, p: s.p, art: 'wahl',
             gefuellt: () => w.value !== '',
             pruefen: () => w.value !== '' && parseInt(w.value, 10) === s.richtig,
             gegeben: () => w.value === '' ? '—' : s.optionen[w.value],
@@ -289,8 +343,8 @@ function Bau(aufgabe, wurzel){
         if (art === 'komplex' && s.getrennt === 'polar'){
           [['betrag', 'Betrag'], ['winkel', 'Winkel']].forEach(paar => {
             const teil = paar[0], wort = paar[1];
-            teile.push({ name: s.name + '#' + teil, p: s.p / 2, art: 'komplex',
-              gekoppelt: s.name,
+            nimm({ name: s.name + '#' + teil, p: s.p / 2, art: 'komplex',
+              zeigt: wort, gekoppelt: s.name,
               gefuellt: () => !!f.roh(),
               pruefen: () => {
                 const w = f.wert();
@@ -344,7 +398,7 @@ function Bau(aufgabe, wurzel){
             const w = ander ? ander.wert() : null;
             return w ? Z.plus(bez.A, Z.mal(bez.B, w)) : s.soll;
           };
-          teile.push({ name: s.name, p: s.p, art: art,
+          nimm({ name: s.name, p: s.p, art: art,
             gefuellt: () => !!f.roh(),
             pruefen: () => { const w = f.wert(); return w ? Z.gleich(w, erwartet()) : false; },
             gegeben: () => f.roh(),
@@ -360,7 +414,7 @@ function Bau(aufgabe, wurzel){
           return;
         }
 
-        teile.push({ name: s.name, p: s.p, art: art,
+        nimm({ name: s.name, p: s.p, art: art,
           gefuellt: () => !!f.roh(),
           pruefen: () => {
             const x = f.wert();
@@ -416,10 +470,12 @@ function Bau(aufgabe, wurzel){
          falsch - und das soll er auch nicht. Der Pruefstand geht solche
          Teile einzeln durch. */
       if (o.getrennt){
-        [['re', 'Realteil'], ['im', 'Imaginaerteil']].forEach(paar => {
+        /* Gesetzter Text, also mit Umlaut - er steht in der Rueckmeldung,
+           nicht im Kommentar. */
+        [['re', 'Realteil'], ['im', 'Imaginärteil']].forEach(paar => {
           const teil = paar[0], wort = paar[1];
-          teile.push({ name: o.name + '#' + teil, p: o.p / 2, art: 'komplex',
-            gekoppelt: o.name,
+          nimm({ name: o.name + '#' + teil, p: o.p / 2, art: 'komplex',
+            zeigt: wort, gekoppelt: o.name,
             gefuellt: () => !!f.roh(),
             pruefen: () => { const w = f.wert();
                              return w ? Z.nahe(w[teil], o.soll[teil]) : false; },
@@ -438,7 +494,7 @@ function Bau(aufgabe, wurzel){
         return B;
       }
 
-      teile.push({ name: o.name, p: o.p, art: 'komplex',
+      nimm({ name: o.name, p: o.p, art: 'komplex',
         gefuellt: () => !!f.roh(),
         pruefen: () => {
           const w = f.wert();
@@ -467,10 +523,10 @@ function Bau(aufgabe, wurzel){
       /* Getrennt bewerten. Hier braucht es KEINE Kopplung: Real- und
          Imaginaerteil haben eigene Felder, jeder Teil setzt seines. */
       if (o.getrennt){
-        [['re', fr, 'Realteil'], ['im', fi, 'Imaginaerteil']].forEach(paar => {
+        [['re', fr, 'Realteil'], ['im', fi, 'Imaginärteil']].forEach(paar => {
           const teil = paar[0], fd = paar[1], wort = paar[2];
-          teile.push({ name: o.name + '#' + teil, p: o.p / 2, art: 'zahl',
-            gefuellt: () => !!fd.roh(),
+          nimm({ name: o.name + '#' + teil, p: o.p / 2, art: 'zahl',
+            zeigt: wort, gefuellt: () => !!fd.roh(),
             pruefen: () => {
               const x = fd.wert();
               if (x === null) return false;
@@ -491,7 +547,7 @@ function Bau(aufgabe, wurzel){
         return B;
       }
 
-      teile.push({ name: o.name, p: o.p, art: 'komplex',
+      nimm({ name: o.name, p: o.p, art: 'komplex',
         gefuellt: () => !!(fr.roh() || fi.roh()),
         pruefen: () => {
           const re = fr.wert(), im = fi.wert();
@@ -525,7 +581,7 @@ function Bau(aufgabe, wurzel){
       const f = feld(o.name, { lesen: Z.lies, platzhalter: 'z. B. 1.73 + i',
         lesehinweis: 'Das lese ich nicht als komplexe Zahl.' });
       zeileMit(o.vor, [f.eingabe, el('span', 'hinweis', o.nach || ''), f.stand]);
-      teile.push({ name: o.name, p: o.p, art: 'potenz',
+      nimm({ name: o.name, p: o.p, art: 'potenz',
         gefuellt: () => !!f.roh(),
         pruefen: () => { const x = f.wert();
                          return x ? Z.istPotenzWert(x, o.basis, o.exponent) : false; },
@@ -550,7 +606,7 @@ function Bau(aufgabe, wurzel){
       const f = feld(o.name, { lesen: Z.lies, platzhalter: 'z. B. 1.1 + 1.57i',
         lesehinweis: 'Das lese ich nicht als komplexe Zahl.' });
       zeileMit(o.vor, [f.eingabe, el('span', 'hinweis', o.nach || ''), f.stand]);
-      teile.push({ name: o.name, p: o.p, art: 'log',
+      nimm({ name: o.name, p: o.p, art: 'log',
         gefuellt: () => !!f.roh(),
         pruefen: () => { const x = f.wert();
                          return x ? Z.istLogarithmusWert(x, o.von) : false; },
@@ -578,7 +634,7 @@ function Bau(aufgabe, wurzel){
       /* ohneWertung: Das Feld steht da, zaehlt aber nicht. Gebraucht,
          wo schon das Fehlen eines Feldes etwas verraten wuerde. */
       if (o.ohneWertung) return B;
-      teile.push({ name: o.name, p: o.p, art: 'zahl',
+      nimm({ name: o.name, p: o.p, art: 'zahl',
         gefuellt: () => !!f.roh(),
         pruefen: () => Z.nahe(f.wert(), o.soll),
         gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 3),
@@ -595,7 +651,7 @@ function Bau(aufgabe, wurzel){
     winkel(o){
       const f = feld(o.name, { lesen: Z.liesWinkelGrad, schmal: true, platzhalter: 'Grad' });
       zeileMit(o.vor, [f.eingabe, el('span', 'hinweis', '°'), f.stand]);
-      teile.push({ name: o.name, p: o.p, art: 'winkel',
+      nimm({ name: o.name, p: o.p, art: 'winkel',
         gefuellt: () => !!f.roh(),
         pruefen: () => Z.winkelGleich(f.wert(), o.soll),
         gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 2) + '°',
@@ -614,7 +670,7 @@ function Bau(aufgabe, wurzel){
     bogen(o){
       const f = feld(o.name, { lesen: Z.liesWinkelBogen, platzhalter: 'z. B. π/4' });
       zeileMit(o.vor, [f.eingabe, el('span', 'hinweis', o.nach || ''), f.stand]);
-      teile.push({ name: o.name, p: o.p, art: 'zahl',
+      nimm({ name: o.name, p: o.p, art: 'zahl',
         gefuellt: () => !!f.roh(),
         pruefen: () => Z.nahe(f.wert(), o.soll),
         gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 3),
@@ -637,16 +693,16 @@ function Bau(aufgabe, wurzel){
          Winkelfehler soll den Betrag nicht mitreissen. Eigene Felder,
          also keine Kopplung noetig. */
       if (o.getrennt){
-        teile.push({ name: o.name + '#r', p: o.p / 2, art: 'zahl',
-          gefuellt: () => !!fr.roh(),
+        nimm({ name: o.name + '#r', p: o.p / 2, art: 'zahl',
+          zeigt: 'Betrag', gefuellt: () => !!fr.roh(),
           pruefen: () => Z.nahe(fr.wert(), o.sollR),
           gegeben: () => fr.roh(), soll: () => 'Betrag ' + Z.zahlText(o.sollR, 3),
           sollRoh: { art: 'zahl', felder: [o.name + '.r'], soll: o.sollR },
           setzen: (wie) => { schreiben(fr, genau(wie === 'richtig' ? o.sollR
                                                 : daneben(o.sollR))); return true; }
         });
-        teile.push({ name: o.name + '#phi', p: o.p / 2, art: 'winkel',
-          gefuellt: () => !!fg.roh(),
+        nimm({ name: o.name + '#phi', p: o.p / 2, art: 'winkel',
+          zeigt: 'Winkel', gefuellt: () => !!fg.roh(),
           pruefen: () => Z.winkelGleich(fg.wert(), o.sollG),
           gegeben: () => fg.roh(), soll: () => 'Winkel ' + Z.zahlText(o.sollG, 2) + '°',
           sollRoh: { art: 'winkel', felder: [o.name + '.phi'], soll: o.sollG },
@@ -656,7 +712,7 @@ function Bau(aufgabe, wurzel){
         return B;
       }
 
-      teile.push({ name: o.name, p: o.p, art: 'polar',
+      nimm({ name: o.name, p: o.p, art: 'polar',
         gefuellt: () => !!(fr.roh() || fg.roh()),
         pruefen: () => Z.polarGleich(fr.wert(), fg.wert(), o.sollR, o.sollG),
         gegeben: () => fr.roh() + '·cis(' + fg.roh() + '°)',
@@ -712,9 +768,9 @@ function Bau(aufgabe, wurzel){
       ];
 
       KRITERIEN.forEach(kr => {
-        teile.push({
+        nimm({
           name: o.name + '#' + kr.schluessel, p: o.p / KRITERIEN.length,
-          art: 'wurzelschar', gekoppelt: o.name,
+          art: 'wurzelschar', gekoppelt: o.name, zeigt: kr.wort,
           gefuellt: () => felder.some(f => f.r.roh() || f.g.roh()),
           pruefen: () => !!window.PIA.Wurzeln.kriterien(zeilen(), soll)[kr.schluessel],
           gegeben: () => felder.map(f => (f.r.roh() || '?') + '∠' + (f.g.roh() || '?'))
@@ -750,6 +806,17 @@ function Bau(aufgabe, wurzel){
     wahl(o){
       if (o.frage) K().appendChild(el('p', null, o.frage));
       const w = el('div', 'wahl' + (o.quer ? ' quer' : ''));
+      /* WOZU DAS `data-feld` HIER: Die Wiedergabe soll die getroffene
+         Wahl im Bild markieren koennen. Ohne Merkmal am Block muss sie
+         ueber den Text der Moeglichkeit suchen - und steht dieselbe
+         Liste dreimal auf der Seite (Station 1, Aufgabe 4), ist der
+         Text dreimal da. Dann markiert sie lieber nichts, denn eine
+         falsch gesetzte Marke sieht aus wie eine Tatsache. Der
+         Bausteinname ist beim Bauen bekannt; an dieser einen Zeile
+         haengt, ob sich die Vorsicht spaeter ueberhaupt aufloesen
+         laesst. Wirkt erst fuer NEUE Aufnahmen: Der Schnappschuss der
+         fuenf abgegebenen Pruefungen ist eingefroren. */
+      w.dataset.feld = o.name;
       const gruppe = 'w' + Math.random().toString(36).slice(2);
       const reihenfolge = o.mischen === false
         ? o.optionen.map((t,k) => k) : mischen(o.optionen.map((t,k) => k));
@@ -767,7 +834,7 @@ function Bau(aufgabe, wurzel){
       const gewaehlt = () => Array.from(w.querySelectorAll('input:checked'))
                                   .map(i => parseInt(i.value, 10));
       const richtig = o.mehrfach ? (o.richtig || []) : [o.richtig];
-      teile.push({ name: o.name, p: o.p, art: 'wahl',
+      nimm({ name: o.name, p: o.p, art: 'wahl',
         gefuellt: () => gewaehlt().length > 0,
         pruefen: () => {
           const g = gewaehlt();
@@ -822,11 +889,15 @@ function Bau(aufgabe, wurzel){
           ZE.hervorheben(r, ziel);
           AUF.M.bildklick(o.name, ziel);
         }});
+      r.dataset.feld = o.name;   /* siehe wahl(): Station 1, Aufgabe 5 hat w1..w3 dreimal */
       K().appendChild(r);
-      teile.push({ name: o.name, p: o.p, art: 'bildwahl',
+      nimm({ name: o.name, p: o.p, art: 'bildwahl',
         gefuellt: () => gewaehlt !== null,
         pruefen: () => gewaehlt === o.richtig,
-        gegeben: () => gewaehlt || '—', soll: () => o.richtig,
+        /* Nicht `gewaehlt`, sondern was im Bild daneben steht - die
+           Zielkennung sieht niemand ausser uns. */
+        gegeben: () => gewaehlt === null ? '—' : ZE.aufschrift(o.flaeche, gewaehlt),
+        soll: () => ZE.aufschrift(o.flaeche, o.richtig),
         sollRoh: { art: 'bildwahl', felder: [o.name], soll: o.richtig },
         setzen: (wie) => {
           const ziele = Array.from(r.querySelectorAll('.ziel'))
@@ -865,13 +936,15 @@ function Bau(aufgabe, wurzel){
       /* Manche Aufgaben haben mehrere richtige Antworten - «geben Sie
          EINEN Zyklus der Laenge 3 an» etwa. Dann prueft ein eigener
          Pruefer statt einer festen Menge. */
-      teile.push({ name: o.name, p: o.p, art: 'punktwahl',
+      nimm({ name: o.name, p: o.p, art: 'punktwahl',
         gefuellt: () => gewaehlt.size > 0,
         pruefen: () => o.pruefer
           ? o.pruefer(Array.from(gewaehlt))
           : (gewaehlt.size === o.richtig.length && o.richtig.every(x => gewaehlt.has(x))),
-        gegeben: () => Array.from(gewaehlt).sort().join(', ') || '—',
-        soll: () => o.sollText || (o.richtig || []).slice().sort().join(', '),
+        gegeben: () => Array.from(gewaehlt).sort()
+                            .map(x => ZE.aufschrift(o.flaeche, x)).join(', ') || '—',
+        soll: () => o.sollText || (o.richtig || []).slice().sort()
+                            .map(x => ZE.aufschrift(o.flaeche, x)).join(', '),
         /* Der Ereignisstrom meldet hier die GANZE Menge bei jedem
            Klick, nicht den einzelnen Punkt - der letzte Eintrag ist
            also der Endstand und damit zurücklesbar. */
@@ -989,15 +1062,18 @@ function Bau(aufgabe, wurzel){
       }
 
       o.ebenen.forEach(e => {
-        teile.push({ name: o.name + '.' + e.schluessel, p: e.p, art: 'punktwahl',
+        nimm({ name: o.name + '.' + e.schluessel, p: e.p, art: 'punktwahl',
           gefuellt: () => gewaehlt[e.schluessel].size > 0,
           pruefen: () => {
             const g = Array.from(gewaehlt[e.schluessel]);
             if (e.pruefer) return e.pruefer(g);
             return g.length === e.richtig.length && e.richtig.every(x => g.indexOf(x) >= 0);
           },
-          gegeben: () => Array.from(gewaehlt[e.schluessel]).sort().join(', ') || '—',
-          soll: () => e.sollText || (e.richtig || []).slice().sort().join(', '),
+          zeigt: e.wort || e.schluessel,
+          gegeben: () => Array.from(gewaehlt[e.schluessel]).sort()
+                              .map(x => ZE.aufschrift(o.flaeche, x)).join(', ') || '—',
+          soll: () => e.sollText || (e.richtig || []).slice().sort()
+                              .map(x => ZE.aufschrift(o.flaeche, x)).join(', '),
           sollRoh: (e.mengen || e.richtig)
             ? { art: 'menge', felder: [o.name + '.' + e.schluessel],
                 mengen: e.mengen || [e.richtig] }
@@ -1143,8 +1219,8 @@ function Bau(aufgabe, wurzel){
          Punktklick waehlt die Zeichnung mit. Der Pruefstand muss sie
          deshalb einzeln falsifizieren, sonst ueberschreibt der eine
          die Einstellung des anderen und meldet einen Fehlalarm. */
-      teile.push({ name: o.name + '.bild', p: o.p / 2, art: 'bilderwahl',
-        gekoppelt: o.name,
+      nimm({ name: o.name + '.bild', p: o.p / 2, art: 'bilderwahl',
+        zeigt: 'die Zeichnung', gekoppelt: o.name,
         gefuellt: () => bild !== null,
         pruefen: () => bild === o.richtigesBild,
         gegeben: () => bild === null ? '—' : 'Bild ' + (bild+1),
@@ -1160,11 +1236,19 @@ function Bau(aufgabe, wurzel){
         }
       });
 
-      teile.push({ name: o.name, p: o.p / 2, art: 'bildpunktwahl',
+      nimm({ name: o.name, p: o.p / 2, art: 'bildpunktwahl',
         gekoppelt: o.name,
+        zeigt: 'der Bildpunkt von A',
         gefuellt: () => punkt !== null,
         pruefen: () => o.zieleA.indexOf(punkt) >= 0,
-        gegeben: () => punkt || '—',
+        /* Die Marke, die in der Zeichnung daneben steht - und dazu,
+           in welchem Bild sie liegt. «a3p1» sagt niemandem etwas. */
+        gegeben: () => {
+          if (punkt === null) return '—';
+          const r = rahmen[bild === null ? 0 : bild];
+          return 'Marke ' + ZE.aufschrift(r, punkt) +
+                 (bild === null ? '' : ' in Bild ' + (bild+1));
+        },
         soll: () => 'der Bildpunkt von A in der gewählten Zeichnung',
         sollRoh: { art: 'bildpunkt', kriterium: 'punkt',
                    felder: [o.name], zieleA: o.zieleA },
@@ -1205,7 +1289,7 @@ function Bau(aufgabe, wurzel){
         reihe.appendChild(r);
       });
       K().appendChild(reihe);
-      teile.push({ name: o.name, p: o.p, art: 'bilderwahl',
+      nimm({ name: o.name, p: o.p, art: 'bilderwahl',
         gefuellt: () => gewaehlt !== null,
         pruefen: () => gewaehlt === o.richtig,
         gegeben: () => gewaehlt === null ? '—' : 'Bild ' + (gewaehlt+1),
@@ -1242,9 +1326,20 @@ function Bau(aufgabe, wurzel){
         vorratMarke: o.vorratMarke, quer: o.quer
       });
       K().appendChild(fl.element);
+      /* Was auf einem Kaertchen STEHT - `p0` ist eine Kennung, kein
+         Wort. Rike, 18.09.2026: «mit p0 ist falsch ist mir nicht
+         soviel geholfen, wenn es p3 sein muesste.» */
+      const wort = id => {
+        const k = o.karten.find(x => x.id === id);
+        return k ? k.text : id;
+      };
+      /* Die Aufschrift des Feldes kann Auszeichnung tragen (<b>…</b>);
+         in einer Tabellenzelle steht sie als Text. */
+      const feldWort = f => String(f.kopf || f.id).replace(/<[^>]*>/g, '').trim();
       o.felder.forEach(f => {
         const soll = (o.richtig[f.id] || []).slice().sort();
-        teile.push({ name: o.name + '.' + f.id, p: o.p, art: 'karten',
+        nimm({ name: o.name + '.' + f.id, p: o.p, art: 'karten',
+          zeigt: feldWort(f),
           gefuellt: () => {
             const b = fl.belegung();
             return Object.keys(b).some(k => b[k] === f.id);
@@ -1258,9 +1353,9 @@ function Bau(aufgabe, wurzel){
           gegeben: () => {
             const b = fl.belegung();
             const drin = Object.keys(b).filter(k => b[k] === f.id);
-            return drin.length ? drin.join(', ') : '—';
+            return drin.length ? drin.map(wort).join(', ') : '—';
           },
-          soll: () => soll.join(', '),
+          soll: () => soll.map(wort).join(', '),
           /* Der Ereignisstrom meldet je Karte, wo sie zuletzt lag.
              Daraus lässt sich die Belegung vollständig zurückbauen. */
           sollRoh: { art: 'karten', felder: o.karten.map(k => k.id),
@@ -1315,7 +1410,8 @@ function Bau(aufgabe, wurzel){
       });
       K().appendChild(tabelle);
       o.links.forEach((links, k) => {
-        teile.push({ name: o.name + '.' + k, p: o.p, art: 'zuordnung',
+        nimm({ name: o.name + '.' + k, p: o.p, art: 'zuordnung',
+          zeigt: String(links).replace(/<[^>]*>/g, '').trim(),
           gefuellt: () => auswahlen[k].value !== '',
           pruefen: () => auswahlen[k].value !== '' &&
                          parseInt(auswahlen[k].value,10) === o.richtig[k],
@@ -1337,6 +1433,110 @@ function Bau(aufgabe, wurzel){
     }
   };
   return B;
+}
+
+
+/* ============================================================
+   Ein Blatt fotografieren oder anhaengen
+
+   Eigener Baustein, weil er an ZWEI Stellen gebraucht wird: am
+   Nebenblatt jeder Aufgabe - und in der Schlussuebersicht, wo
+   vergessene Notizen nachgereicht werden. Dieselbe Aufgaben-Id,
+   derselbe Weg ins Paket ueber AUF.blattAbgeben(); die Uebersicht
+   baut also nichts nach, sie stellt dasselbe Bauteil noch einmal hin.
+
+   Zurueck kommen die Teile einzeln statt als fertiger Kasten: Am
+   Nebenblatt stehen die Knoepfe in derselben Werkzeugleiste wie
+   «Leeren» und «Mehr Platz», im Hof der Schlussuebersicht dagegen
+   fuer sich. Wer sie zusammensetzt, entscheidet die Stelle.
+
+   Gemeldet wird nur in die eigene Liste. Die Schlussuebersicht
+   zeichnet sich erst beim Schliessen des Hofs neu - wer zwei Blaetter
+   hat, soll beide aufnehmen koennen, ohne dass ihm der Knopf unter
+   der Hand weggezeichnet wird.
+   ============================================================ */
+function blattFoto(aufgabeId){
+  const liste = el('div', 'blattliste');
+  function gemeldet(text){
+    const z = el('div', 'hinweis', '✓ ' + text);
+    z.style.color = 'var(--richtig)';
+    liste.appendChild(z);
+  }
+
+  /* --- Blatt vor die Kamera halten ---
+     Wer kein Tablet hat, rechnet auf Papier. Die Kamera laeuft
+     ohnehin; damit entfaellt der Umweg ueber das Handy. */
+  const kameraKnopf = el('button', 'neben', '📄 Blatt vor die Kamera halten');
+  kameraKnopf.type = 'button';
+  const sucher = el('div', 'sucher');
+  const schau = el('video');
+  /* FEHLERBEHOBEN (2026-08-21): Mit autoplay hielt jedes dieser
+     Videoelemente das load-Ereignis der Seite offen - bei sechs
+     Aufgaben also sechsmal. Gemessen im Pruefstand: statt gut einer
+     Sekunde brauchte ein Aufbau ueber sechs Sekunden, und der Aufbau
+     galt nie als fertig.
+     Ursache: autoplay auf einem <video> ohne Quelle. Der Sucher wird
+     ohnehin erst per Klick geoeffnet und dort ausdruecklich gestartet;
+     autoplay war von Anfang an ueberfluessig. */
+  schau.playsInline = true; schau.muted = true;
+  const ausloesen = el('button', 'tat', 'Bild aufnehmen');
+  ausloesen.type = 'button';
+  const zu = el('button', 'neben', 'Abbrechen');
+  zu.type = 'button';
+  const sucherLeiste = el('div', 'werkzeuge');
+  sucherLeiste.appendChild(ausloesen); sucherLeiste.appendChild(zu);
+  sucher.appendChild(el('p', 'hinweis',
+    'Halten Sie Ihr Blatt so vor die Kamera, dass die Schrift im Bild lesbar ist — ' +
+    'meist etwa eine Handbreit entfernt und gut beleuchtet.'));
+  sucher.appendChild(schau);
+  sucher.appendChild(sucherLeiste);
+  sucher.style.display = 'none';
+  const schliessen = () => { sucher.style.display = 'none'; schau.srcObject = null;
+                             kameraKnopf.style.display = ''; };
+  zu.onclick = schliessen;
+  kameraKnopf.onclick = () => {
+    const spur = AUF.spur();
+    if (!spur || !AUF.hatKamera()){
+      liste.appendChild(el('div', 'hinweis',
+        'Es ist keine Kamera verfügbar — bitte hängen Sie ein Foto als Datei an.'));
+      return;
+    }
+    schau.srcObject = spur;
+    schau.play().catch(()=>{});
+    sucher.style.display = '';
+    kameraKnopf.style.display = 'none';
+    AUF.merken('sucher-auf', { aufgabe: aufgabeId });
+  };
+  ausloesen.onclick = async () => {
+    ausloesen.disabled = true;
+    try {
+      const blob = await AUF.blattVonKamera(schau);
+      await AUF.blattAbgeben(blob, aufgabeId, 'kamera');
+      gemeldet('Blatt aufgenommen (' + Math.round(blob.size/1024) + ' KB)');
+      schliessen();
+    } catch(e){
+      liste.appendChild(el('div', 'hinweis', 'Das Bild kam nicht zustande. Noch einmal?'));
+    }
+    ausloesen.disabled = false;
+  };
+
+  /* --- oder als Datei anhaengen --- */
+  const fotoKnopf = el('label', 'neben', 'Foto als Datei anhängen');
+  fotoKnopf.style.cursor = 'pointer';
+  const fotoEingabe = el('input');
+  fotoEingabe.type = 'file'; fotoEingabe.accept = 'image/*'; fotoEingabe.multiple = true;
+  fotoEingabe.style.display = 'none';
+  fotoEingabe.addEventListener('change', async () => {
+    for (const f of Array.from(fotoEingabe.files || [])){
+      await AUF.blattAbgeben(f, aufgabeId, 'datei', f.name);
+      gemeldet(f.name + ' angehängt');
+    }
+    fotoEingabe.value = '';
+  });
+  fotoKnopf.appendChild(fotoEingabe);
+
+
+  return { kamera: kameraKnopf, datei: fotoKnopf, sucher: sucher, liste: liste };
 }
 
 
@@ -1422,90 +1622,13 @@ function nebenblatt(aufgabeId, beschriftung){
   mehrPlatz.type = 'button';
   mehrPlatz.onclick = () => wachsen(BAHN);
 
-  const liste = el('div', 'blattliste');
-  function gemeldet(text){
-    const z = el('div', 'hinweis', '✓ ' + text);
-    z.style.color = 'var(--richtig)';
-    liste.appendChild(z);
-  }
-
-  /* --- Blatt vor die Kamera halten ---
-     Wer kein Tablet hat, rechnet auf Papier. Die Kamera laeuft
-     ohnehin; damit entfaellt der Umweg ueber das Handy. */
-  const kameraKnopf = el('button', 'neben', '📄 Blatt vor die Kamera halten');
-  kameraKnopf.type = 'button';
-  const sucher = el('div', 'sucher');
-  const schau = el('video');
-  /* FEHLERBEHOBEN (2026-08-21): Mit autoplay hielt jedes dieser
-     Videoelemente das load-Ereignis der Seite offen - bei sechs
-     Aufgaben also sechsmal. Gemessen im Pruefstand: statt gut einer
-     Sekunde brauchte ein Aufbau ueber sechs Sekunden, und der Aufbau
-     galt nie als fertig.
-     Ursache: autoplay auf einem <video> ohne Quelle. Der Sucher wird
-     ohnehin erst per Klick geoeffnet und dort ausdruecklich gestartet;
-     autoplay war von Anfang an ueberfluessig. */
-  schau.playsInline = true; schau.muted = true;
-  const ausloesen = el('button', 'tat', 'Bild aufnehmen');
-  ausloesen.type = 'button';
-  const zu = el('button', 'neben', 'Abbrechen');
-  zu.type = 'button';
-  const sucherLeiste = el('div', 'werkzeuge');
-  sucherLeiste.appendChild(ausloesen); sucherLeiste.appendChild(zu);
-  sucher.appendChild(el('p', 'hinweis',
-    'Halten Sie Ihr Blatt so vor die Kamera, dass die Schrift im Bild lesbar ist — ' +
-    'meist etwa eine Handbreit entfernt und gut beleuchtet.'));
-  sucher.appendChild(schau);
-  sucher.appendChild(sucherLeiste);
-  sucher.style.display = 'none';
-  const schliessen = () => { sucher.style.display = 'none'; schau.srcObject = null;
-                             kameraKnopf.style.display = ''; };
-  zu.onclick = schliessen;
-  kameraKnopf.onclick = () => {
-    const spur = AUF.spur();
-    if (!spur || !AUF.hatKamera()){
-      liste.appendChild(el('div', 'hinweis',
-        'Es ist keine Kamera verfügbar — bitte hängen Sie ein Foto als Datei an.'));
-      return;
-    }
-    schau.srcObject = spur;
-    schau.play().catch(()=>{});
-    sucher.style.display = '';
-    kameraKnopf.style.display = 'none';
-    AUF.merken('sucher-auf', { aufgabe: aufgabeId });
-  };
-  ausloesen.onclick = async () => {
-    ausloesen.disabled = true;
-    try {
-      const blob = await AUF.blattVonKamera(schau);
-      await AUF.blattAbgeben(blob, aufgabeId, 'kamera');
-      gemeldet('Blatt aufgenommen (' + Math.round(blob.size/1024) + ' KB)');
-      schliessen();
-    } catch(e){
-      liste.appendChild(el('div', 'hinweis', 'Das Bild kam nicht zustande. Noch einmal?'));
-    }
-    ausloesen.disabled = false;
-  };
-
-  /* --- oder als Datei anhaengen --- */
-  const fotoKnopf = el('label', 'neben', 'Foto als Datei anhängen');
-  fotoKnopf.style.cursor = 'pointer';
-  const fotoEingabe = el('input');
-  fotoEingabe.type = 'file'; fotoEingabe.accept = 'image/*'; fotoEingabe.multiple = true;
-  fotoEingabe.style.display = 'none';
-  fotoEingabe.addEventListener('change', async () => {
-    for (const f of Array.from(fotoEingabe.files || [])){
-      await AUF.blattAbgeben(f, aufgabeId, 'datei', f.name);
-      gemeldet(f.name + ' angehängt');
-    }
-    fotoEingabe.value = '';
-  });
-  fotoKnopf.appendChild(fotoEingabe);
+  const foto = blattFoto(aufgabeId);
 
   w.appendChild(radieren); w.appendChild(mehrPlatz);
-  w.appendChild(kameraKnopf); w.appendChild(fotoKnopf);
+  w.appendChild(foto.kamera); w.appendChild(foto.datei);
   d.appendChild(w);
-  d.appendChild(sucher);
-  d.appendChild(liste);
+  d.appendChild(foto.sucher);
+  d.appendChild(foto.liste);
 
   d.addEventListener('toggle',
     () => { if (d.open) AUF.merken('nebenblatt-auf', { aufgabe: aufgabeId }); });
@@ -1516,5 +1639,6 @@ function nebenblatt(aufgabeId, beschriftung){
    ein, und ein schlichtes window.PIA = {...} wuerde es wegwerfen. */
 window.PIA = Object.assign(window.PIA || {},
              { Bau: Bau, el: el, zufall: zufall, wuerfel: wuerfel,
-               mischen: mischen, nebenblatt: nebenblatt, SCHWELLE: SCHWELLE });
+               mischen: mischen, nebenblatt: nebenblatt, blattFoto: blattFoto,
+               SCHWELLE: SCHWELLE });
 })();
