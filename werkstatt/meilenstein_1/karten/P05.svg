@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="181.417323pt" height="153.070866pt" viewBox="0 0 181.417323 153.070866" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-16T16:53:30.867988</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.1, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 153.070866 
+L 181.417323 153.070866 
+L 181.417323 0 
+L 0 0 
+L 0 153.070866 
+z
+" style="fill: none"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 9.354331 152.787402 
+L 172.062992 152.787402 
+Q 178.299213 152.787402 178.299213 146.551181 
+L 178.299213 10.488189 
+Q 178.299213 4.251969 172.062992 4.251969 
+L 9.354331 4.251969 
+Q 3.11811 4.251969 3.11811 10.488189 
+L 3.11811 146.551181 
+Q 3.11811 152.787402 9.354331 152.787402 
+z
+" clip-path="url(#p677f99e3bf)" style="fill: #e8ddcb"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 8.787402 151.086614 
+L 171.496063 151.086614 
+Q 177.732283 151.086614 177.732283 144.850394 
+L 177.732283 8.787402 
+Q 177.732283 2.551181 171.496063 2.551181 
+L 8.787402 2.551181 
+Q 2.551181 2.551181 2.551181 8.787402 
+L 2.551181 144.850394 
+Q 2.551181 151.086614 8.787402 151.086614 
+z
+" clip-path="url(#p677f99e3bf)" style="fill: #d8e9dc; stroke: #e4d9c7; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <!-- $3\cdot\mathrm{cis}(60^\circ)$ -->
+    <g style="fill: #2d2924" transform="translate(28.828661 88.080079) scale(0.26 -0.26)">
+     <defs>
+      <path id="PennstanderMath-ExtraLight-796" d="M 1638 -10 
+C 2451 -10 3027 480 3027 1274 
+C 3027 1984 2474 2269 1866 2307 
+C 2256 2381 2803 2704 2803 3277 
+C 2803 3920 2339 4272 1693 4272 
+C 982 4272 461 3859 195 3590 
+C 256 3520 394 3398 470 3344 
+C 720 3667 1149 3926 1677 3926 
+C 2186 3926 2429 3629 2429 3245 
+C 2429 2678 1683 2400 934 2400 
+C 934 2298 954 2131 973 2067 
+C 2032 2067 2682 2000 2682 1226 
+C 2682 662 2240 323 1616 323 
+C 1101 323 704 586 605 998 
+C 490 950 339 854 253 778 
+C 387 317 986 -10 1638 -10 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-140" d="M 752 1568 
+C 989 1568 1203 1757 1203 1997 
+C 1203 2211 1046 2422 800 2422 
+C 538 2422 320 2246 320 2003 
+C 320 1763 438 1568 752 1568 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-7fd" d="M 2950 656 
+L 2669 890 
+C 2630 826 2333 362 1715 362 
+C 941 362 621 1050 621 1840 
+C 621 2621 1008 3178 1693 3178 
+C 2368 3178 2566 2701 2611 2582 
+L 2890 2806 
+C 2730 3149 2310 3501 1718 3501 
+C 720 3501 224 2781 224 1725 
+C 224 781 765 -16 1686 -16 
+C 2349 -16 2816 355 2950 656 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-809" d="M 1082 -6 
+C 1117 294 1142 1619 1142 2422 
+C 1142 2675 1139 2886 1133 2992 
+C 1066 2992 822 2976 781 2973 
+C 781 2320 701 275 653 -3 
+C 710 -13 781 -19 870 -19 
+C 941 -19 1021 -13 1082 -6 
+z
+M 995 3549 
+C 1194 3549 1299 3706 1299 3885 
+C 1299 4096 1187 4269 989 4269 
+C 803 4269 656 4147 656 3910 
+C 656 3715 768 3549 995 3549 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-817" d="M 1616 -266 
+C 2403 -266 3005 109 3005 800 
+C 3005 1402 2541 1725 1715 1990 
+C 1254 2141 861 2342 861 2688 
+C 861 3085 1283 3219 1712 3219 
+C 2096 3219 2416 3078 2643 2954 
+C 2701 3034 2768 3178 2800 3280 
+C 2614 3408 2208 3571 1680 3571 
+C 1030 3571 474 3267 474 2678 
+C 474 2090 970 1882 1616 1661 
+C 2192 1466 2618 1251 2618 768 
+C 2618 349 2186 86 1658 86 
+C 1142 86 637 413 387 749 
+C 301 682 170 502 109 406 
+C 464 -22 1126 -266 1616 -266 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-48a" d="M 2013 -960 
+C 1923 -886 1834 -790 1757 -691 
+C 1654 -563 1562 -413 1482 -253 
+C 1146 403 992 1293 992 1971 
+C 992 2800 1165 3539 1530 4189 
+C 1606 4330 1696 4474 1789 4605 
+C 1856 4704 1923 4803 1997 4896 
+C 1936 4934 1808 4970 1648 5021 
+C 1584 4950 1520 4867 1462 4781 
+C 1357 4640 1261 4490 1178 4326 
+C 822 3648 634 2778 634 2000 
+C 634 1226 768 278 1155 -438 
+C 1245 -611 1354 -768 1472 -906 
+C 1549 -1005 1635 -1101 1725 -1181 
+C 1782 -1152 1978 -992 2013 -960 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-79c" d="M 2272 3984 
+C 2253 4077 2163 4243 2099 4304 
+C 560 3562 141 2403 141 1459 
+C 141 582 576 -29 1437 -29 
+C 2326 -29 2883 643 2883 1562 
+C 2883 2352 2394 2659 1814 2659 
+C 1328 2659 765 2390 534 2010 
+C 627 2467 1126 3504 2272 3984 
+z
+M 720 1840 
+C 963 2125 1373 2333 1808 2333 
+C 2301 2333 2534 2029 2534 1514 
+C 2534 902 2125 330 1469 330 
+C 861 330 515 720 515 1315 
+C 515 1520 589 1686 720 1840 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-793" d="M 1501 -102 
+C 2410 -102 2669 883 2669 2013 
+C 2669 3254 2410 4282 1501 4282 
+C 595 4282 278 3302 278 2035 
+C 278 979 611 -102 1501 -102 
+z
+M 1494 256 
+C 899 256 656 1030 656 2160 
+C 656 2925 893 3939 1485 3939 
+C 2080 3939 2310 3050 2310 2154 
+C 2310 1283 2230 256 1494 256 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-189" d="M 1107 1155 
+C 1584 1155 1936 1530 1936 1974 
+C 1936 2406 1565 2701 1117 2701 
+C 685 2701 291 2358 291 1942 
+C 291 1466 662 1155 1107 1155 
+z
+M 1104 1462 
+C 822 1462 643 1648 643 1962 
+C 643 2208 880 2394 1094 2394 
+C 1389 2394 1590 2179 1590 1904 
+C 1590 1667 1360 1462 1104 1462 
+z
+" transform="scale(0.015625)"/>
+      <path id="PennstanderMath-ExtraLight-49b" d="M 739 -960 
+C 774 -992 970 -1152 1027 -1181 
+C 1117 -1101 1203 -1005 1280 -906 
+C 1398 -768 1507 -611 1597 -438 
+C 1984 278 2118 1226 2118 2000 
+C 2118 2778 1930 3648 1574 4326 
+C 1491 4490 1395 4640 1290 4781 
+C 1232 4867 1168 4950 1104 5021 
+C 944 4970 816 4934 755 4896 
+C 829 4803 896 4704 963 4605 
+C 1056 4474 1146 4330 1222 4189 
+C 1587 3539 1760 2800 1760 1971 
+C 1760 1293 1606 403 1270 -253 
+C 1190 -413 1098 -563 995 -691 
+C 918 -790 829 -886 739 -960 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#PennstanderMath-ExtraLight-796" transform="translate(0 0.546875)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-140" transform="translate(69.109937 0.546875)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-7fd" transform="translate(110.019891 0.546875)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-809" transform="translate(158.669839 0.546875)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-817" transform="translate(189.169809 0.546875)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-48a" transform="translate(239.269754 0.546875)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-79c" transform="translate(282.269708 0.546875)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-793" transform="translate(329.519662 0.546875)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-189" transform="translate(393.827284 37.58125) scale(0.7)"/>
+     <use xlink:href="#PennstanderMath-ExtraLight-49b" transform="translate(432.774563 0.546875)"/>
+    </g>
+   </g>
+   <g id="text_2">
+    <!-- P05 -->
+    <g style="fill: #6c6357" transform="translate(18.249587 21.65152) scale(0.054 -0.054)">
+     <defs>
+      <path id="FiraSans-Regular-e2" d="M 1798 4410 
+L 640 4410 
+L 640 0 
+L 1248 0 
+L 1248 1619 
+L 1805 1619 
+C 2778 1619 3514 2035 3514 3046 
+C 3514 3974 2861 4410 1798 4410 
+z
+M 1779 2099 
+L 1248 2099 
+L 1248 3936 
+L 1792 3936 
+C 2445 3936 2867 3699 2867 3040 
+C 2867 2291 2432 2099 1779 2099 
+z
+" transform="scale(0.015625)"/>
+      <path id="FiraSans-Regular-871" d="M 1786 4346 
+C 826 4346 352 3558 352 2138 
+C 352 717 826 -77 1786 -77 
+C 2746 -77 3219 717 3219 2138 
+C 3219 3552 2746 4346 1786 4346 
+z
+M 1786 3878 
+C 2317 3878 2605 3392 2605 2138 
+C 2605 877 2317 390 1786 390 
+C 1248 390 966 877 966 2138 
+C 966 3392 1248 3878 1786 3878 
+z
+" transform="scale(0.015625)"/>
+      <path id="FiraSans-Regular-889" d="M 2771 4282 
+L 454 4282 
+L 454 2125 
+L 915 2125 
+C 1120 2221 1293 2272 1523 2272 
+C 1965 2272 2304 2042 2304 1382 
+C 2304 755 1965 403 1427 403 
+C 1056 403 781 538 512 806 
+L 166 467 
+C 499 128 890 -77 1434 -77 
+C 2323 -77 2918 518 2918 1370 
+C 2918 2221 2426 2726 1702 2726 
+C 1472 2726 1242 2675 1018 2560 
+L 1018 3821 
+L 2688 3821 
+L 2771 4282 
+z
+" transform="scale(0.015625)"/>
+     </defs>
+     <use xlink:href="#FiraSans-Regular-e2"/>
+     <use xlink:href="#FiraSans-Regular-871" transform="translate(58.09375 0)"/>
+     <use xlink:href="#FiraSans-Regular-889" transform="translate(113.890625 0)"/>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p677f99e3bf">
+   <rect x="0" y="0" width="181.417323" height="153.070866"/>
+  </clipPath>
+ </defs>
+</svg>

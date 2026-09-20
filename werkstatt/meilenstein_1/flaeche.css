@@ -1,0 +1,645 @@
+:root{ --papier:#f8f4ec; --creme:#f6ecdf; --karte:#fffefb;
+       --tinte:#2d2924;  --matt:#6c6357;  --linie:#e4d9c7;
+       --zugang:#007D57; --aktion:#9867A5; --beweis:#E09E5A; --fach:#0065A9;
+       --richtig:#2E7D32; --falsch:#C0392B; --fast:#C77D0A;
+       --blase:#efe2cd;
+       --akzent:var(--aktion);
+       --druck:'Fira Sans','Segoe UI',-apple-system,sans-serif;
+       --hand:'Patrick Hand',cursive;
+       --kb:132px; }
+/* NEU (gemeinsam entschieden, 2026-08-21): Der Akzent folgt dem
+   KAPITEL, nicht der Etappe. Frueher war Etappe 1 gruen (zugang) und
+   die Etappen 2 und 3 lila (aktion) - die Farbe wechselte also
+   innerhalb eines Kapitels.
+
+   Rikes Begruendung: Es sind schon genug Farbsysteme im Spiel. Jedes
+   Kapitel hat seine Farbe; wechseln die Etappen darin nochmals, traegt
+   keine Farbe mehr etwas. Wiedererkennung statt Regenbogen.
+
+   Die vier Farben stehen fuer Kompetenzaspekte - blau Begriffe, gruen
+   Darstellungen, ocker Begruenden, lila Operieren. Die Kapitelfarbe ist
+   die des Schwerpunkts, den das Kapitel setzt.
+   Kapitel 1 lila, 2 gruen, 3 ocker, 4 blau.
+
+   Das hebt den Logeintrag «Die Modulfarben gehoeren den Phasen» vom
+   selben Tag auf; er ist dort als ueberholt markiert. */
+body[data-farbe=zugang]{--akzent:var(--zugang)}
+body[data-farbe=aktion]{--akzent:var(--aktion)}
+body[data-farbe=beweis]{--akzent:var(--beweis)}
+body[data-farbe=fach]{--akzent:var(--fach)}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:15px/1.55 var(--druck);color:var(--tinte);
+     background:var(--papier);display:flex;flex-direction:column;overflow:hidden}
+
+header{display:flex;align-items:center;gap:14px;padding:8px 18px;
+       border-bottom:1px solid var(--linie);background:var(--karte);flex:0 0 auto}
+header .streifen{width:5px;height:26px;background:var(--akzent);border-radius:3px}
+header h1{font-family:var(--hand);font-size:21px;margin:0;font-weight:400}
+nav{display:flex;gap:6px;margin-left:auto}
+nav button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--linie);
+           background:var(--karte);border-radius:999px;cursor:pointer}
+nav button[aria-current=true]{background:var(--akzent);color:#fff;border-color:var(--akzent)}
+
+.auftrag{padding:9px 18px;background:var(--creme);border-bottom:1px solid var(--linie);
+         font-size:14px;display:flex;gap:12px;align-items:baseline;flex:0 0 auto}
+.auftrag .rang{font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+      color:var(--matt);border:1px solid var(--linie);border-radius:999px;
+      padding:2px 9px;background:var(--karte);white-space:nowrap}
+.auftrag .titel{font-family:var(--hand);font-size:19px;color:var(--akzent);white-space:nowrap}
+.auftrag .text{color:var(--tinte)}
+.auftrag .zart{color:var(--matt);font-size:13px}
+
+.buehne{flex:1 1 auto;display:flex;gap:10px;padding:10px 14px;min-height:0;position:relative}
+.haelfte{position:relative;border:1px solid var(--linie);border-radius:12px;
+         background:var(--creme);overflow:auto;flex:1 1 0}
+.haelfte.rechts{background:var(--papier)}
+.haelfte.ablageflaeche{background:var(--creme)}
+.haelfte.ablageflaeche > .marke{background:linear-gradient(var(--creme) 70%,transparent)}
+.haelfte > .marke{position:sticky;top:0;left:0;z-index:5;padding:6px 12px 2px;
+     font-family:var(--hand);font-size:16px;color:var(--matt);
+     background:linear-gradient(var(--creme) 70%,transparent);pointer-events:none}
+.haelfte.rechts > .marke{background:linear-gradient(var(--papier) 70%,transparent)}
+.blatt{position:relative;min-height:100%;min-width:100%}
+
+/* NEU (2026-08-24): Gestapeltes Brett statt Spalten nebeneinander -
+   agent/06_sortierflaechen.md, «Breit und niedrig statt hoch und
+   schmal»: Felder oben ueber die ganze Flaeche, Karten darunter. Rikes
+   Auftrag fuer Etappe 1 der Kombinatorik: oben EIN grosses sortiertes
+   Feld, darunter drei schmalere Quellflaechen (Situationen/Urnen/
+   Terme) statt der alten Ablage-Spalte rechts. Allgemein gehalten,
+   nicht kapitelspezifisch - siehe buehneOben() in flaeche.js. */
+.buehne.stapel{flex-direction:column}
+.buehne.stapel > .haelfte.oben{flex:1.6 1 0;min-height:0}
+.buehne.stapel > .unten{display:flex;gap:10px;flex:1 1 0;min-height:0}
+/* FEHLERBEHOBEN (2026-08-21): z-index 1 lag UNTER den Karten, die bei
+   10 anfangen und beim Ziehen weiter steigen. Die Bandbeschriftungen
+   «Situationen», «Urnenmodelle», «Terme» waren dadurch meist verdeckt -
+   gemessen: vorhanden bei top 197 und 427, aber unsichtbar.
+   Sie liegen jetzt darueber; weil sie keine Ereignisse annehmen, stoeren
+   sie das Ziehen nicht. */
+.bandmarke{position:absolute;left:10px;font-family:var(--hand);font-size:15px;
+   color:var(--matt);pointer-events:none;z-index:100000}
+.bandmarke::after{content:'';position:absolute;left:0;right:0;top:20px;
+   border-top:1px dashed var(--linie);width:100vw}
+
+.k{position:absolute;width:var(--kb);cursor:grab;touch-action:none;
+   border-radius:8px;background:var(--karte);
+   box-shadow:0 1px 3px rgba(0,0,0,.16);transition:box-shadow .12s}
+/* FEHLERBEHOBEN: Der Browser startet auf einem <img> von sich aus ein
+   eigenes Ziehen. Das kapert die Geste - die Karte klebt am Mauszeiger,
+   aber unser pointerup kommt nie an, und sie landet nirgends. */
+.k img{width:100%;display:block;pointer-events:none;border-radius:8px;
+       -webkit-user-drag:none;user-drag:none}
+.k{user-select:none;-webkit-user-select:none}
+/* FEHLERBEHOBEN (2026-08-21): Die gezogene Karte haengt beim Ziehen
+   selbst unter dem Mauszeiger. document.elementFromPoint() fand deshalb
+   IMMER sie und nie das Ziel darunter. Zwei Folgen, beide gemessen:
+   die Zielmarkierung erschien nie, und beim Loslassen war die Zielsuche
+   Glueckssache. Das war das «unberechenbare Einrasten».
+   Mit pointer-events:none ist die Karte fuer die Trefferpruefung
+   durchsichtig; die Ereignisse selbst laufen ueber window weiter. */
+/* Beschreibbare Karte: Textfeld statt Bild. Die Hoehe muss gesetzt
+   werden - ohne Bild gaebe es keine. 0.845 ist dasselbe Verhaeltnis, mit
+   dem gruppeOrdnen() rechnet, damit sie sich mit Bildkarten mischt. */
+.k.schreibbar{height:calc(var(--kb) * .845);background:var(--karte);
+   border:1px solid var(--linie);border-radius:8px;
+   padding:15px 7px 7px;cursor:default}
+.k.schreibbar .griff{position:absolute;top:0;left:0;right:0;height:15px;
+   cursor:grab;border-radius:8px 8px 0 0;
+   background:repeating-linear-gradient(90deg,var(--linie) 0 3px,transparent 3px 6px)
+              center/28px 2px no-repeat, var(--creme)}
+.k.schreibbar .griff:active{cursor:grabbing}
+.k.schreibbar textarea{width:100%;height:100%;border:none;background:transparent;
+   resize:none;outline:none;color:var(--tinte);
+   font:400 12px/1.38 var(--druck)}
+.k.schreibbar textarea::placeholder{color:#bcae97;font-style:italic}
+.k.schreibbar:focus-within{border-color:var(--akzent);
+   box-shadow:0 2px 8px rgba(0,0,0,.18)}
+/* PRUEFEN (2026-08-22): Ein fester Anfang vor dem Textfeld - in
+   Kapitel 2 das «Ω =». Die Karte wird dafuer zur Spalte: Das Textfeld
+   traegt sonst height:100% und liefe unter den unteren Rand, sobald
+   etwas ueber ihm steht. Genau dieser Fehler ist in Kapitel 4 schon
+   einmal passiert (das unsichtbare Eingabefeld, 44 px zu tief). */
+/* Die Aufloesung im Brett - Kapitel 2, Etappe 3, Weg B. Sie steht am
+   FUSS des Bretts, unter dem eigenen Geschriebenen: erst die eigene
+   Antwort, dann die aus dem Skript. Sitzt absolut, weil die Karten im
+   Brett selbst absolut liegen; bretter() rechnet die Hoehe ein. */
+.feld > .hinweis{position:absolute;left:8px;right:8px;bottom:8px;
+   background:var(--blase);border:1px solid var(--linie);border-radius:7px;
+   padding:6px 10px;font-size:12px;line-height:1.42;color:var(--tinte)}
+.feld > .hinweis b{color:var(--akzent);font-weight:600}
+
+.k.schreibbar.mitvorsatz{display:flex;flex-direction:column}
+.k.schreibbar.mitvorsatz .vorsatz{flex:0 0 auto;color:var(--matt);
+   font:500 12px/1.2 var(--druck)}
+.k.schreibbar.mitvorsatz textarea{flex:1 1 auto;height:auto;min-height:0}
+/* Getoente Karte: Der Griff traegt sonst seinen eigenen Cremegrund und
+   sitzt als fremder Streifen auf der Farbe. Die Striche bleiben, der
+   Grund darunter faellt weg - die Kartenfarbe scheint durch. */
+.k.schreibbar.getoent .griff{
+   background:repeating-linear-gradient(90deg,var(--linie) 0 3px,transparent 3px 6px)
+              center/28px 2px no-repeat}
+.k.zieht{cursor:grabbing;box-shadow:0 8px 20px rgba(0,0,0,.28);
+         pointer-events:none}
+/* In der Ablage ist die Spalte schmal. Statt sie zu verbreitern - das
+   ginge nur auf Kosten des Tisches - werden die Karten dort kleiner.
+   Die Lupe holt sie beim Lesen wieder heran. */
+#ablage .k{width:calc(var(--kb) * .60)}
+/* Dasselbe in einer REIHE: Die Haelfte ist schmal, und ein Reihenkopf
+   steht schon darin. Haengt an der Klasse, nicht am Kapitel - Kapitel 2
+   baut Mengenreihen, Kapitel 3 Fragereihen. */
+.feld.reihe > .k{width:calc(var(--kb) * .60)}
+.k.ok{outline:2.5px solid var(--richtig);outline-offset:1px;border-radius:8px}
+.k.falsch{outline:2.5px solid var(--falsch);outline-offset:1px;border-radius:8px}
+/* Dritter Zustand: Das Paar stimmt, aber es liegt unter der falschen
+   Situation. Bernstein gehoert zum Rueckmeldesystem (gruen/rot), nicht
+   zum Farbsystem der Kompetenzaspekte - deshalb ein eigener Ton und
+   nicht var(--beweis). */
+.k.fastok{outline:2.5px dashed var(--fast);outline-offset:1px;border-radius:8px}
+
+/* ───── Zwei Fragen, zwei Anzeigen (2026-08-28, Rikes Auftrag) ─────
+
+   Bis hierher trugen die Karten EINEN Rahmen, in den zwei
+   verschiedene Fragen zusammengefasst waren - «passen Urne und Term
+   zueinander?» und «liegt das Paar unter der richtigen Situation?».
+   Wer Rot sah, wusste nicht, welche der beiden Fragen gemeint war.
+
+   Jetzt sind es zwei Kanaele:
+     die KARTEN tragen das Urteil ueber das Paar        (gruen/rot)
+     der PLATZ traegt das Urteil ueber die Situation    (Rand + Wort)
+
+   Das Wort steht ausdruecklich dabei, damit die zweite Anzeige nicht
+   allein an der Farbe haengt. */
+.k.halb{outline:2.5px dotted var(--linie);outline-offset:1px;border-radius:8px}
+.k.sitfalsch{outline:2.5px solid var(--falsch);outline-offset:1px;border-radius:8px}
+.k.sitok{outline:2.5px solid var(--richtig);outline-offset:1px;border-radius:8px}
+.paar.sit-ok{border:2px solid var(--richtig);border-style:solid}
+.paar.sit-falsch{border:2px solid var(--falsch);border-style:solid}
+.paar.sit-offen{border:2px dashed var(--fast)}
+.paar.sit-warte{border:1.2px dashed var(--linie)}
+.sitmarke{position:absolute;left:6px;bottom:-20px;z-index:5;
+     max-width:calc(100% - 12px);box-sizing:border-box;
+     font-size:10.5px;line-height:1.6;padding:0 6px;border-radius:9px;
+     background:var(--karte);border:1px solid var(--linie);
+     color:var(--matt);white-space:nowrap;overflow:hidden;
+     text-overflow:ellipsis;
+     /* Muss durchlaessig bleiben: Das Woertchen haengt im Spalt UNTER
+        seinem Platz und wuerde sonst Karten abfangen, die auf den
+        naechsten Platz gezogen werden. */
+     pointer-events:none}
+.sitmarke.ok{border-color:var(--richtig);color:var(--richtig)}
+.sitmarke.falsch{border-color:var(--falsch);color:var(--falsch)}
+.sitmarke.offen{border-color:var(--fast);color:var(--fast)}
+.k .marke{position:absolute;top:4px;left:4px;background:var(--akzent);color:#fff;
+     font-size:11px;font-weight:600;border-radius:5px;padding:1px 7px;
+     box-shadow:0 1px 2px rgba(0,0,0,.25)}
+/* NEU (2026-08-21, Rikes Rueckmeldung «die Fragezeichen ueber den Zahlen
+   machen bei Etappe 1 keinen Sinn»): Der Hilfe-Zeiger stand auf ALLEN
+   Marken. In Etappe 1 tragen die Situationskarten nur ihre Nummer, ohne
+   Blase - dort versprach er etwas, das nicht kam. Jetzt bekommt ihn nur,
+   wer wirklich etwas zu zeigen hat. */
+.k .marke.lesbar{cursor:help}
+/* ENTSCHEIDUNG (2026-08-21, Kasper): Die Skript-Marken waren blau
+   (var(--fach)). Blau steht im Farbsystem fuer «Begriffe und
+   Definitionen» und sagt hier nichts - es behauptet eine Bedeutung, die
+   es nicht gibt. Genau das soll die neue Regel verhindern, und sie
+   nennt «Marken» ausdruecklich unter dem, was der Kapitelfarbe folgt.
+   Neu: dieselbe Farbe, helle Variante. Eis und Skript bleiben
+   unterscheidbar - die Aufschrift sagt es ohnehin («Eis 11» gegen
+   «Aufgabe 1.5»), und die helle Marke tritt zurueck, was passt: Die
+   Skriptnummer ist eine Herkunftsangabe, keine Aussage ueber die Karte.
+   Verworfene Alternative: Blau behalten. Dann stuende auf der Flaeche
+   eine Kompetenzfarbe, die nichts ueber Kompetenz sagt. */
+.k .marke.skript{background:var(--karte);color:var(--akzent);
+   border:1.5px solid var(--akzent);padding:0 6px}
+/* Situationsnummern tragen die Kapitelfarbe. Seit der Akzent selbst
+   dem Kapitel folgt und nicht mehr der Etappe, ist das var(--akzent) -
+   ueber alle Etappen derselbe Ton. */
+.k .marke.sit{background:var(--akzent)}
+/* NEU (gemeinsam entschieden, 2026-08-21): Die Blase war schwarz mit
+   weisser Schrift und riss die Flaeche auf - sie steht ueber hellen
+   Karten. Jetzt dunkelbeiger Grund im Ton der Kaesten der oberen Zeile,
+   dunkle Schrift, lila Streifen links.
+
+   Die Hervorhebungen aus den oberen Kaesten kommen mit: Im Text steht
+   «in die <b>Waffel</b>», «<b>genau zwei</b>». Genau das macht beim
+   Ueberfliegen den Unterschied. Sie tragen die Kapitelfarbe.
+
+   Verworfene Alternative: lila Grund mit weisser Schrift. Kraeftiger,
+   aber sie stuende ueber hellen Karten und wuerde die Flaeche
+   zerreissen - derselbe Fehler wie vorher, nur bunter. */
+.blase{position:fixed;
+   width:266px;background:var(--blase);color:var(--tinte);
+   border-left:4px solid var(--akzent);
+   font-size:12.5px;font-weight:400;line-height:1.45;
+   border-radius:7px;padding:9px 11px 9px 12px;z-index:100000;
+   box-shadow:0 5px 16px rgba(45,41,36,.24)}
+.blase b{color:var(--akzent);font-weight:600}
+/* UEBERHOLT (2026-08-21, abends): Hier stand «nur auf Klick, nicht mehr
+   beim Darueberfahren», begruendet mit zwei gemessenen Fehlern - die
+   Blase erbte den Massstab der Lupe (405 px statt 266) und wurde von der
+   rollenden Haelfte beschnitten.
+
+   Rikes Rueckmeldung: Das Darueberfahren war besser, und im Klick-Zustand
+   ist die Blase nicht lesbar, wenn die Karte ungluecklich liegt. Beide
+   Gruende von damals hingen am selben Umstand - die Blase steckte IN der
+   Karte. Sie haengt jetzt am <body> und steht position:fixed. Damit
+   erbt sie keinen Massstab und kann nicht beschnitten werden; das
+   Darueberfahren ist wieder moeglich, ohne die Konstante LUPE
+   gegenzurechnen. Der Klick bleibt: Er haelt die Blase fest, und auf dem
+   Tablet ist er der einzige Weg. */
+
+.k .dop{position:absolute;bottom:4px;right:4px;width:20px;height:20px;border-radius:50%;
+    border:1px solid var(--linie);background:var(--karte);color:var(--matt);
+    font-size:13px;line-height:18px;text-align:center;cursor:copy;opacity:.55}
+.k .dop:hover{opacity:1;border-color:var(--akzent);color:var(--akzent)}
+
+.feld{position:absolute;border:1.5px dashed var(--linie);border-radius:10px;
+      background:rgba(255,254,251,.72)}
+.feld.ueber{border-color:var(--akzent);background:#fff}
+/* Formeln ausserhalb der Kartenbilder. Auf den Karten setzt matplotlib
+   sie; hier stellt latexklar.mathe_html() sie in Unicode zusammen. */
+.formel{font-family:'Pennstander Math','Cambria Math',Georgia,serif;
+   font-size:1.06em;white-space:nowrap}
+.formel .quer{border-top:1px solid currentColor;padding-top:1px}
+.formel .bruch{display:inline-flex;flex-direction:column;vertical-align:middle;
+   text-align:center;line-height:1.06;margin:0 .15em}
+.formel .bruch i:first-child{border-bottom:1px solid currentColor;font-style:normal}
+.formel .bruch i{font-style:normal;padding:0 .18em}
+
+.feld .kopf{font-size:12.5px;line-height:1.4;padding:7px 9px 4px;color:#333}
+/* Kopf einer REIHE: Die Karte, nach der die Reihe heisst, liegt links
+   und wird nicht gezogen - sie ist die Ueberschrift, nicht Material.
+   Kapitel 2 baut damit seine sechs Mengenreihen. */
+/* Laufende Nummer einer Reihe. Auf dem Schirm 1, 2, 3 ... - das
+   interne Kuerzel bleibt intern, wie bei den Situationen in Kapitel 1. */
+.feld > .reihennr{position:absolute;left:8px;top:8px;z-index:2;
+   background:var(--akzent);color:#fff;border-radius:5px;padding:1px 7px;
+   font-size:11px;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+/* FEHLERBEHOBEN (2026-08-21, Rikes Rueckmeldung): Der Reihenkopf trug
+   pointer-events:none und liess sich deshalb nicht vergroessern - «wenn
+   ich auf die beweglichen Kaertchen gehe, krieg ich die mit der Lupe
+   angezoomt; die Fragen, die da stehen, haben das nicht». Er ist aber
+   die dichteste Karte auf der Flaeche: Lage, Ereignis, Frage.
+   Ursache der alten Zeile: Der Kopf lag ueber dem Feld und fing
+   Ziehbewegungen ab, die dem Feld gehoerten. Deshalb jetzt nicht
+   pointer-events:none, sondern pointer-events:auto NUR fuer das
+   Vergroessern - gezogen wird er ohnehin nicht, er hat keinen
+   Ziehgriff. */
+.feld > .reihenkopf{position:absolute;left:8px;top:8px;border-radius:7px;
+   border:1px solid var(--linie);background:var(--karte);
+   box-shadow:0 1px 2px rgba(0,0,0,.10);
+   transform-origin:left top;transition:transform .12s;z-index:2}
+.feld > .reihenkopf:hover{transform:scale(1.5);z-index:99998;
+   box-shadow:0 6px 20px rgba(45,41,36,.28)}
+.feld .kopf .nr{display:inline-block;background:var(--akzent);color:#fff;border-radius:5px;
+                padding:1px 7px;font-size:11px;margin-right:6px;font-weight:600}
+/* Schreibfeld IN einem Feld - fuer laengere eigene Saetze. Anders als
+   .gname, das eine einzelne Zeile fuer einen Gruppennamen ist:
+   Kapitel 3 laesst hier ganze Prueffragen schreiben. */
+.feld > .schreibfeld{position:absolute;left:9px;right:9px;bottom:9px;top:34px;
+   border:none;background:transparent;resize:none;outline:none;
+   font:400 13px/1.42 var(--druck);color:var(--tinte)}
+.feld > .schreibfeld::placeholder{color:#bcae97;font-style:italic}
+.feld:focus-within{border-color:var(--akzent);border-style:solid}
+.feld .gname{font-family:var(--hand);font-size:17px;border:none;background:transparent;
+             border-bottom:1.5px dashed var(--linie);width:calc(100% - 18px);
+             margin:7px 9px 2px;padding:2px 0;color:var(--tinte)}
+.feld .gname:focus{outline:none;border-bottom-color:var(--akzent)}
+.feld.neu{border-style:dashed;display:flex;align-items:center;justify-content:center;
+          opacity:.6;cursor:pointer;background:transparent}
+.feld.neu:hover{opacity:1;border-color:var(--akzent)}
+.feld.neu span{font-family:var(--hand);font-size:17px;color:var(--matt)}
+.feld.neu:hover span{color:var(--akzent)}
+
+.paar{position:absolute;border-radius:7px;border:1.2px dashed var(--linie);
+      background:rgba(246,236,223,.5)}
+.paar.ueber{border-color:var(--akzent);background:#fff}
+.paar .hint{position:absolute;left:6px;top:4px;font-size:10.5px;color:#c9bda8;
+            font-family:var(--hand);pointer-events:none}
+
+.leiste{display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:8px 16px;
+        border-top:1px solid var(--linie);background:var(--karte);flex:0 0 auto}
+/* FEHLERBEHOBEN (2026-08-21): Eine lange Rueckmeldung liess die Knoepfe
+   schrumpfen - «Stand als Bild sichern» brach auf drei Zeilen um und
+   «Etappe 2 →» auf zwei. Die Knoepfe behalten jetzt ihre Groesse, der
+   Text nimmt den Rest und darf umbrechen. */
+.knopf{font:inherit;font-size:13.5px;padding:7px 14px;border-radius:8px;
+       border:1px solid var(--tinte);background:var(--tinte);color:#fff;cursor:pointer;
+       white-space:nowrap;flex:0 0 auto}
+.knopf.leer{background:var(--karte);color:var(--tinte)}
+.knopf.leer:hover{border-color:var(--akzent);color:var(--akzent)}
+/* FEHLERBEHOBEN (2026-08-21): Die Rueckmeldung stand als schmale Spalte
+   zwischen den Knoepfen und wurde bei drei Saetzen vier Zeilen hoch -
+   die Leiste wuchs auf 126 px und nahm der Flaeche den Platz.
+   Jetzt hat sie eine eigene Zeile ueber die volle Breite, unterhalb der
+   Knoepfe (order:9). Die Knoepfe bleiben auf einer Zeile. */
+.befund{font-size:13.5px;color:var(--matt);flex:1 0 100%;order:9;
+        margin:-2px 0 0}
+.befund:empty{display:none}
+/* Beschriftung IN der Knopfzeile, etwa «Ausschuetten:». Sie sah frueher
+   aus wie eine Rueckmeldung und trug deren Klasse - damit rutschte sie
+   mit auf die Rueckmeldezeile. */
+.leiste .beschriftung{font-size:13.5px;color:var(--matt);margin-right:-3px}
+.leiste > :not(.befund){order:1}
+.groesse{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--matt)}
+
+/* NEU (2026-08-24): Die Loesung - nur in der Kontrollfassung erreichbar
+   (siehe loesungsKnopf() in flaeche.js). Bewusst NICHT wie eine Karte
+   oder ein Feld gefaerbt, damit auf einen Blick klar ist: Das hier
+   gehoert nicht zur Sortierflaeche selbst, sondern liegt daneben. */
+.loesungpanel{flex:0 0 auto;margin:0 14px 10px;padding:12px 16px;
+  border:1.5px dashed var(--akzent);border-radius:10px;
+  background:rgba(0,0,0,.03);font-size:13.5px;line-height:1.55;
+  max-height:220px;overflow:auto}
+.loesungpanel h4{margin:0 0 6px;font-family:var(--hand);font-size:16px;
+  color:var(--akzent);font-weight:400}
+.loesungpanel .zeile{padding:2px 0;border-bottom:1px dotted var(--linie)}
+.loesungpanel .zeile:last-child{border-bottom:none}
+.loesungpanel .matt{color:var(--matt)}
+
+/* NEU (2026-08-24, Rikes Rueckmeldung): Statt einer Textliste zeigt
+   «Lösung anzeigen» jetzt das Feld selbst, richtig sortiert - siehe
+   loesungAnwenden() in flaeche.js. Waehrend das laeuft, ist die Fläche
+   nicht mehr die eigene: ein deutlicher Rahmen sagt das auf einen
+   Blick, und die Karten lassen sich nicht mehr ziehen (siehe ziehbar()). */
+body.loesungoffen .buehne{outline:3px solid var(--akzent);outline-offset:-3px}
+body.loesungoffen .k{cursor:default}
+.groesse input{width:92px}
+.groesse .stufe{font:inherit;font-size:15px;line-height:1;width:24px;height:24px;
+   border:1px solid var(--linie);background:var(--karte);border-radius:6px;
+   cursor:pointer;color:var(--tinte)}
+.groesse .stufe:hover{border-color:var(--akzent);color:var(--akzent)}
+
+.start{max-width:660px;margin:5vh auto;padding:0 20px;overflow:auto}
+.start h2{font-family:var(--hand);font-size:31px;font-weight:400;margin:0 0 10px}
+.einstieg{display:flex;gap:18px;align-items:center;margin:12px 0 26px;
+          background:var(--karte);border:1px solid var(--linie);border-radius:12px;padding:16px}
+.einstieg img{width:158px;height:auto;border-radius:8px;flex:0 0 auto}
+.einstieg .lage{font-size:16px;color:var(--matt);margin:0 0 6px}
+.einstieg .frage{font-family:var(--hand);font-size:25px;margin:0 0 6px;color:var(--akzent)}
+.wahl{border:1px solid var(--linie);border-radius:12px;padding:15px 18px;margin-bottom:11px;
+      cursor:pointer;background:var(--karte)}
+.wahl:hover{border-color:var(--akzent)}
+/* FEHLERBEHOBEN (2026-08-21): Die Regel galt fuer JEDES <b> im
+   Wahlkasten, nicht nur fuer den Titel. Eine Hervorhebung im
+   Beschreibungstext - «keine vorgefertigten Mengenkarten» - wurde
+   dadurch zur zweiten Ueberschrift in Handschrift. Jetzt nur noch das
+   <b> auf oberster Ebene. */
+.wahl > b{display:block;font-family:var(--hand);font-size:21px;font-weight:400;margin-bottom:3px}
+.wahl span b{color:var(--akzent);font-weight:600}
+.wahl span{font-size:13.5px;color:var(--matt)}
+.hinweis{font-size:13px;color:var(--matt);margin-top:20px;padding-top:13px;
+         border-top:1px solid var(--linie)}
+.entwurf{background:#FFF8E1;border:1px solid #E6C15A;border-radius:5px;
+         padding:1px 8px;font-size:11px;color:#7a5c1a;white-space:nowrap;
+         flex:0 0 auto}
+/* Praemissenleiste ueber der Flaeche: der Satz, der fuer die ganze
+   Etappe gilt.
+
+   ANMERKUNG (geklaert, 2026-08-21): Das war die «Situationsleiste» von
+   Kapitel 1 und dort mit A2 ersatzlos entfallen - zu Recht: Dort gab es
+   ACHT Situationen, und eine Liste von acht Texten ueber der Flaeche ist
+   keine Praemisse, sondern ein zweiter Kartensatz in Textform. Die
+   Nummer gehoert auf die Karte.
+
+   Kapitel 2 liegt anders: Dort gilt EINE Situation fuer die ganze
+   Etappe 1 und 2. Sie ist die Voraussetzung, gegen die geprueft wird,
+   und muss deshalb dauernd sichtbar sein. Darum umbenannt statt
+   geloescht - es ist dieselbe Form fuer einen anderen Zweck. */
+.praemisse{display:flex;flex-wrap:wrap;gap:5px;padding:6px 12px;background:var(--karte);
+           border-bottom:1px solid var(--linie);font-size:12px;flex:0 0 auto}
+/* FEHLERBEHOBEN (2026-08-21): Die Plakette hing am <b>. Das stimmte,
+   solange die Leiste nur Situationsnummern zeigte - aber der Text einer
+   Praemisse enthaelt SELBST Hervorhebungen («<b>3 Kugeln</b>»), und die
+   wurden dadurch zu Plaketten. Jetzt traegt nur die Kennung eine, und
+   die Hervorhebungen im Text bekommen die Kapitelfarbe, wie in der
+   Sprechblase auch. */
+.praemisse .wer{background:var(--akzent);color:#fff;border-radius:5px;
+             padding:1px 7px;font-size:11px;font-weight:600;margin-right:6px}
+.praemisse b{color:var(--akzent);font-weight:600}
+.praemisse span{border:1px solid var(--linie);border-radius:7px;padding:4px 9px;
+                background:var(--creme);flex:1 1 210px;max-width:none;
+                line-height:1.36}
+/* NEU (Rikes Entscheidung, 2026-08-22): Dieselbe Leiste als
+   VERGLEICHSPUNKT statt als Voraussetzung - Kapitel 2, Etappe 3, Weg A.
+   Die Beschriftung davor sagt, in welchem Verhaeltnis die Situation zur
+   Etappe steht; ohne sie liest man sie als «gilt hier». Sie traegt
+   keinen Rahmen und keinen Grund, damit die beiden Situationen im Feld
+   die lauteren bleiben. */
+.praemisse .woher{border:none;background:none;padding:0;flex:0 0 auto;
+   align-self:center;color:var(--matt);font-size:11px;font-style:italic}
+
+/* ───────── Das Urteil auf der Karte (Kapitel 3, Etappe 1, Zug 2) ──
+
+   BERICHTIGT (2026-08-22, Rikes Befund): Hier standen ZWEI beschriftete
+   Knoepfe am unteren Rand. In einer Reihe sind die Karten klein, und
+   die beiden Knoepfe deckten sie fast vollstaendig zu - vom Rechenweg
+   blieb ein Streifen. «Da gibt's zwar diese Buttons, aber die tun
+   nichts»: Sie taten etwas, man sah es nur nicht.
+
+   Neu ist es EIN Zeichen in der Ecke, das durchschaltet, und die Karte
+   bleibt sichtbar. Was nicht traegt, wird durchgestrichen - Rikes
+   Vorschlag. */
+.k .urteil{position:absolute;left:4px;bottom:4px;width:19px;height:19px;
+   border-radius:50%;border:1px solid var(--linie);background:var(--karte);
+   color:var(--matt);font-size:12px;line-height:17px;text-align:center;
+   cursor:pointer;z-index:4;user-select:none}
+.k .urteil:hover{border-color:var(--akzent);color:var(--akzent)}
+.k .urteil.ja{background:#2E7D32;border-color:#2E7D32;color:#fff;font-weight:700}
+.k .urteil.nein{background:#8a5a12;border-color:#8a5a12;color:#fff;font-weight:700}
+
+/* Durchgestrichen heisst «traegt nicht». Der Strich laeuft ueber die
+   ganze Karte, damit er auch aus der Entfernung zu sehen ist. */
+.k.traegtnicht{opacity:.72}
+.k.traegtnicht::after{content:'';position:absolute;left:4%;right:4%;top:50%;
+   height:2px;background:#8a5a12;transform:rotate(-9deg);
+   pointer-events:none;z-index:3}
+
+/* UEBERHOLT (2026-08-22, Rikes Entscheidung): Hier stand die Marke
+   «neu» (.k.frisch) - ein kleines Schild an jeder Karte einer spaeteren
+   Runde. Sie war ein Zwischenweg: das Wachsen zeigen, ohne die
+   Stapelzugehoerigkeit zu verraten.
+   Rike hebt beides auf - die Zugehoerigkeit wird jetzt gezeigt, und das
+   Wachsen sieht man daran, dass die alten Karten den Tisch laengst
+   verlassen haben. Entfernt statt totgelegt, damit niemand sie fuer
+   einen noch benutzten Weg haelt; sie steht in Git.
+
+   Die drei Stapel - VON ANFANG AN. Drei Toene aus dem eigenen
+   Farbschema, mit Absicht NICHT das Ocker: das ist die Kapitelfarbe von
+   Kapitel 3 und wuerde als vierte Bedeutung dazwischenreden.
+     Stapel 1  gruen  --zugang
+     Stapel 2  blau   --fach
+     Stapel 3  lila   --aktion
+   Die Fuellung wird aus der jeweiligen Kompetenzfarbe GERECHNET, nicht
+   danebengeschrieben - ein vierter Satz Hexwerte waere ein zweiter Ort
+   fuer dieselbe Farbe. Die Kartenbilder sind transparent gesetzt
+   (savefig transparent=True), darum traegt der Kartengrund durch.
+   Der Ring bleibt zusaetzlich: Er haelt die Karte auch dort
+   unterscheidbar, wo sie klein liegt und von der Fuellung wenig zu
+   sehen ist. */
+.k.stapel1{background:color-mix(in srgb, var(--zugang) 22%, #fff);
+   box-shadow:inset 0 0 0 2.5px #7FB069, 0 2px 6px rgba(0,0,0,.14)}
+.k.stapel2{background:color-mix(in srgb, var(--fach) 22%, #fff);
+   box-shadow:inset 0 0 0 2.5px #6C9BD1, 0 2px 6px rgba(0,0,0,.14)}
+.k.stapel3{background:color-mix(in srgb, var(--aktion) 22%, #fff);
+   box-shadow:inset 0 0 0 2.5px #C99BC0, 0 2px 6px rgba(0,0,0,.14)}
+
+/* ───────── Das Venn als Zeichnung (Kapitel 4) ─────────
+   NEU (2026-08-21, Rikes Rueckmeldung «Ich kann die Fragezeichen nicht
+   befuellen»): Das Venn ist keine Bilddatei mehr, sondern eine
+   Zeichnung mit echten Eingabefeldern. Die Geometrie kommt aus
+   zeichnen.geometrie() - dieselbe, die das Kartenbild zeichnet. */
+svg.venn{display:block;width:100%;height:auto}
+svg.venn .vkreis{fill:none;stroke:#8a8279;stroke-width:.8}
+svg.venn text{font-family:var(--druck);text-anchor:middle;
+   dominant-baseline:central;fill:var(--tinte)}
+svg.venn .vname{font-size:6.6px;font-weight:600}
+svg.venn .vwert{font-size:5.4px}
+svg.venn .vklein{font-size:5px}
+svg.venn .vselbst{fill:var(--akzent);font-weight:600}
+svg.venn .vrand{font-size:4.2px;fill:var(--matt)}
+/* FEHLERBEHOBEN (2026-08-21, beim Pruefen im Browser): Das Feld hatte
+   weissen Grund und eine Linie in var(--linie) - hellbeige auf weiss.
+   Es war vorhanden, anklickbar und vollstaendig unsichtbar; die Luecke
+   sah aus wie eine leere Stelle. Jetzt gestrichelt in der Kapitelfarbe:
+   Eine Luecke muss aussehen wie etwas, das gefuellt werden will. */
+/* FEHLERBEHOBEN (2026-08-21, gemessen): display:block ist noetig, nicht
+   Schoenheit. Als inline-block sass das Feld auf einer Grundlinie und
+   wurde dadurch um 44 px unter seinen eigenen Rahmen geschoben - also
+   unter den unteren Rand des SVG, wo es abgeschnitten wurde. Gemessen:
+   foreignObject bei y 412, Eingabefeld bei y 456, SVG endet bei 452.
+   Dazu line-height:1, sonst schiebt die Zeilenhoehe erneut. */
+svg.venn input.vfeld{display:block;width:100%;height:100%;box-sizing:border-box;
+   border:.9px dashed var(--akzent);border-radius:1.6px;background:#fff;
+   font:600 5px/1 var(--druck);text-align:center;color:var(--akzent);
+   padding:0;outline:none}
+svg.venn input.vfeld::placeholder{color:var(--akzent);opacity:.5}
+svg.venn input.vfeld:focus{border-style:solid;background:#fffdf6}
+
+/* Zug 1: die acht Erhebungen nebeneinander, nicht als Stapel. Sie
+   werden hier nicht gezogen - es wird nur gerechnet. */
+.vennraster{display:grid;gap:10px;padding:8px;
+   grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.vennplatz{background:var(--karte);border:1px solid var(--linie);
+   border-radius:10px;padding:8px 8px 6px}
+.vennplatz.stimmt{border-color:#2E7D32;box-shadow:inset 0 0 0 1px #2E7D32}
+.vennplatz.widerspruch{border-color:var(--fast);
+   box-shadow:inset 0 0 0 1px var(--fast)}
+.vennkopf{font-size:12.5px;margin-bottom:2px}
+.vennbefund{font-size:10.5px;color:var(--matt);line-height:1.35;min-height:14px;
+   margin-top:2px}
+.vennbefund.gut{color:#2E7D32}
+.vennbefund.schlimm{color:#8a5a12}
+
+/* Die Axiome und Folgerungen zum Nachschlagen, waehrend gerechnet wird.
+   Ohne sie waere «Nachrechnen» ein Orakel. */
+.axiomliste{padding:10px 12px}
+.axiom{background:var(--karte);border:1px solid var(--linie);border-radius:9px;
+   padding:9px 12px;margin-bottom:8px;font-size:13px;line-height:1.4}
+.axiom .nr{display:inline-block;background:var(--akzent);color:#fff;
+   border-radius:5px;padding:0 6px;font-size:11px;font-weight:600;
+   margin-right:7px}
+.axiom.folgerung{opacity:.72}
+.axiom.folgerung .nr{background:var(--matt)}
+
+/* Die Karte in Zug 2 traegt das Venn statt eines Bildes. */
+.k.vennkarte{padding:3px}
+
+/* ───────── Die Bernoulli-Ungleichung (Kapitel 4, Etappe 2) ─────────
+   Erscheint erst NACH der Aufloesung «die Axiome entscheiden es nicht».
+   Vorher waere sie die Antwort vor der Frage. */
+.bernoulli{background:var(--karte);border:1px solid var(--linie);
+   border-left:4px solid var(--akzent);border-radius:11px;
+   padding:14px 16px;margin:12px 8px}
+.bernoulli .satz{font-size:13px;color:var(--matt);line-height:1.45}
+.bernoulli .formel{font-family:'Pennstander Math','Cambria Math',Georgia,serif;
+   font-size:19px;text-align:center;margin:12px 0 10px;color:var(--tinte)}
+.bernoulli .frage{font-size:13px;font-style:italic;color:var(--tinte);
+   background:var(--blase);border-radius:8px;padding:8px 11px;margin-bottom:11px}
+.bernoulli .rechner{display:flex;gap:16px;align-items:center;margin-bottom:10px}
+.bernoulli .rechner label{font-size:15px;color:var(--tinte);
+   font-family:'Pennstander Math','Cambria Math',Georgia,serif}
+.bernoulli .rechner input{width:92px;margin-left:6px;font:15px var(--druck);
+   padding:5px 8px;border:1px solid var(--linie);border-radius:7px;
+   background:#fff;color:var(--akzent);font-weight:600;text-align:center}
+.bernoulli .rechner input:focus{outline:none;border-color:var(--akzent)}
+.bernoulli .ergebnis{font-size:13.5px;line-height:1.5;border-radius:8px;
+   padding:9px 12px;background:var(--creme);color:var(--tinte)}
+.bernoulli .ergebnis.gut{background:#e9f3ec}
+/* Wenn die Schranke unter null faellt, sagt die Ungleichung nichts mehr.
+   Das ist keine Fehleingabe, sondern der Lerngegenstand - deshalb
+   Bernstein wie «richtig gerechnet, traegt aber nicht», nicht Rot. */
+.bernoulli .ergebnis.leer{background:#fdf4e4;border:1px solid var(--fast)}
+.bernoulli .quelle{margin-top:9px;font-size:11px;color:var(--matt)}
+
+/* Die Kopfkarte einer Reihe - sie wurde selbst hergezogen und liegt
+   links, wo sonst ein festes Bild steht (Kapitel 3, Zug 1). Sie ist
+   etwas groesser als die uebrigen: Sie ist die Frage, nicht eine
+   Antwort. */
+.k.kopfkarte{z-index:6}
+.feld.reihe.offen{border-style:solid;background:rgba(224,158,90,.05)}
+
+/* Das Ereignis als Teilmenge hinschreiben (Kapitel 2, Etappe 2).
+   Rikes Idee: Wo eine Ereigniskarte in einer Ergebnismenge liegt,
+   soll man sie DORT hinschreiben. Das Feld erscheint erst dann -
+   vorher gaebe es nichts, wovon eine Teilmenge zu bilden waere. */
+.k .teilmenge{display:none;position:absolute;left:4px;right:4px;bottom:3px}
+.k .teilmenge.aktiv{display:block}
+.k .teilmenge input{width:100%;box-sizing:border-box;font:11px var(--druck);
+   padding:2px 5px;border:1px dashed var(--akzent);border-radius:4px;
+   background:#fff;color:var(--tinte);text-align:center}
+.k .teilmenge input:focus{outline:none;border-style:solid;background:#fffdf6}
+.k .teilmenge input::placeholder{color:var(--akzent);opacity:.55}
+
+/* ───────── Die Notizleiste (auf allen Seiten gleich) ─────────
+   Sie steht unten und ist zugeklappt eine Zeile hoch. Aufgeklappt
+   nimmt sie hoechstens die halbe Seite - man soll noch sehen, worueber
+   man schreibt. */
+.notizleiste{position:fixed;left:0;right:0;bottom:0;z-index:100001;
+   background:var(--karte);border-top:2px solid var(--akzent);
+   box-shadow:0 -3px 14px rgba(45,41,36,.13);font:14px var(--druck)}
+.notizgriff{display:block;width:100%;text-align:left;border:none;
+   background:none;font:inherit;font-size:13.5px;color:var(--tinte);
+   padding:7px 18px;cursor:pointer}
+.notizgriff:hover{background:var(--creme)}
+.notizgriff .stift{color:var(--akzent);font-size:15px;margin-right:5px}
+.notizgriff .zart{color:var(--matt)}
+.notizinhalt{display:none;padding:0 18px 12px;max-height:46vh;overflow:auto}
+.notizleiste.offen .notizinhalt{display:block}
+.notizwo{font-size:12px;color:var(--matt);margin-bottom:6px}
+.notiztext{width:100%;min-height:62px;box-sizing:border-box;font:14px var(--druck);
+   padding:8px 10px;border:1px solid var(--linie);border-radius:8px;
+   background:#fff;color:var(--tinte);resize:vertical}
+.notiztext:focus{outline:none;border-color:var(--akzent)}
+.notizmalen{position:relative;margin-top:8px}
+.notizblatt{display:block;width:100%;height:120px;background:#fff;
+   border:1px dashed var(--akzent);border-radius:8px;cursor:crosshair;
+   touch-action:none}
+.notizhinweis{position:absolute;left:10px;top:6px;font-size:12px;
+   color:var(--matt);pointer-events:none}
+.notizknoepfe{display:flex;gap:8px;align-items:center;margin-top:8px}
+.notizknoepfe button{font:inherit;font-size:13px;padding:6px 12px;
+   border-radius:8px;border:1px solid var(--linie);background:var(--karte);
+   color:var(--tinte);cursor:pointer}
+.notizknoepfe button:hover{border-color:var(--akzent);color:var(--akzent)}
+.notizstand{font-size:12px;color:#2E7D32}
+
+/* ───────── Gemeinsames Brett (2026-09-08) ─────────
+   Nur sichtbar, wenn gemeinsam.js geladen ist. Ohne das Modul
+   erzeugt niemand diese Klassen, und die Regeln greifen ins Leere. */
+.gemeinsam{display:inline-flex;align-items:center;gap:6px;margin-left:12px;
+  font-size:12.5px;color:var(--matt)}
+.gemeinsam i{width:8px;height:8px;border-radius:50%;background:#c9c2b5;
+  display:inline-block}
+.gemeinsam.gut i{background:#3f8f4f}
+.gemeinsam.warten i{background:#d6a531}
+.gemeinsam.fehler i{background:#b4442f}
+.gemeinsam.fehler{color:#b4442f}
+
+/* Eine Karte, die jemand anders gerade haelt. Kein Sperren - man
+   koennte sie wegnehmen. Aber man sieht, dass es gerade jemand tut,
+   und das genuegt, damit es niemand tut. */
+.k.fremdehand{outline:2.5px solid var(--hand,#888);outline-offset:2px;
+  box-shadow:0 0 0 6px color-mix(in srgb, var(--hand,#888) 18%, transparent)}
