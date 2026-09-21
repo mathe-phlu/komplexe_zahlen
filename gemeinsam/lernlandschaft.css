@@ -165,8 +165,141 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
    sonst stuende «Aufgabe 5.2» zweimal untereinander. */
 .aufgabe.ohne-kopf > .kopf{display:none}
 .aufgabe.ohne-kopf > .rumpf{padding-top:14px}
-.aufgabe .merksatz{border-left:2px solid var(--linie);background:var(--creme);
+/* **Der Kasten muss ueberall ein Kasten sein** (19.09.2026). Diese
+   Regel verlangte einen Vorfahren `.aufgabe` — den gibt es auf der
+   Aufgabenseite und im Lernweg nicht: Dort lautet die Kette
+   `aside.merksatz -> .faltung -> .stufen -> .aufgabenblatt`. Die Regel
+   griff also nie, und der Kasten fiel auf Fliesstext zurueck.
+   Im PDF sind es echte `tcolorbox`, deshalb fiel es bei der Abnahme
+   nicht auf, sondern erst an der veroeffentlichten Seite: Rike hielt
+   die neuen Loesungen fuer «die Vorversion», weil die Etappen ohne
+   Absetzung wie Fliesstext aussahen.
+   Der Selektor steht darum jetzt fuer sich. Er trifft alle drei
+   Module — was beabsichtigt ist: Ein Merksatz ohne Absetzung ist
+   ueberall ein Fehler, nicht nur hier. */
+.merksatz{border-left:2px solid var(--linie);background:var(--creme);
      padding:7px 12px;margin:12px 0;font-size:15px}
+/* **Betont gegen beilaeufig.** `betont` traegt jeder Kasten, dessen
+   Quelltext ein optionales Argument hat (`\begin{Anm}[…]{Die Idee}`)
+   — die Idee, die den Loesungsweg traegt. Ohne Argument bleibt es die
+   Bemerkung: Sie gehoert nicht zur Loesung und soll auch nicht so
+   aussehen. Die Farbe kommt aus `--akzent`, das `data-farbe` auf der
+   Seite bereits auf die Kapitelfarbe gestellt hat — nie aus dem
+   Argument, sonst zeigte ein Vertipper still die falsche Farbe. */
+/* **Die Masse aus Lores Modell**, das Rike abgenommen hat — sie hat
+   den Kasten ausdruecklich gelobt: «das mit dem Kasten finde ich schon
+   nicht schlecht bei Lore». Vier Punkte Rand links, rechts
+   abgerundet, die Ueberschrift klein und gesperrt in der Kapitelfarbe.
+   Gemischt wird in die Creme, nicht ins Weiss: Sonst steht der
+   wichtigere Kasten blasser da als die Bemerkung daneben — am
+   Bildschirm nachgesehen, nicht gerechnet. */
+.merksatz.betont{border-left:4px solid var(--akzent);
+     border-radius:0 8px 8px 0;padding:12px 16px;
+     background:color-mix(in srgb, var(--akzent) 9%, var(--creme))}
+.merksatz.betont > h4{color:var(--akzent)}
+.merksatz > h4{margin:0 0 6px;font-size:.78rem;text-transform:uppercase;
+     letter-spacing:.07em}
+.merksatz:not(.betont){border-radius:0 8px 8px 0;padding:12px 16px;
+     color:var(--matt);font-size:14.5px}
+.merksatz:not(.betont) > h4{color:var(--matt)}
+
+/* ---------- Die Buehne zum Durchklicken ----------
+   Eine Folge «Schritt 1 … Schritt 4», je mit einer Zeichnung, wird zu
+   einer Buehne: ein Bild auf einmal, dazu Zurueck, Weiter, Von vorn.
+   Uebernommen aus Lores Prototyp vom 19.09.2026, den Rike abgenommen
+   hat — und dort in den Bauweg gehoben, wo es fuer jedes Kapitel gilt.
+
+   **Ungefaltet ist der Grundzustand.** Ohne JavaScript stehen alle
+   Szenen untereinander, wie vorher. Erst `seite.js` setzt `gefaltet`
+   und die Steuerung wird sichtbar. */
+/* Die Masse stammen aus Lores Modell (`modell_bauen.py`, 19.09.2026),
+   das Rike abgenommen hat — Tafel mit Kopf und Fuss, Bild und Wort
+   nebeneinander, «1 von 4» rechts oben. */
+/* **Eigene Namen mit `sf-`.** `.tafel`, `.kopf`, `.wort` und `.fuss`
+   sind hier laengst vergeben — `.tafel` etwa fuer die Einblendungen im
+   Lernweg. Der erste Entwurf trug Lores Namen und haette sie
+   ueberschrieben. */
+.schrittfolge{border:1px solid var(--linie);border-radius:10px;
+     overflow:hidden;margin:14px 0;container-type:inline-size}
+.sf-kopf{background:var(--creme);border-bottom:1px solid var(--linie);
+     padding:10px 14px;font-weight:600;display:flex;gap:10px;
+     align-items:baseline;font-size:15px}
+.sf-zaehler{font-size:.78rem;color:var(--matt);font-weight:400;
+     margin-left:auto;white-space:nowrap}
+.sf-buehne{padding:18px}
+/* **Alle Szenen liegen uebereinander, nicht nacheinander.**
+   Rike, 19.09.2026: «dass diese Kästen immer unterschiedlich gross
+   sind mit den Schritten … ich glaube, es wäre ruhiger, wenn die
+   Kästen eine feste Grösse hätten, die sich am [Grössten] ausrichtet,
+   sodass dann nachher auch die Bilder nicht immer hoch und runter
+   springen, sondern dass das so aussieht, als würde das Bild
+   zusätzlichen Strich bekommen.»
+
+   Eine feste Zahl (erst `min-height:330px`) loest das **nicht**: Eine
+   Szene mit mehr Text waechst darueber hinaus, und beim Weiterklicken
+   springt alles darunter. Deshalb liegen im gefalteten Zustand alle
+   Szenen in **derselben Rasterzelle** — dann ist die Buehne so hoch
+   wie die groesste von ihnen, und diese Hoehe aendert sich nie.
+
+   Verborgen wird mit `visibility`, nicht mit `display`: Was
+   `display:none` traegt, beansprucht keinen Platz und koennte die
+   Hoehe nicht mitbestimmen. Vorgelesen wird es trotzdem nicht. */
+.schrittfolge.gefaltet > .sf-buehne{display:grid;min-height:330px;
+     align-items:center}
+.schrittfolge.gefaltet > .sf-buehne > .sf-szene{grid-area:1/1;
+     width:100%;visibility:hidden}
+.schrittfolge.gefaltet > .sf-buehne > .sf-szene.da{visibility:visible}
+.sf-szene + .sf-szene{margin-top:22px}
+.schrittfolge.gefaltet .sf-szene{margin-top:0}
+/* `stretch`, damit die Bildspalte die ganze Hoehe der Szene einnimmt
+   und das Bild darin mittig sitzt — sonst wandert es mit der Laenge
+   des Textes daneben auf und ab. Das Wort bleibt mittig (`.sf-wort`
+   weiter unten). */
+.sf-szene{display:grid;gap:20px;align-items:stretch;
+     grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+/* Solange noch kein Bild aufgetreten ist, gehoert dem Wort die ganze
+   Breite — eine leere Spalte daneben waere ein Versprechen, das die
+   Szene nicht einloest. Lores Modell macht es ebenso
+   (`.buehne.ohnebild`). */
+.sf-szene.ohnebild{grid-template-columns:1fr}
+/* **Im Lernweg ist weniger Platz** (Rike, 19.09.): «wobei das Setting
+   im Lernweg, wo weniger Platz ist, ggf. etwas anders aussieht».
+   Genau so kam es — und ein `@media` half nichts: Es misst das
+   **Fenster**, nicht die Spalte. Am breiten Bildschirm blieb die
+   Einblendung neben dem Video zweispaltig, 310px breit, mit zwei
+   Spalten zu je 126px. Nachgemessen, nicht vermutet.
+   `@container` misst die Schrittfolge selbst und trifft damit beide
+   Faelle: die breite Aufgabenseite und die schmale Einblendung. */
+@container (max-width:520px){
+  .sf-szene{grid-template-columns:1fr}
+  .schrittfolge.gefaltet > .sf-buehne{min-height:0}
+  .sf-szene > figure,.sf-szene > figure img{max-height:220px}
+}
+/* Rueckfall fuer Browser ohne Container-Abfragen: dann entscheidet
+   wenigstens die Fensterbreite. */
+@supports not (container-type:inline-size){
+  @media(max-width:660px){.sf-szene{grid-template-columns:1fr}}
+}
+.sf-szene > .sf-titel{grid-column:1/-1;margin:0;font-size:15px}
+.schrittfolge.gefaltet .sf-szene > .sf-titel{display:none}
+.sf-szene > figure{margin:0;display:flex;align-items:center;
+     justify-content:center;height:100%;max-height:300px}
+.sf-szene > figure img{max-width:100%;max-height:300px;width:auto;height:auto}
+.sf-szene > .sf-wort{align-self:center}
+.sf-szene > .sf-wort > :first-child{margin-top:0}
+.sf-szene > .sf-wort > :last-child{margin-bottom:0}
+.sf-fuss{display:flex;gap:8px;padding:10px 14px;
+     border-top:1px solid var(--linie);background:var(--creme)}
+.sf-fuss .sf-weiter{margin-left:auto}
+.sf-fuss button{font:inherit;font-size:14px;padding:6px 13px;
+     border:1px solid var(--linie);border-radius:7px;background:var(--karte);
+     cursor:pointer}
+.sf-fuss button:hover:not(:disabled){border-color:var(--akzent)}
+.sf-fuss button:disabled{opacity:.35;cursor:default}
+.sf-punkte{display:flex;gap:6px;align-items:center;padding:0 6px}
+.sf-punkte .sf-punkt{width:8px;height:8px;border-radius:50%;
+     background:var(--linie)}
+.sf-punkte .sf-punkt.da{background:var(--akzent)}
 
 /* ---------- Aufklappen: Starthilfe, dann Loesung ----------
    Die Reihenfolge ist der Entscheid vom 21.08.2026: erst die Hilfe,

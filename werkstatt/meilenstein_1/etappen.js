@@ -530,6 +530,220 @@ function stilSetzen(){
    Rechnungen». Das steht hier und nicht im Kern, weil sonst «Daten und
    Zufall» mitbetroffen waere; `.buehne` ist ohnehin schon eine
    Flex-Zeile, es braucht nur die Aufteilung. */
+/* ══════════════════════════════════════════════════════════════════
+   DAS NOTIZFELD — ein Streifen unten, den alle gleichzeitig sehen
+
+   NEU (2026-09-21, Rikes Wunsch): «Unten ein Notizfeld, auf dem ich
+   Sachen draufschreiben koennte, wenn mir was einfaellt, wie bei einem
+   Whiteboard. Ich weiss nur nicht, ob wir das schaffen, dass wenn ich
+   das draufschreibe, dass alle gleichzeitig sehen. Ist das machbar?»
+
+   Ja - und ohne eine Zeile an der Datenbank. Die Leitung traegt Zeilen
+   der Form `karte | ort | x | y | rot`, und `ort` ist eine
+   TEXTSPALTE. Entscheidend ist, dass `schluessel()` in gemeinsam.js
+   `ort` MITZAEHLT: Eine geaenderte Notiz gilt damit als Aenderung und
+   geht hinaus. Haette es nur an x und y gehangen, waere jede Notiz
+   einmal angekommen und nie wieder.
+
+   EINGESTANDEN: Damit traegt `ort` zwei Dinge - bei einer Karte den
+   Ablageort, bei dieser einen Zeile den Text. Genau das Muster, das
+   im Regelwerk als Kandidat 21 steht («Zwei Dinge an einer
+   Zeichenkette sind eines zu viel»). Die Alternative waere eine neue
+   Spalte in Rikes Datenbank; die gehoert ihr, und eine Schemaaenderung
+   trifft alle Flaechen. Deshalb hier so, mit einer eigenen Kennung,
+   die mit keiner Kartennummer verwechselt werden kann - und mit
+   diesem Vermerk, damit es nicht als Fund durchgeht, sondern als
+   bewusste Wahl.
+
+   EIN FELD JE ETAPPE, nicht eines fuer die ganze Sitzung: Die Raeume
+   der Leitung heissen `…-e1`, `…-e2`, `…-e3`. Eine Notiz gehoert
+   damit zu dem Schritt, bei dem sie entstanden ist. Ob Rike lieber
+   EINE durchlaufende Notiz haette, ist gefragt und nicht entschieden.
+
+   WER TIPPT, BEHAELT DEN CURSOR. Kommt fremder Text herein, waehrend
+   jemand schreibt, wird das Feld NICHT ueberschrieben - sonst springt
+   die Schreibmarke mitten im Wort. Der zuletzt Abgelegte gewinnt; das
+   ist fuer eine gemeinsame Notiz ehrlicher als ein stiller Verlust.
+   ══════════════════════════════════════════════════════════════════ */
+
+const NOTIZ_ID = 'notiz:brett';
+const NOTIZ_MAX = 500;      // freundlich zur Leitung, reicht fuer Einfaelle
+
+function notizText(){
+  if (!stand.notiz) stand.notiz = {};
+  return stand.notiz[stand.etappe] || '';
+}
+
+function notizSetzen(t){
+  if (!stand.notiz) stand.notiz = {};
+  stand.notiz[stand.etappe] = (t || '').slice(0, NOTIZ_MAX);
+}
+
+/* Der Zusatz der Notiz. `x`, `y`, `rot` bleiben null - sie tragen hier
+   nichts; der Text steht in `ort`. */
+const NOTIZ_ZUSATZ = {
+  stand(){
+    const t = notizText();
+    return t ? {[NOTIZ_ID]: {ort: t, x: 0, y: 0, rot: 0}} : {};
+  },
+  anwenden(z){
+    if (z.karte !== NOTIZ_ID) return false;
+    notizSetzen(z.ort);
+    const f = document.getElementById('notizfeld');
+    // Nicht ueberschreiben, solange jemand darin schreibt.
+    if (f && document.activeElement !== f) f.value = notizText();
+    return true;
+  }
+};
+
+/* Die drei Etappen setzen `KASPER_GEMEINSAM_ZUSATZ` selbst - Etappe 2
+   ihre Zeiger, Etappe 1 und 3 nichts. Damit die Notiz nicht von der
+   naechsten Etappe ueberschrieben wird, laeuft das jetzt hierueber:
+   Die Notiz haengt IMMER dran, das Eigene der Etappe daneben. */
+function zusatzSetzen(eigen){
+  window.KASPER_GEMEINSAM_ZUSATZ = {
+    stand(){
+      return Object.assign({}, NOTIZ_ZUSATZ.stand(),
+                           (eigen && eigen.stand) ? eigen.stand() : {});
+    },
+    anwenden(z){
+      if (NOTIZ_ZUSATZ.anwenden(z)) return true;
+      return !!(eigen && eigen.anwenden && eigen.anwenden(z));
+    }
+  };
+}
+
+const NOTIZSTIL = `
+.notizfeld{display:flex;align-items:stretch;gap:9px;margin:10px 4px 0}
+.notizfeld > .marke{flex:0 0 auto;align-self:center;font-size:13px;
+  color:var(--matt)}
+.notizfeld textarea{flex:1 1 auto;font:inherit;font-size:14px;
+  line-height:1.45;padding:7px 10px;border:1px solid var(--linie);
+  border-radius:8px;background:var(--karte);color:var(--tinte);
+  resize:vertical;min-height:40px;max-height:160px;box-sizing:border-box}
+.notizfeld textarea:focus{outline:none;border-color:var(--akzent);
+  box-shadow:0 0 0 2px color-mix(in srgb, var(--akzent) 20%, transparent)}
+`;
+
+function notizStilSetzen(){
+  if (document.getElementById('notizstil')) return;
+  const t = document.createElement('style');
+  t.id = 'notizstil'; t.textContent = NOTIZSTIL;
+  document.head.appendChild(t);
+}
+
+/* Unter die Buehne, ueber die Leiste. Ohne gemeinsames Brett - also in
+   Fassung B und beim Arbeiten allein - waere ein Feld, das niemand
+   sonst sieht, ein falsches Versprechen. Dort steht es trotzdem, nur
+   ohne den Hinweis: Notieren will man auch allein. */
+function notizfeldBauen(b){
+  notizStilSetzen();
+  if (b.querySelector('.notizfeld')) return;
+  const gemeinsam = !!window.GEMEINSAM;
+  const feld = document.createElement('div');
+  feld.className = 'notizfeld';
+  feld.innerHTML = `<span class="marke">Notiz${gemeinsam ? ' · alle sehen sie' : ''}</span>
+    <textarea id="notizfeld" rows="2" maxlength="${NOTIZ_MAX}"
+      spellcheck="false" aria-label="Gemeinsame Notiz zu dieser Etappe"
+      placeholder="Was auffällt, was zu klären ist …"></textarea>`;
+  const leiste = b.querySelector('.leiste');
+  if (leiste) b.insertBefore(feld, leiste); else b.appendChild(feld);
+
+  const t = feld.querySelector('textarea');
+  t.value = notizText();
+  let uhr = null;
+  t.oninput = () => {
+    notizSetzen(t.value);
+    // Nicht bei jedem Anschlag melden - sonst geht je Buchstabe eine
+    // Zeile hinaus. Eine halbe Sekunde Ruhe genuegt.
+    clearTimeout(uhr);
+    uhr = setTimeout(() => {
+      if (window.KASPER_GEMEINSAM_MELDEN) KASPER_GEMEINSAM_MELDEN();
+    }, 500);
+  };
+  // Beim Verlassen des Feldes sofort, ohne auf die halbe Sekunde zu warten.
+  t.onblur = () => {
+    clearTimeout(uhr);
+    if (window.KASPER_GEMEINSAM_MELDEN) KASPER_GEMEINSAM_MELDEN();
+  };
+}
+
+
+/* ══════════════════════════════════════════════════════════════════
+   DIE LUPE AUF DEM ZEIGERBILD
+
+   NEU (2026-09-21, Rikes Befund): «Im Moment bin ich mir nicht sicher,
+   ob die Bilder alle richtig sind bei Etappe 1. Die 4,5 konnte man
+   nicht gut ablesen. Generell konnte man das nicht gut ablesen. Es
+   waere gut, wenn man die Graphen deutlich groesser macht, wenn man
+   drueber faehrt, dass die deutlich groesser werden, damit man es gut
+   ablesen kann.»
+
+   DAS IST MEHR ALS BEQUEMLICHKEIT. Das Zeigerbild ist in Etappe 1 der
+   einzige Hinweis, WELCHE der moeglichen richtigen Rechnungen in diese
+   Spalte gehoert - der Korpus laesst mehr richtige Gleichungen zu als
+   die sechs gesuchten. Wer das Bild nicht lesen kann, kann die Aufgabe
+   nicht loesen, und «Pruefen» meldet dann zu Recht etwas, das wie ein
+   Fehler des Pruefers aussieht.
+
+   EINE FREI SCHWEBENDE KOPIE, kein `transform: scale` am Bild selbst:
+   Die Spalte hat einen eigenen Ausschnitt, ein vergroessertes Bild
+   darin waere abgeschnitten worden - und zwar stumm.
+
+   Auch auf Tastatur und Fingertipp: `pointerenter` deckt die Maus ab,
+   `focus` die Tastatur, und ein Tipp auf dem Tablet loest beides
+   nicht - deshalb zusaetzlich `click`. */
+const LUPE_MAL = 3.2;
+
+function lupeZeigen(bild){
+  lupeWeg();
+  const r = bild.getBoundingClientRect();
+  const gross = Math.min(r.width * LUPE_MAL, window.innerHeight - 40,
+                         window.innerWidth - 40);
+  const l = document.createElement('img');
+  l.id = 'lupe';
+  l.src = bild.src;
+  l.alt = bild.alt;
+  // Mittig ueber dem kleinen Bild, aber immer ganz im Fenster.
+  const mx = r.left + r.width / 2, my = r.top + r.height / 2;
+  const x = Math.min(Math.max(mx - gross / 2, 12), window.innerWidth - gross - 12);
+  const y = Math.min(Math.max(my - gross / 2, 12), window.innerHeight - gross - 12);
+  l.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${gross}px;
+    height:auto;z-index:80;background:#fff;border:1px solid var(--linie);
+    border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.24);
+    padding:6px;pointer-events:none`;
+  document.body.appendChild(l);
+}
+
+function lupeWeg(){
+  const l = document.getElementById('lupe');
+  if (l) l.remove();
+}
+
+function lupeVerdrahten(bild){
+  bild.tabIndex = 0;
+  bild.title = 'Ansehen — grösser';
+  bild.style.cursor = 'zoom-in';
+  bild.addEventListener('pointerenter', () => lupeZeigen(bild));
+  bild.addEventListener('pointerleave', lupeWeg);
+  bild.addEventListener('focus', () => lupeZeigen(bild));
+  bild.addEventListener('blur', lupeWeg);
+  // Auf dem Tablet: tippen zeigt, noch einmal tippen nimmt weg.
+  bild.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    if (document.getElementById('lupe')) lupeWeg(); else lupeZeigen(bild);
+  });
+}
+
+// Wer irgendwo sonst hintippt oder Esc drueckt, wird sie wieder los.
+document.addEventListener('click', (ev) => {
+  if (!ev.target.classList.contains('reihenkopf')) lupeWeg();
+});
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') lupeWeg();
+});
+
+
 function buehneNeben(auftrag, vorrat, rechtsName, leiste, extra){
   const b = document.getElementById('buehne');
   window._nachAblegen = null;
@@ -549,6 +763,26 @@ function buehneNeben(auftrag, vorrat, rechtsName, leiste, extra){
       </div>
     </div>
     <div class="leiste">${leiste}</div>`;
+
+  /* NEU (2026-09-21, Rikes Wunsch): Die Trennlinie laesst sich ziehen.
+     Rike: «Immer mal die Kaertchen in der ungeordneten Spalte nicht so
+     schoen da lagen. Man musste irgendwie immer alles sehen. Vielleicht
+     waere es schoen, wenn man dieses Ungeordnet und die Berechnung so
+     hin und her ziehen kann.»
+
+     GEBAUT WURDE FAST NICHTS. Der Kern kann das laengst - `_griffeSetzen`
+     setzt die Griffe, merkt die Aufteilung je Etappe in `stand.teilung`,
+     haelt eine Mindestbreite von zwoelf Prozent je Seite ein und stellt
+     auf Doppelklick die Voreinstellung wieder her. Seine eigenen
+     Buehnen rufen es auf; diese hier, aus dem Anbau, tat es als einzige
+     nicht. Es fehlte der Aufruf, nicht die Sache.
+
+     Der Schieberegler in der Leiste bleibt unberuehrt - er aendert die
+     KARTEN, nicht die Aufteilung. Zwei verschiedene Fragen, zwei
+     verschiedene Bedienelemente. */
+  _griffeSetzen(b, _teilungSchluessel(auftrag));
+  notizfeldBauen(b);
+
   _leisteChrome(b);
 }
 
@@ -582,7 +816,7 @@ function etappe1(){
   stilSetzen();
   // Etappe 1 schickt Kaertchen, keine Zeiger - die Zusatzleitung aus
   // Etappe 2 muss weg, sonst meldet sie dort weiter.
-  window.KASPER_GEMEINSAM_ZUSATZ = null;
+  zusatzSetzen(null);
   const a = D.etappen[0];
   const vorrat = D.vorrat[0];
   /* GEAENDERT (2026-09-09, Rikes Rueckmeldung): Die Regel stand als
@@ -663,6 +897,7 @@ function etappe1(){
       kopf.src = 'karten/' + r.id + '.svg';
       kopf.alt = 'Rechnung ' + r.id;
       kopf.style.width = kopfW + 'px';
+      lupeVerdrahten(kopf);
       d.appendChild(kopf);
 
       // Die Spalte liest sich als Rechnung, von oben nach unten.
@@ -1258,7 +1493,7 @@ function e2Pruefen(haelften){
 const E2VOR = 'e2:';
 
 function e2Leitung(felder, neuZeichnen){
-  window.KASPER_GEMEINSAM_ZUSATZ = {
+  zusatzSetzen({
     stand(){
       const s = e2Stand(), aus = {};
       felder.forEach(f => f.aufgaben.forEach(auf => {
@@ -1276,7 +1511,7 @@ function e2Leitung(felder, neuZeichnen){
       neuZeichnen();
       return true;
     }
-  };
+  });
 }
 
 function e2Melden(){
@@ -1321,6 +1556,7 @@ function etappe2(){
 
   // Anmelden, BEVOR das Brett Zeilen liefert: `los()` ruft erst diese
   // Etappe und danach den Raumwechsel, der die Zeilen holt.
+  notizfeldBauen(b);
   e2Leitung(D.e2.felder, () => haelften.forEach(h => h._neu()));
 
   document.getElementById('pruefen2').onclick = () => e2Pruefen(haelften);
@@ -1508,7 +1744,7 @@ function etappe3(){
   // nichts zu bewegen, und das Getippte ist eine eigene Notiz, kein
   // Sortierstand. Die Zusatzleitung aus Etappe 2 muss trotzdem weg,
   // sonst meldet sie hier weiter.
-  window.KASPER_GEMEINSAM_ZUSATZ = null;
+  zusatzSetzen(null);
   const E = D.e3, a = D.etappen[2];
   const b = document.getElementById('buehne');
   window._nachAblegen = null;
@@ -1756,6 +1992,12 @@ function etappe3(){
   Object.keys(ZEIGER).forEach(art => b.addEventListener(art, ZEIGER[art]));
   b._e3zeiger = ZEIGER;
 
+  /* KEIN Notizfeld in Etappe 3. Rike am 2026-09-21: «Bei der dritten
+     Etappe brauche ich kein Notizfeld.» Sie hat es fuer Etappe 1 und 2
+     je mit einem Anlass begruendet - zwei Normalformen multiplizieren,
+     die dritte Wurzel rechnen. Hier gibt es keinen: Etappe 3 IST schon
+     die Stelle zum Aufschreiben. */
+
   document.getElementById('zurueck3').onclick = () => {
     stand.e3karten = {};
     etappe3();
@@ -1892,11 +2134,60 @@ ETAPPEN.push(etappe3);
      vorfindet - das Semester steckt im Praefix. */
   const raumname = (nr) => (D.raum_vorsatz || 'raum') + '-g' + nr;
 
+  /* Der unberuehrte Ausgangszustand, gesichert BEVOR irgendetwas
+     wiederhergestellt wird.
+
+     Der Kern holt einen gespeicherten Stand erst beim ersten `los()`
+     zurueck (`_wiederaufnehmen`), und dieser Anbau laeuft beim Laden
+     der Datei - also davor. Was hier steht, ist der leere Tisch.
+
+     WARUM EINE KOPIE STATT EINER LISTE VON FELDERN: Ein
+     `stand.karten = {}` und so weiter waere eine Aufzaehlung, und eine
+     Aufzaehlung vergisst. Genau daran ist am 20.09. schon einmal etwas
+     gehangen - `stand.e3text` wurde beim Umbau uebersehen. Die Kopie
+     kennt jedes Feld, auch die, die es erst spaeter geben wird. */
+  const LEERER_TISCH = JSON.parse(JSON.stringify(stand));
+
   function gruppeGewaehlt(nr){
     const u = new URL(location.href);
     u.searchParams.set('raum', raumname(nr));
     history.replaceState(null, '', u);
     if (window.KASPER_GEMEINSAM_START) KASPER_GEMEINSAM_START(raumname(nr));
+
+    /* FEHLERBEHOBEN (2026-09-21, Rikes Befund): «Ich kann zwar die
+       Gruppennamen angeben, aber wenn ich dann einen neuen
+       Gruppennamen habe, dann taucht in den Etappen 1, 2, 3 immer die
+       Sortierung auf, die ich mit der anderen Gruppe schon gemacht
+       habe.»
+
+       URSACHE: Der Kern sichert den Stand nach `localStorage`, unter
+       `kasper:` plus dem Namen des STUECKS - die Gruppe steht nicht im
+       Schluessel. Zwoelf Stunden lang erbt deshalb jede naechste
+       Gruppe am selben Rechner die Sortierung der vorigen.
+
+       Der Kommentar im Kern nennt den Fall sogar - «am selben Rechner
+       arbeitet naechste Woche eine andere Gruppe» - und leitet daraus
+       die Haltbarkeit von zwoelf Stunden ab. Die Rechnung stimmt fuer
+       naechste Woche und nicht fuer denselben Abend: Rike laesst die
+       Gruppen nacheinander durch, mit einer Stunde Abstand.
+
+       BEHOBEN WIRD ES HIER, nicht im Kern: Der Kern traegt auch die
+       vier Flaechen von «Daten und Zufall», und dort gibt es weder
+       Gruppen noch dieses Problem. Die Gruppenwahl ist ein Anbau von
+       «Komplexe Zahlen», also gehoert die Reparatur daneben.
+
+       Der Tisch wird GELEERT, nicht der Speicher geloescht: `los()`
+       ruft am Ende `sichern()`, und damit ueberschreibt der leere
+       Tisch den alten Eintrag von selbst. Eine zweite Stelle, die den
+       Speicherschluessel kennen muesste, entsteht gar nicht erst.
+
+       Was vom gemeinsamen Brett kommt, ist davon unberuehrt: Der neue
+       Raum wird frisch gelesen. Wer dieselbe Gruppe noch einmal waehlt,
+       bekommt ihren Stand also vom Server zurueck, nicht aus diesem
+       Rechner. */
+    Object.keys(stand).forEach(k => { delete stand[k]; });
+    Object.assign(stand, JSON.parse(JSON.stringify(LEERER_TISCH)));
+
     stand.gruppe = nr;
     stand.aufnahme = false; stand.etappe = 0;
     los();

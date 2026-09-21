@@ -1053,10 +1053,74 @@
     document.querySelectorAll('.etappe').forEach(etappeAufsetzen);
     document.querySelectorAll('.zeitstrahl').forEach(wegAnpassen);
     document.querySelectorAll('.stufen').forEach(stufenAufsetzen);
+    document.querySelectorAll('.schrittfolge[data-szenen]')
+            .forEach(buehneAufsetzen);
     /* Nach `etappeAufsetzen`, damit das Video der Etappe schon
        beansprucht ist und hier nicht doppelt verdrahtet wird. */
     document.querySelectorAll('.rahmen.vorschau[data-video]')
             .forEach(vorschauAufsetzen);
+  }
+
+  /* **Die Buehne zum Durchklicken.** Uebernommen aus Lores Prototyp
+     vom 19.09.2026, den Rike abgenommen hat — Zurueck, Weiter, Von
+     vorn, Punkte als Fortschritt, Pfeiltasten. Nicht neu erfunden:
+     Was sie gebaut hat, funktionierte; es fehlte nur der Weg vom
+     Quelltext hierher.
+
+     **Erst hier wird gefaltet, nicht schon beim Bauen.** Die Seite
+     liefert alle Szenen sichtbar aus. Ohne JavaScript — beim Drucken,
+     bei abgeschaltetem Skript — bleiben sie untereinander stehen und
+     die ganze Loesung ist lesbar. Verlieren kann daran niemand etwas.
+
+     Die Pfeiltasten wirken nur, solange die Buehne im Bild ist: Auf
+     einer Etappenseite koennen mehrere stehen, und Pfeiltasten, die
+     alle gleichzeitig weiterschalten, waeren Unfug. */
+  function buehneAufsetzen(tafel) {
+    const szenen = [...tafel.querySelectorAll('.sf-szene')];
+    const fuss   = tafel.querySelector('.sf-fuss');
+    const kopf   = tafel.querySelector('.sf-kopf');
+    if (szenen.length < 2 || !fuss || !kopf) return;
+
+    const zurueck = fuss.querySelector('.sf-zurueck');
+    const weiter  = fuss.querySelector('.sf-weiter');
+    const punkte  = fuss.querySelector('.sf-punkte');
+    const titel   = kopf.querySelector('.sf-kopftitel');
+    const zaehler = kopf.querySelector('.sf-zaehler');
+
+    szenen.forEach(() => {
+      const p = document.createElement('span');
+      p.className = 'sf-punkt';
+      punkte.append(p);
+    });
+
+    let k = 0;
+    function zeigen() {
+      szenen.forEach((s, i) => s.classList.toggle('da', i === k));
+      [...punkte.children].forEach((p, i) => p.classList.toggle('da', i <= k));
+      /* Die Ueberschrift der Szene wandert in den Kopf. Sie steht
+         trotzdem in jeder Szene: Ohne JavaScript stehen die Szenen
+         untereinander, und dann gehoert der Titel ueber seine eigene. */
+      const eigen = szenen[k].querySelector('.sf-titel');
+      titel.innerHTML = eigen ? eigen.innerHTML : '';
+      zaehler.textContent = (k + 1) + ' von ' + szenen.length;
+      zurueck.disabled = k === 0;
+      weiter .disabled = k === szenen.length - 1;
+    }
+    weiter .onclick = () => { if (k < szenen.length - 1) { k++; zeigen(); } };
+    zurueck.onclick = () => { if (k > 0) { k--; zeigen(); } };
+
+    addEventListener('keydown', e => {
+      if (!tafel.isConnected || tafel.offsetParent === null) return;
+      const r = tafel.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return;
+      if (e.key === 'ArrowRight' && k < szenen.length - 1) { k++; zeigen(); }
+      if (e.key === 'ArrowLeft'  && k > 0)                 { k--; zeigen(); }
+    });
+
+    tafel.classList.add('gefaltet');
+    fuss.hidden = false;
+    kopf.hidden = false;
+    zeigen();
   }
 
   if (document.readyState === 'loading') {
