@@ -1419,20 +1419,66 @@ const E3STIL = `
 .buehne.m3.gitter .qfeld{display:flex;align-items:center;gap:8px;width:100%}
 .buehne.m3.gitter .qfeld .vorgabe{flex:0 0 auto;white-space:nowrap}
 /* Der Bruch aus zwei Feldern. Der Bruchstrich ist der untere Rand des
-   oberen Feldes - so sitzt er immer richtig, egal wie breit die
-   Eingabe wird, und es braucht kein zusaetzliches Element. */
+   oberen Feldes - so sitzt er immer richtig, egal wie breit das Feld
+   wird, und es braucht kein zusaetzliches Element. */
 .buehne.m3.gitter .qbruch{display:inline-flex;flex-direction:column;
   flex:0 0 auto;width:13em;max-width:100%;vertical-align:middle;gap:0}
-.buehne.m3.gitter input.qeingabe{width:100%;font:inherit;
-  font-family:var(--druck);font-size:15px;padding:5px 9px;
+
+/* GEAENDERT (2026-09-20, Rikes Idee): Hier standen zwei Eingabefelder. Jetzt
+   sind es zwei ABLAGEN, in die Minikaertchen gelegt werden.
+
+   min-height statt height: Eine Zeile waechst, wenn viele Kaertchen
+   darin liegen - die Addition braucht oben vier. Ein Feld mit fester
+   Hoehe haette sie abgeschnitten, und zwar stumm. */
+.buehne.m3.gitter .qzeile{display:flex;flex-wrap:wrap;align-items:center;
+  justify-content:center;gap:4px;min-height:34px;padding:4px 7px;
   border:1px solid var(--linie);background:var(--karte);
-  color:var(--tinte);text-align:center;box-sizing:border-box}
-.buehne.m3.gitter input.qeingabe.oben{border-radius:7px 7px 0 0;
+  box-sizing:border-box;cursor:pointer}
+.buehne.m3.gitter .qzeile.oben{border-radius:7px 7px 0 0;
   border-bottom-width:1.6px;border-bottom-color:var(--tinte)}
-.buehne.m3.gitter input.qeingabe.unten{border-radius:0 0 7px 7px;
-  border-top:none}
-.buehne.m3.gitter input.qeingabe:focus{outline:none;border-color:var(--akzent);
-  box-shadow:0 0 0 2px color-mix(in srgb, var(--akzent) 22%, transparent)}
+.buehne.m3.gitter .qzeile.unten{border-radius:0 0 7px 7px;border-top:none}
+/* Das aktive Feld. Es sagt, wohin ein angetipptes Kaertchen geht -
+   ohne diese Marke waere Antippen blindes Raten. */
+.buehne.m3.gitter .qzeile.aktiv{border-color:var(--akzent);
+  box-shadow:inset 0 0 0 1px var(--akzent)}
+/* Wohin ein gezogenes Kaertchen faellt. */
+.buehne.m3.gitter .qzeile.ueber{background:color-mix(in srgb,
+  var(--akzent) 10%, var(--karte))}
+
+/* Das Minikaertchen. Die Farben sind DIESELBEN wie bei <fb> und <fz>
+   links - das ist der ganze Punkt: Wer a legt, legt Violett, und
+   sieht bei der Multiplikation oben zweimal Violett liegen. */
+.mk{font-family:var(--druck);font-style:italic;font-size:15px;
+  line-height:1.15;padding:3px 8px;border-radius:4px;
+  border:1px solid rgba(0,0,0,.14);background:var(--karte);
+  color:var(--tinte);user-select:none;touch-action:none;
+  display:inline-block;white-space:nowrap}
+.mk.r1{background:#CCB3D2}
+.mk.r2{background:#F0CEAC}
+/* Ein Rechenzeichen traegt keine Rolle und bekommt deshalb keine
+   Farbe. Aufrecht statt kursiv, wie im Satz links. */
+.mk.r0{font-style:normal;background:var(--karte)}
+.e3vorrat .mk{cursor:grab}
+.qzeile .mk{cursor:pointer}
+/* Das Kaertchen am Finger. position:fixed, weil die Etappe in einem
+   scrollbaren Gitter sitzt - absolut gesetzt wuerde es mitscrollen. */
+.mk.zieht{position:fixed;z-index:60;pointer-events:none;
+  transform:translate(-50%,-50%) rotate(-2deg) scale(1.12);
+  box-shadow:0 5px 14px rgba(0,0,0,.22)}
+
+/* Der Vorrat. Er gilt fuer alle vier Zeilen - vier eigene Vorraete
+   waeren viermal dasselbe.
+
+   Er sitzt IM Gitter, ueber der Fusszeile. Daneben gesetzt legte er
+   sich ueber die letzte Fusszeile - die Buehne fuellt ihren Platz
+   aus, und was danach kommt, hat keinen mehr. Gesehen am 2026-09-20
+   im Browser; im Quelltext ist so etwas nicht zu erkennen. */
+.buehne.m3.gitter .e3vorrat{grid-column:1 / -1;display:flex;
+  flex-wrap:wrap;align-items:center;gap:7px;padding:9px 14px;
+  margin:14px 4px 0;border:1px solid var(--linie);
+  border-radius:9px;background:var(--creme)}
+.buehne.m3.gitter .e3vorrat .was{font-size:13px;color:var(--matt);
+  margin-right:4px}
 .buehne.m3.gitter .fuss{grid-column:1 / -1;padding:12px 4px 0;
   color:var(--matt);font-size:13.5px;line-height:1.5}
 .buehne.m3 .nachsatz{color:var(--matt);font-size:13.5px;padding:10px 16px 0;
@@ -1467,9 +1513,30 @@ function etappe3(){
   const b = document.getElementById('buehne');
   window._nachAblegen = null;
 
-  // Das Getippte ueberlebt den Etappenwechsel. Ohne das waere es beim
-  // Zurueckblaettern weg - und niemand tippt zweimal.
-  if (!stand.e3text) stand.e3text = {};
+  // Das Gelegte ueberlebt den Etappenwechsel. Ohne das waere es beim
+  // Zurueckblaettern weg - und niemand legt zweimal.
+  //
+  // GEAENDERT (2026-09-20, Rikes Idee): `stand.e3text` hiess der alte
+  // Speicher, als hier noch getippt wurde. Er bleibt unangetastet
+  // stehen - wer die Seite offen hatte und zurueckkommt, verliert
+  // seine getippten Zeilen nicht stillschweigend. Gelesen wird er
+  // nicht mehr.
+  if (!stand.e3karten) stand.e3karten = {};
+
+  const VORRAT = E.vorrat || [];
+  const ROLLE = {};
+  VORRAT.forEach(k => { ROLLE[k.t] = k.rolle; });
+
+  /* Ein Fach ist eine Zeile eines Bruchs: `o` Zaehler, `u` Nenner.
+     Beide starten LEER. Rike am 2026-09-20 zum Geruest: «das ist ja
+     gerade der Clou, dass sie das selber sich ueberlegen sollen.» */
+  function fach(name, teil){
+    if (!stand.e3karten[name]) stand.e3karten[name] = {o:[], u:[]};
+    return stand.e3karten[name][teil];
+  }
+
+  const mkHtml = (t) =>
+    `<span class="mk r${ROLLE[t] || 0}" data-t="${t}">${t}</span>`;
 
   /* EIN Gitter statt zwei Haelften. Der Regelname steht links und
      traegt beide Spalten, damit «Addition» im Skript und «Addition»
@@ -1484,20 +1551,24 @@ function etappe3(){
      ZWINGT zur Frage «was steht unten?» - und der Hauptnenner ist
      genau die Stelle, an der der auskommentierte Entwurf im Skript
      falsch abbiegt. Ein Textfeld mit Schraegstrich laesst sie
-     umgehen. */
+     umgehen.
+
+     GEAENDERT (2026-09-20, Rikes Idee): Aus den zwei Eingabefeldern
+     sind zwei Ablagen geworden. Getippt wird nicht mehr, gelegt
+     schon - siehe E3_VORRAT in thema.py. */
   const zeilen = E.regeln.map((r, i) => {
     const q = (E.regeln_q && E.regeln_q[i]) || {vorgabe:''};
+    const ablage = (teil, wie, was) =>
+      `<div class="qzeile ${wie}" data-regel="${r.name}" data-teil="${teil}"
+            role="group" aria-label="${was} der Regel für ${r.name}"
+       >${fach(r.name, teil).map(mkHtml).join('')}</div>`;
     return `<div class="zeilenname">${r.name}</div>
       <div class="zelle cSpalte">${r.term}</div>
       <div class="zelle qSpalte"><div class="qfeld">
         <span class="vorgabe">${q.vorgabe}</span>
         <span class="qbruch">
-          <input class="qeingabe oben" type="text" data-regel="${r.name}"
-                 data-teil="o" autocomplete="off" spellcheck="false"
-                 aria-label="Zähler der Regel für ${r.name}">
-          <input class="qeingabe unten" type="text" data-regel="${r.name}"
-                 data-teil="u" autocomplete="off" spellcheck="false"
-                 aria-label="Nenner der Regel für ${r.name}">
+          ${ablage('o', 'oben', 'Zähler')}
+          ${ablage('u', 'unten', 'Nenner')}
         </span>
       </div></div>`;
   }).join('');
@@ -1515,6 +1586,8 @@ function etappe3(){
       <div class="lagezelle cSpalte">${E.lage}</div>
       <div class="lagezelle qSpalte">${E.lage_q}</div>
       ${zeilen}
+      <div class="e3vorrat"><span class="was">Zum Legen:</span>
+        ${VORRAT.map(k => mkHtml(k.t)).join('')}</div>
       <div class="fuss">${E.nachsatz}<br>${E.bemerkung}</div>
     </div>
     <div class="leiste">
@@ -1522,19 +1595,169 @@ function etappe3(){
               title="Alle vier Zeilen leeren">↺</button>
     </div>`;
 
-  /* Getipptes zuruecklegen und jede Aenderung merken. Je Regel zwei
-     Werte - `{o, u}` fuer Zaehler und Nenner. */
-  b.querySelectorAll('input.qeingabe').forEach(f => {
-    const k = f.dataset.regel, teil = f.dataset.teil;
-    if (!stand.e3text[k] || typeof stand.e3text[k] === 'string')
-      stand.e3text[k] = {o:'', u:''};
-    f.value = stand.e3text[k][teil] || '';
-    f.oninput = () => { stand.e3text[k][teil] = f.value; };
+  /* ---------- Das aktive Feld ----------
+     Es sagt, wohin ein ANGETIPPTES Kaertchen geht. Ohne diese Marke
+     waere Antippen blindes Raten - und Antippen ist der Weg, der auf
+     einem Tablet immer funktioniert, auch wenn das Ziehen hakt. */
+  let aktiv = null;
+  function aktivSetzen(el){
+    b.querySelectorAll('.qzeile.aktiv').forEach(x => x.classList.remove('aktiv'));
+    aktiv = el || null;
+    if (aktiv) aktiv.classList.add('aktiv');
+  }
+
+  function zeichne(zeile){
+    zeile.innerHTML = fach(zeile.dataset.regel, zeile.dataset.teil)
+      .map(mkHtml).join('');
+  }
+
+  /* An welche Stelle faellt ein Kaertchen? Nach der Mitte der schon
+     liegenden - wer links von der Mitte des dritten loslaesst, will
+     davor. So laesst sich eine Zeile auch nachtraeglich noch
+     richtigstellen, ohne sie zu leeren. */
+  function stelle(zeile, x){
+    const ks = [...zeile.querySelectorAll('.mk')];
+    for (let j = 0; j < ks.length; j++){
+      const r = ks[j].getBoundingClientRect();
+      if (x < r.left + r.width / 2) return j;
+    }
+    return ks.length;
+  }
+
+  /* ---------- Ziehen und Antippen ----------
+     Ein Zeiger-Ereignis, zwei Ausgaenge: Wer loslaesst, ohne den
+     Finger bewegt zu haben, hat ANGETIPPT; wer bewegt hat, hat
+     GEZOGEN. Die Schwelle von 4 Pixeln ist noetig, weil ein Finger
+     nie ganz stillsteht - ohne sie waere jedes Antippen ein Zug.
+
+     Die Ereignisse haengen an der Buehne, nicht an den Kaertchen: Die
+     Zeilen werden nach jedem Legen neu gezeichnet, und Handler an
+     einzelnen Kaertchen waeren danach weg.
+
+     FEHLERBEHOBEN (2026-09-20, Rikes Befund): «Wenn ich ein Feld
+     antippe und dann ein Kaertchen, dann kommen gleich 6 a's
+     beispielsweise hin. Das ist nicht der Sinn.»
+
+     URSACHE: Die Buehne ist ein BESTEHENDES Element und ueberlebt den
+     Etappenwechsel - `etappe3()` laeuft aber bei jedem Oeffnen neu.
+     Also kam bei jedem Oeffnen ein weiteres Handler-Paar dazu, und
+     beim n-ten Oeffnen legte ein Antippen n Kaertchen. Gemessen:
+     1, 3, 5, 7 Kaertchen bei 1, 2, 3, 4 Oeffnungen.
+
+     Dazu ein zweites Symptom: Jede Instanz hat ihre EIGENE Closure
+     und damit ihr eigenes `aktiv`. Eine alte Instanz legte in ein
+     Feld, das niemand angetippt hatte.
+
+     Der Kommentar oben war richtig und trotzdem die Falle: Er
+     begruendet, warum die Handler an die Buehne gehoeren, und laesst
+     die Gegenprobe aus - ob die Buehne sie zwischen zwei Aufrufen
+     BEHAELT. Ein Grund, der stimmt, ersetzt die Probe nicht.
+
+     Deshalb: Die Handler stehen in einem Buendel, das am Element
+     haengt, und werden vor dem Binden abgemeldet. Neu gebaut werden
+     sie bei jedem Aufruf trotzdem - so sehen sie immer das aktuelle
+     `aktiv` und `zieh`, statt ein eingefrorenes von frueher. */
+  const SCHWELLE = 4;
+  let zieh = null;
+
+  // Erst abmelden, was von einem frueheren Oeffnen noch haengt.
+  if (b._e3zeiger){
+    Object.keys(b._e3zeiger).forEach(
+      art => b.removeEventListener(art, b._e3zeiger[art]));
+  }
+  const ZEIGER = {};
+
+  ZEIGER.pointerdown = ((ev) => {
+    const karte = ev.target.closest('.mk');
+    const zeile = ev.target.closest('.qzeile');
+    if (!karte){
+      if (zeile) aktivSetzen(zeile);
+      return;
+    }
+    zieh = {
+      t: karte.dataset.t,
+      // Woher kommt das Kaertchen? Aus dem Vorrat kommt eine KOPIE -
+      // der Vorrat ist unbegrenzt. Die Addition braucht b und d je
+      // zweimal; ein Vorrat, der sich leert, waere ein Hinweis auf
+      // die Loesung, und ein falscher dazu.
+      quelle: zeile || null,
+      stelle: zeile ? [...zeile.querySelectorAll('.mk')].indexOf(karte) : -1,
+      x0: ev.clientX, y0: ev.clientY, klon: null,
+    };
+    b.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
   });
 
+  ZEIGER.pointermove = ((ev) => {
+    if (!zieh) return;
+    if (!zieh.klon){
+      if (Math.hypot(ev.clientX - zieh.x0, ev.clientY - zieh.y0) < SCHWELLE)
+        return;
+      zieh.klon = document.createElement('span');
+      zieh.klon.className = 'mk zieht r' + (ROLLE[zieh.t] || 0);
+      zieh.klon.textContent = zieh.t;
+      document.body.appendChild(zieh.klon);
+    }
+    zieh.klon.style.left = ev.clientX + 'px';
+    zieh.klon.style.top = ev.clientY + 'px';
+    const ziel = document.elementFromPoint(ev.clientX, ev.clientY);
+    const zeile = ziel && ziel.closest ? ziel.closest('.qzeile') : null;
+    b.querySelectorAll('.qzeile.ueber').forEach(x => x.classList.remove('ueber'));
+    if (zeile) zeile.classList.add('ueber');
+  });
+
+  ZEIGER.pointerup = ((ev) => {
+    if (!zieh) return;
+    const z = zieh;
+    zieh = null;
+    b.querySelectorAll('.qzeile.ueber').forEach(x => x.classList.remove('ueber'));
+
+    // ANGETIPPT - nie bewegt worden.
+    if (!z.klon){
+      if (z.quelle){
+        // Ein gelegtes Kaertchen antippen nimmt es weg. Das ist der
+        // Rueckweg; ohne ihn bliebe nur «alles leeren».
+        fach(z.quelle.dataset.regel, z.quelle.dataset.teil).splice(z.stelle, 1);
+        zeichne(z.quelle);
+        aktivSetzen(z.quelle);
+      } else if (aktiv){
+        fach(aktiv.dataset.regel, aktiv.dataset.teil).push(z.t);
+        zeichne(aktiv);
+      }
+      return;
+    }
+
+    // GEZOGEN.
+    z.klon.remove();
+    const ziel = document.elementFromPoint(ev.clientX, ev.clientY);
+    const zeile = ziel && ziel.closest ? ziel.closest('.qzeile') : null;
+    let stl = zeile ? stelle(zeile, ev.clientX) : -1;
+
+    if (z.quelle){
+      // Aus einer Zeile herausgezogen: Wer NEBEN die Zeilen loslaesst,
+      // legt das Kaertchen zurueck in den Vorrat - es verschwindet.
+      fach(z.quelle.dataset.regel, z.quelle.dataset.teil).splice(z.stelle, 1);
+      if (zeile === z.quelle && stl > z.stelle) stl--;
+      zeichne(z.quelle);
+    }
+    if (zeile){
+      fach(zeile.dataset.regel, zeile.dataset.teil).splice(stl, 0, z.t);
+      zeichne(zeile);
+      aktivSetzen(zeile);
+    }
+  });
+
+  ZEIGER.pointercancel = (() => {
+    if (zieh && zieh.klon) zieh.klon.remove();
+    zieh = null;
+    b.querySelectorAll('.qzeile.ueber').forEach(x => x.classList.remove('ueber'));
+  });
+
+  Object.keys(ZEIGER).forEach(art => b.addEventListener(art, ZEIGER[art]));
+  b._e3zeiger = ZEIGER;
+
   document.getElementById('zurueck3').onclick = () => {
-    stand.e3text = {};
-    b.querySelectorAll('input.qeingabe').forEach(f => f.value = '');
+    stand.e3karten = {};
     etappe3();
   };
 
@@ -1968,19 +2191,66 @@ ETAPPEN.push(etappe3);
     return c;
   }
 
-  /* Etappe 3: die vier selbst getippten Regeln. Kein Bild der Seite -
+  /* Etappe 3: die vier selbst aufgestellten Regeln. Kein Bild der Seite -
      die Seite ist der Skriptauszug, den die Studierenden schon haben.
-     Was sie NICHT haben, ist das, was sie selbst geschrieben haben. */
+     Was sie NICHT haben, ist das, was sie selbst gelegt haben.
+
+     FEHLERBEHOBEN (2026-09-20): Diese Funktion las `stand.e3text` - den
+     Speicher von FRUEHER, als hier noch getippt wurde. Seit dem Umbau
+     auf Minikaertchen fuellt ihn niemand mehr. Sie haette also brav
+     `null` zurueckgegeben, und Etappe 3 waere aus dem Bild zum
+     Mitnehmen VERSCHWUNDEN - ohne Fehlermeldung, ohne leere Zeile,
+     ohne irgendein Zeichen. Genau der stumme Ausfall, vor dem das
+     Projekt sich schon zweimal selbst gewarnt hat.
+
+     URSACHE: Ich habe beim Umbau die Etappe angefasst und alles
+     gesucht, was `qeingabe` heisst - aber nicht, was ihren Inhalt
+     WEITERVERWENDET. Der Mitnehmen-Teil steht 600 Zeilen weiter unten
+     unter den Anbauten und nennt die Eingabefelder nie.
+
+     Die Kaertchen werden GEZEICHNET, nicht als Text gesetzt: Die Farbe
+     ist der ganze Punkt der Etappe, und ein Bild zum Mitnehmen, auf
+     dem sie fehlt, nimmt das Wichtigste nicht mit. */
   function etappe3Leinwand(){
-    const text = stand.e3text || {};
+    const karten = stand.e3karten || {};
     const namen = (D.e3.regeln || []).map(r => r.name);
+    const ROLLE = {};
+    (D.e3.vorrat || []).forEach(k => { ROLLE[k.t] = k.rolle; });
+    const MKFARBE = {1: '#CCB3D2', 2: '#F0CEAC', 0: '#FFFEFB'};
     const gefuellt = n => {
-      const v = text[n]; if (!v) return false;
-      return ((v.o || '') + (v.u || '')).trim().length > 0;
+      const v = karten[n]; if (!v) return false;
+      return (v.o || []).length + (v.u || []).length > 0;
     };
-    if (!namen.some(gefuellt)) return null;                      // nichts getippt
+    if (!namen.some(gefuellt)) return null;                      // nichts gelegt
+
+    /* Eine Reihe Kaertchen, mittig um `mitte`. Gibt die Breite zurueck,
+       damit der Bruchstrich darunter passt. */
+    const reihe = (g, ks, mitte, y, nurMessen) => {
+      const H = 24, LUFT = 5;
+      g.font = 'italic 17px ui-monospace, monospace';
+      const br = ks.map(t => Math.max(g.measureText(t).width + 16, 26));
+      const gesamt = br.reduce((a, b) => a + b, 0) + LUFT * Math.max(ks.length - 1, 0);
+      if (nurMessen) return gesamt;
+      let x = mitte - gesamt / 2;
+      ks.forEach((t, i) => {
+        g.fillStyle = MKFARBE[ROLLE[t] || 0];
+        g.beginPath();
+        g.roundRect(x, y - H / 2, br[i], H, 4);
+        g.fill();
+        g.strokeStyle = 'rgba(0,0,0,.14)'; g.lineWidth = 1; g.stroke();
+        g.fillStyle = '#2b2622';
+        g.font = (ROLLE[t] ? 'italic ' : '') + '17px ui-monospace, monospace';
+        g.textAlign = 'center';
+        g.fillText(t, x + br[i] / 2, y + 6);
+        x += br[i] + LUFT;
+      });
+      g.textAlign = 'left';
+      return gesamt;
+    };
     const c = document.createElement('canvas');
-    c.width = 900; c.height = 96 + namen.length * 62 + 24;
+    // 74 statt 62 je Zeile: Ein Kaertchen ist hoeher als eine
+    // Textzeile, und zwei uebereinander brauchen den Platz.
+    c.width = 900; c.height = 96 + namen.length * 74 + 24;
     const g = c.getContext('2d');
     const farbe = (w, ersatz) => getComputedStyle(document.body)
       .getPropertyValue(w).trim() || ersatz;
@@ -1995,7 +2265,7 @@ ETAPPEN.push(etappe3);
        Sie werden auch als Bruch gezeichnet, nicht als «a/b» - das
        Bild soll aussehen wie das, was auf dem Schirm stand. */
     namen.forEach((n, i) => {
-      const y = 108 + i * 62;
+      const y = 112 + i * 74;
       g.fillStyle = farbe('--tinte', '#2b2622');
       g.font = '600 16px system-ui, sans-serif';
       g.fillText(n, 30, y);
@@ -2009,32 +2279,28 @@ ETAPPEN.push(etappe3);
       g.fillStyle = farbe('--matt', '#8a8175');
       g.fillText('q1 ' + (ZEICHEN[n] || '') + ' q2  =', 210, y + 4);
 
-      const v = text[n] || {};
-      const o = (v.o || '').trim(), u = (v.u || '').trim();
-      g.font = '17px ui-monospace, monospace';
-      if (!o && !u){
+      const v = karten[n] || {};
+      const o = v.o || [], u = v.u || [];
+      if (!o.length && !u.length){
+        g.font = '17px ui-monospace, monospace';
         g.fillStyle = farbe('--matt', '#8a8175');
-        g.fillText('— nichts eingetragen —', 340, y + 4);
+        g.fillText('— nichts gelegt —', 340, y + 4);
       } else {
-        g.fillStyle = farbe('--tinte', '#2b2622');
-        g.textAlign = 'center';
-        const breite = Math.max(g.measureText(o).width,
-                                g.measureText(o || ' ').width,
-                                g.measureText(u).width, 40);
+        const breite = Math.max(reihe(g, o, 0, 0, true),
+                                reihe(g, u, 0, 0, true), 40);
         const mitte = 350 + breite / 2;
-        g.fillText(o || '?', mitte, y - 8);
-        g.fillText(u || '?', mitte, y + 20);
+        reihe(g, o, mitte, y - 12);
+        reihe(g, u, mitte, y + 18);
         g.strokeStyle = farbe('--tinte', '#2b2622');
         g.lineWidth = 1.4;
         g.beginPath();
         g.moveTo(mitte - breite / 2 - 6, y + 3);
         g.lineTo(mitte + breite / 2 + 6, y + 3);
         g.stroke();
-        g.textAlign = 'left';
         g.lineWidth = 1;
       }
       g.strokeStyle = farbe('--linie', '#d8d0c4');
-      g.beginPath(); g.moveTo(30, y + 34); g.lineTo(c.width - 30, y + 34); g.stroke();
+      g.beginPath(); g.moveTo(30, y + 42); g.lineTo(c.width - 30, y + 42); g.stroke();
     });
     return c;
   }

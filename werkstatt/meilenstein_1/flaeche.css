@@ -149,6 +149,10 @@ nav button[aria-current=true]{background:var(--akzent);color:#fff;border-color:v
 /* Dasselbe in einer REIHE: Die Haelfte ist schmal, und ein Reihenkopf
    steht schon darin. Haengt an der Klasse, nicht am Kapitel - Kapitel 2
    baut Mengenreihen, Kapitel 3 Fragereihen. */
+/* GEAENDERT (2026-09-10, Maurus): Hier stand eine feste Breite von 60
+   Prozent. Sie wird jetzt in reiheOrdnen() aus dem vorhandenen Platz
+   gerechnet und am Element gesetzt; dieser Wert gilt nur noch, bis
+   reiheOrdnen() das erste Mal gelaufen ist. */
 .feld.reihe > .k{width:calc(var(--kb) * .60)}
 .k.ok{outline:2.5px solid var(--richtig);outline-offset:1px;border-radius:8px}
 .k.falsch{outline:2.5px solid var(--falsch);outline-offset:1px;border-radius:8px}
@@ -291,7 +295,11 @@ nav button[aria-current=true]{background:var(--akzent);color:#fff;border-color:v
    border:1px solid var(--linie);background:var(--karte);
    box-shadow:0 1px 2px rgba(0,0,0,.10);
    transform-origin:left top;transition:transform .12s;z-index:2}
-.feld > .reihenkopf:hover{transform:scale(1.5);z-index:99998;
+/* Der Massstab steht NICHT mehr fest: reiheOrdnen() setzt --kopflupe so,
+   dass der verkleinerte Kopf unter der Lupe dieselbe Endgroesse erreicht
+   wie jede andere Karte. Siehe die Begruendung dort (2026-09-14). Der
+   Ausweichwert 1.5 gilt nur, falls reiheOrdnen() noch nicht gelaufen ist. */
+.feld > .reihenkopf:hover{transform:scale(var(--kopflupe,1.5));z-index:99998;
    box-shadow:0 6px 20px rgba(45,41,36,.28)}
 .feld .kopf .nr{display:inline-block;background:var(--akzent);color:#fff;border-radius:5px;
                 padding:1px 7px;font-size:11px;margin-right:6px;font-weight:600}
@@ -586,12 +594,54 @@ svg.venn input.vfeld:focus{border-style:solid;background:#fffdf6}
    soll man sie DORT hinschreiben. Das Feld erscheint erst dann -
    vorher gaebe es nichts, wovon eine Teilmenge zu bilden waere. */
 .k .teilmenge{display:none;position:absolute;left:4px;right:4px;bottom:3px}
-.k .teilmenge.aktiv{display:block}
-.k .teilmenge input{width:100%;box-sizing:border-box;font:11px var(--druck);
+/* FEHLERBEHOBEN (2026-09-18): Hier stand das `display:flex` fuer den
+   Beispielknopf in einer EIGENEN Regel darunter - und die hob das
+   `display:none` der Zeile darueber wieder auf. Folge: Eingabefeld und
+   Knopf erschienen auf JEDER Karte, auch auf denen, die noch auf dem
+   Tisch lagen. Genau das sollte teilmengenZeigen() verhindern («zehn
+   Eingabefelder auf dem Tisch waeren nur Laerm»). Die Ausrichtung
+   gehoert an `.aktiv`, weil erst dort etwas sichtbar wird. */
+.k .teilmenge.aktiv{display:flex;gap:3px;align-items:stretch}
+.k .teilmenge input{width:100%;min-width:0;box-sizing:border-box;font:11px var(--druck);
    padding:2px 5px;border:1px dashed var(--akzent);border-radius:4px;
    background:#fff;color:var(--tinte);text-align:center}
 .k .teilmenge input:focus{outline:none;border-style:solid;background:#fffdf6}
 .k .teilmenge input::placeholder{color:var(--akzent);opacity:.55}
+/* NEU (2026-09-18): Der Knopf, der das Beispiel zu DIESER Menge
+   einblendet (Kapitel 2, Etappe 2). Schmal gehalten - auf der Karte sind
+   82 Punkte Breite, und das Eingabefeld ist das Wichtigere. */
+.k .teilmenge .beispielknopf{flex:0 0 auto;width:17px;padding:0;cursor:pointer;
+  font:600 11px var(--druck);line-height:1;color:var(--akzent);
+  background:var(--karte);border:1px dashed var(--linie);border-radius:4px}
+.k .teilmenge .beispielknopf:hover{background:#fffdf6;border-style:solid}
+/* Die Blase selbst. Sie liegt im Feld, nicht auf der Karte: Auf 82 x 70
+   Punkten ist kein Platz fuer eine ausgeschriebene Menge. Ueber allem,
+   damit sie nicht hinter der naechsten Kartenzeile verschwindet. */
+.beispielblase{position:absolute;z-index:40;width:340px;max-width:calc(100% - 16px);
+  padding:8px 11px;border:1.5px dashed var(--akzent);border-radius:9px;
+  background:var(--karte);box-shadow:0 3px 12px rgba(0,0,0,.13);
+  font-size:12px;line-height:1.5;cursor:default}
+.beispielblase .kopf{display:block;font-family:var(--hand);font-size:14px;
+  color:var(--akzent)}
+.beispielblase .menge{margin:3px 0;color:var(--tinte)}
+.beispielblase .menge .stueck{white-space:nowrap}
+.beispielblase .fuss{display:block;color:var(--matt);font-size:11px}
+
+/* NEU (2026-09-18): Die kurze Meldung bei einer ABGELEHNTEN Geste -
+   siehe kurzerHinweis() in flaeche.js. Bewusst keine Farbe des Urteils:
+   Es ist kein Fehler, den jemand gemacht hat, sondern eine Auskunft
+   ueber die Regel. Ueber allem, weil sie ueber Karten und Feldern
+   liegt, und ohne Trefferflaeche, damit sie kein Ziehen abfaengt. */
+.kurzhinweis{position:fixed;z-index:80;pointer-events:none;
+  padding:5px 11px;border-radius:9px;border:1px solid var(--linie);
+  background:var(--karte);color:var(--tinte);font-size:12.5px;
+  box-shadow:0 3px 12px rgba(0,0,0,.14);
+  animation:hinweisEin .18s ease-out}
+@keyframes hinweisEin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* Die Karte, die schon da liegt - kurz hervorgehoben, damit man sieht,
+   WELCHE gemeint ist. Gestrichelt wie der Fingerzeig beim Pruefen, nicht
+   rot: Sie ist nicht falsch, sie ist nur schon da. */
+.k.schondrin{outline:2.5px dashed var(--fast);outline-offset:1px;border-radius:8px}
 
 /* ───────── Die Notizleiste (auf allen Seiten gleich) ─────────
    Sie steht unten und ist zugeklappt eine Zeile hoch. Aufgeklappt
@@ -643,3 +693,58 @@ svg.venn input.vfeld:focus{border-style:solid;background:#fffdf6}
    und das genuegt, damit es niemand tut. */
 .k.fremdehand{outline:2.5px solid var(--hand,#888);outline-offset:2px;
   box-shadow:0 0 0 6px color-mix(in srgb, var(--hand,#888) 18%, transparent)}
+
+/* ───────── Der Ziehgriff zwischen den Flächen ─────────
+   NEU (2026-09-10, Rückmeldung der Studierenden zum ersten Einsatz):
+   «Manchmal wäre es cool, wenn man den unsortierten und den sortierten
+   Bereich etwas anpassen kann.» Siehe _griffeSetzen() in flaeche.js.
+
+   Der Griff ist schmal, aber sein TASTBEREICH ist breiter als das, was
+   man sieht (::before) — dieselbe Überlegung wie beim Einrasten: Wer
+   knapp danebentrifft, soll trotzdem treffen. Sichtbar wird er erst
+   unter dem Zeiger; ständig sichtbar wäre er ein dritter Strich
+   zwischen zwei Flächen, die schon Rahmen haben. */
+/* WICHTIG - der Griff nimmt KEINE Breite ein (`flex:0 0 0`). Er sitzt
+   in der Lücke, die `.buehne` mit ihrem `gap` ohnehin lässt. Als
+   eigenes Flex-Item mit 8 Punkten Breite hätte er die Lücke zwischen
+   den Flächen von 10 auf 28 Punkte verbreitert - und damit dieselbe
+   tote Zone geschaffen, die oben gerade beseitigt wurde, nur genau auf
+   dem Weg, den jede Karte nimmt. */
+.teiler{position:relative;flex:0 0 0;width:0;align-self:stretch;
+        cursor:col-resize;touch-action:none;
+        /* Der Griff ist ein eigenes Flex-Kind und erzeugt damit ZWEI
+           `gap`-Lücken statt einer. Die negativen Ränder heben die
+           zweite auf: Der Abstand zwischen den Flächen bleibt genau
+           der, den er ohne Griff hatte. */
+        margin:0 -5px}
+.teiler::before{content:'';position:absolute;left:-7px;right:-7px;
+        top:0;bottom:0;border-radius:4px;
+        background:transparent;transition:background .12s}
+.teiler::after{content:'';position:absolute;left:50%;top:50%;
+        width:3px;height:34px;margin:-17px 0 0 -1.5px;border-radius:2px;
+        background:var(--linie);opacity:.55;transition:opacity .12s}
+.teiler:hover::before{background:rgba(0,0,0,.05)}
+.teiler.zieht::before{background:rgba(0,0,0,.08)}
+.teiler:hover::after,.teiler.zieht::after{opacity:1}
+.teiler.quer{cursor:row-resize;width:auto;height:0;align-self:auto;
+        margin:-5px 0}
+.teiler.quer::before{left:0;right:0;top:-7px;bottom:-7px}
+.teiler.quer::after{width:34px;height:3px;margin:-1.5px 0 0 -17px}
+/* Solange eine Karte in der Luft ist, fängt der Griff nichts ab —
+   er liegt genau auf dem Weg zwischen Tisch und Feld. Siehe ziehbar(). */
+.kartezieht .teiler{pointer-events:none}
+
+/* ───────── «Alles mitnehmen» — die Bilder selbst zeigen ─────────
+   NEU (2026-09-10, Rikes Auftrag): «Es reicht keine Liste, denn sie
+   haben das Bild in jeder Etappe im Kopf.» Die Bilder stehen
+   untereinander, in voller Breite, mit derselben gestrichelten
+   Anmutung wie die Felder auf der Fläche. */
+.start.mitnehmen{max-width:none}
+.schau{margin-top:22px;display:flex;flex-direction:column;gap:26px}
+.schau figure{margin:0}
+.schau figcaption{font-family:var(--hand);font-size:16px;color:var(--matt);
+   margin-bottom:6px}
+.schau img{display:block;width:100%;height:auto;border:1px solid var(--linie);
+   border-radius:10px;background:var(--papier)}
+.schau .platz{border:1px dashed var(--linie);border-radius:10px;
+   padding:26px;color:var(--matt);font-size:13px;text-align:center}
