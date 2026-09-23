@@ -530,144 +530,23 @@ function stilSetzen(){
    Rechnungen». Das steht hier und nicht im Kern, weil sonst «Daten und
    Zufall» mitbetroffen waere; `.buehne` ist ohnehin schon eine
    Flex-Zeile, es braucht nur die Aufteilung. */
-/* ══════════════════════════════════════════════════════════════════
-   DAS NOTIZFELD — ein Streifen unten, den alle gleichzeitig sehen
+/* ENTFERNT (2026-09-23, Rikes Entscheidung): Hier stand das gemeinsame
+   Notizfeld - ein Streifen unter der Buehne, den alle gleichzeitig
+   sahen. Rike: «Ich brauche das Notizfeld nicht. Das heisst, das
+   koennen wir rausnehmen. So wie wir es haben, funktioniert es nicht.»
 
-   NEU (2026-09-21, Rikes Wunsch): «Unten ein Notizfeld, auf dem ich
-   Sachen draufschreiben koennte, wenn mir was einfaellt, wie bei einem
-   Whiteboard. Ich weiss nur nicht, ob wir das schaffen, dass wenn ich
-   das draufschreibe, dass alle gleichzeitig sehen. Ist das machbar?»
+   Sie hatte es am 21.09. gewuenscht und es lief auch - zwei Fenster
+   sahen einander in rund drei Sekunden. Gescheitert ist es nicht an
+   der Technik, sondern an der Sache: Gebraucht wurde eine Flaeche zum
+   SCHREIBEN von Hand, und ein Tippfeld ist etwas anderes. Der Stift
+   war am 21.09. als der heikelste der vier Wuensche benannt und
+   daraufhin gestrichen worden; das Notizfeld war der Ersatz und hat
+   den Zweck nicht erfuellt.
 
-   Ja - und ohne eine Zeile an der Datenbank. Die Leitung traegt Zeilen
-   der Form `karte | ort | x | y | rot`, und `ort` ist eine
-   TEXTSPALTE. Entscheidend ist, dass `schluessel()` in gemeinsam.js
-   `ort` MITZAEHLT: Eine geaenderte Notiz gilt damit als Aenderung und
-   geht hinaus. Haette es nur an x und y gehangen, waere jede Notiz
-   einmal angekommen und nie wieder.
-
-   EINGESTANDEN: Damit traegt `ort` zwei Dinge - bei einer Karte den
-   Ablageort, bei dieser einen Zeile den Text. Genau das Muster, das
-   im Regelwerk als Kandidat 21 steht («Zwei Dinge an einer
-   Zeichenkette sind eines zu viel»). Die Alternative waere eine neue
-   Spalte in Rikes Datenbank; die gehoert ihr, und eine Schemaaenderung
-   trifft alle Flaechen. Deshalb hier so, mit einer eigenen Kennung,
-   die mit keiner Kartennummer verwechselt werden kann - und mit
-   diesem Vermerk, damit es nicht als Fund durchgeht, sondern als
-   bewusste Wahl.
-
-   EIN FELD JE ETAPPE, nicht eines fuer die ganze Sitzung: Die Raeume
-   der Leitung heissen `…-e1`, `…-e2`, `…-e3`. Eine Notiz gehoert
-   damit zu dem Schritt, bei dem sie entstanden ist. Ob Rike lieber
-   EINE durchlaufende Notiz haette, ist gefragt und nicht entschieden.
-
-   WER TIPPT, BEHAELT DEN CURSOR. Kommt fremder Text herein, waehrend
-   jemand schreibt, wird das Feld NICHT ueberschrieben - sonst springt
-   die Schreibmarke mitten im Wort. Der zuletzt Abgelegte gewinnt; das
-   ist fuer eine gemeinsame Notiz ehrlicher als ein stiller Verlust.
-   ══════════════════════════════════════════════════════════════════ */
-
-const NOTIZ_ID = 'notiz:brett';
-const NOTIZ_MAX = 500;      // freundlich zur Leitung, reicht fuer Einfaelle
-
-function notizText(){
-  if (!stand.notiz) stand.notiz = {};
-  return stand.notiz[stand.etappe] || '';
-}
-
-function notizSetzen(t){
-  if (!stand.notiz) stand.notiz = {};
-  stand.notiz[stand.etappe] = (t || '').slice(0, NOTIZ_MAX);
-}
-
-/* Der Zusatz der Notiz. `x`, `y`, `rot` bleiben null - sie tragen hier
-   nichts; der Text steht in `ort`. */
-const NOTIZ_ZUSATZ = {
-  stand(){
-    const t = notizText();
-    return t ? {[NOTIZ_ID]: {ort: t, x: 0, y: 0, rot: 0}} : {};
-  },
-  anwenden(z){
-    if (z.karte !== NOTIZ_ID) return false;
-    notizSetzen(z.ort);
-    const f = document.getElementById('notizfeld');
-    // Nicht ueberschreiben, solange jemand darin schreibt.
-    if (f && document.activeElement !== f) f.value = notizText();
-    return true;
-  }
-};
-
-/* Die drei Etappen setzen `KASPER_GEMEINSAM_ZUSATZ` selbst - Etappe 2
-   ihre Zeiger, Etappe 1 und 3 nichts. Damit die Notiz nicht von der
-   naechsten Etappe ueberschrieben wird, laeuft das jetzt hierueber:
-   Die Notiz haengt IMMER dran, das Eigene der Etappe daneben. */
-function zusatzSetzen(eigen){
-  window.KASPER_GEMEINSAM_ZUSATZ = {
-    stand(){
-      return Object.assign({}, NOTIZ_ZUSATZ.stand(),
-                           (eigen && eigen.stand) ? eigen.stand() : {});
-    },
-    anwenden(z){
-      if (NOTIZ_ZUSATZ.anwenden(z)) return true;
-      return !!(eigen && eigen.anwenden && eigen.anwenden(z));
-    }
-  };
-}
-
-const NOTIZSTIL = `
-.notizfeld{display:flex;align-items:stretch;gap:9px;margin:10px 4px 0}
-.notizfeld > .marke{flex:0 0 auto;align-self:center;font-size:13px;
-  color:var(--matt)}
-.notizfeld textarea{flex:1 1 auto;font:inherit;font-size:14px;
-  line-height:1.45;padding:7px 10px;border:1px solid var(--linie);
-  border-radius:8px;background:var(--karte);color:var(--tinte);
-  resize:vertical;min-height:40px;max-height:160px;box-sizing:border-box}
-.notizfeld textarea:focus{outline:none;border-color:var(--akzent);
-  box-shadow:0 0 0 2px color-mix(in srgb, var(--akzent) 20%, transparent)}
-`;
-
-function notizStilSetzen(){
-  if (document.getElementById('notizstil')) return;
-  const t = document.createElement('style');
-  t.id = 'notizstil'; t.textContent = NOTIZSTIL;
-  document.head.appendChild(t);
-}
-
-/* Unter die Buehne, ueber die Leiste. Ohne gemeinsames Brett - also in
-   Fassung B und beim Arbeiten allein - waere ein Feld, das niemand
-   sonst sieht, ein falsches Versprechen. Dort steht es trotzdem, nur
-   ohne den Hinweis: Notieren will man auch allein. */
-function notizfeldBauen(b){
-  notizStilSetzen();
-  if (b.querySelector('.notizfeld')) return;
-  const gemeinsam = !!window.GEMEINSAM;
-  const feld = document.createElement('div');
-  feld.className = 'notizfeld';
-  feld.innerHTML = `<span class="marke">Notiz${gemeinsam ? ' · alle sehen sie' : ''}</span>
-    <textarea id="notizfeld" rows="2" maxlength="${NOTIZ_MAX}"
-      spellcheck="false" aria-label="Gemeinsame Notiz zu dieser Etappe"
-      placeholder="Was auffällt, was zu klären ist …"></textarea>`;
-  const leiste = b.querySelector('.leiste');
-  if (leiste) b.insertBefore(feld, leiste); else b.appendChild(feld);
-
-  const t = feld.querySelector('textarea');
-  t.value = notizText();
-  let uhr = null;
-  t.oninput = () => {
-    notizSetzen(t.value);
-    // Nicht bei jedem Anschlag melden - sonst geht je Buchstabe eine
-    // Zeile hinaus. Eine halbe Sekunde Ruhe genuegt.
-    clearTimeout(uhr);
-    uhr = setTimeout(() => {
-      if (window.KASPER_GEMEINSAM_MELDEN) KASPER_GEMEINSAM_MELDEN();
-    }, 500);
-  };
-  // Beim Verlassen des Feldes sofort, ohne auf die halbe Sekunde zu warten.
-  t.onblur = () => {
-    clearTimeout(uhr);
-    if (window.KASPER_GEMEINSAM_MELDEN) KASPER_GEMEINSAM_MELDEN();
-  };
-}
-
+   Mit ihm faellt `zusatzSetzen()` weg: Es buendelte die Notiz mit dem
+   Zusatz der jeweiligen Etappe, damit die eine die andere nicht
+   ueberschreibt. Ohne Notiz gibt es nichts mehr zu buendeln, und die
+   drei Etappen setzen `KASPER_GEMEINSAM_ZUSATZ` wieder selbst. */
 
 /* ══════════════════════════════════════════════════════════════════
    DIE LUPE AUF DEM ZEIGERBILD
@@ -781,7 +660,6 @@ function buehneNeben(auftrag, vorrat, rechtsName, leiste, extra){
      KARTEN, nicht die Aufteilung. Zwei verschiedene Fragen, zwei
      verschiedene Bedienelemente. */
   _griffeSetzen(b, _teilungSchluessel(auftrag));
-  notizfeldBauen(b);
 
   _leisteChrome(b);
 }
@@ -816,7 +694,7 @@ function etappe1(){
   stilSetzen();
   // Etappe 1 schickt Kaertchen, keine Zeiger - die Zusatzleitung aus
   // Etappe 2 muss weg, sonst meldet sie dort weiter.
-  zusatzSetzen(null);
+  window.KASPER_GEMEINSAM_ZUSATZ = null;
   const a = D.etappen[0];
   const vorrat = D.vorrat[0];
   /* GEAENDERT (2026-09-09, Rikes Rueckmeldung): Die Regel stand als
@@ -1116,13 +994,72 @@ const E2FARBE_GEGEBEN = 'var(--matt)';
 function e2Stand(){
   if (!stand.e2) stand.e2 = {gesetzt:{}, dran:null, urteil:{}, bild:{}};
   if (!stand.e2.bild) stand.e2.bild = {};
+  /* `fremd` ist NICHT Teil des eigenen Standes im Sinne von «meine
+     Arbeit» - es sind die Vermutungen der anderen, die ueber die
+     Leitung hereinkommen. Es wird trotzdem hier gefuehrt, damit ein
+     Etappenwechsel sie nicht verliert. */
+  if (!stand.e2.fremd) stand.e2.fremd = {};
+  /* Der BEWEGLICHE Gegebene je Feld - Rikes z im dritten Bild. */
+  if (!stand.e2.gegeben) stand.e2.gegeben = {};
   return stand.e2;
+}
+
+/* Eine Farbe je Person, aus ihrer Kennung gerechnet - nicht zufaellig.
+   Dieselbe Person bekommt damit in jeder Aufgabe denselben Farbton,
+   und man erkennt, welche Punkte zusammengehoeren. */
+/* Wo steht der bewegliche Gegebene gerade?
+
+   NEU (2026-09-23, Rikes Auftrag): «Wir brauchen gar keinen
+   Ueberpruefungsbutton, wir brauchen quasi nur ein Set, und dieses Set
+   muss ich bewegen koennen, wenn ich das moechte, sodass wir
+   unterschiedliche Sets anschauen koennen.»
+
+   Das dritte Bild hatte bis heute ein FESTES z (1,2 bei 60 Grad). Fuer
+   eine Aufgabe mit Loesung war das richtig; fuer das, was Rike damit
+   machen will - auf Zuruf fragen «wo laege die Wurzel?» und dann das
+   naechste Beispiel zeigen -, ist es zu wenig. Jetzt liegt z in der
+   Hand, und alles rechnet mit. */
+function e2Zjetzt(feld){
+  const s = e2Stand();
+  if (!feld.beweglich || !feld.gegeben) return null;
+  return s.gegeben[feld.id] || feld.gegeben[0].ort.slice();
+}
+
+/* Ziel und Ziele einer Aufgabe - aus dem AKTUELLEN z gerechnet, wenn
+   das Feld beweglich ist, sonst die eingebauten Werte aus thema.py.
+
+   Die Rechnung steht hier und nicht im Generator, weil sie sich mit
+   jedem Zug aendert. `op` sagt, was zu tun ist: `^3` hoch drei, `w3`
+   die dritte Wurzel mit ihren drei Loesungen. */
+function e2Ziele(feld, auf){
+  const z = e2Zjetzt(feld);
+  if (!z) return {ziel: auf.ziel, ziele: auf.ziele || [auf.ziel]};
+  const r = Math.hypot(z[0], z[1]), w = Math.atan2(z[1], z[0]);
+  const polar = (rr, ww) => [rr * Math.cos(ww), rr * Math.sin(ww)];
+  if (auf.op === '^3'){
+    const zi = polar(Math.pow(r, 3), 3 * w);
+    return {ziel: zi, ziele: [zi]};
+  }
+  if (auf.op === 'w3'){
+    const ziele = [0, 1, 2].map(k =>
+      polar(Math.pow(r, 1 / 3), (w + 2 * Math.PI * k) / 3));
+    return {ziel: ziele[0], ziele};
+  }
+  return {ziel: auf.ziel, ziele: auf.ziele || [auf.ziel]};
+}
+
+function e2Farbton(wer){
+  let h = 0;
+  for (let i = 0; i < wer.length; i++) h = (h * 31 + wer.charCodeAt(i)) % 360;
+  return 'hsl(' + h + ' 62% 46%)';
 }
 
 /* Die Einstellungen EINES Bildes. */
 function e2Bildstand(feldId){
   const s = e2Stand();
-  if (!s.bild[feldId]) s.bild[feldId] = {karo:true, kreis:false, vergleich:false};
+  if (!s.bild[feldId])
+    s.bild[feldId] = {karo:true, kreis:false, vergleich:false, pfeile:false};
+  if (s.bild[feldId].pfeile === undefined) s.bild[feldId].pfeile = false;
   return s.bild[feldId];
 }
 
@@ -1188,6 +1125,43 @@ function e2Achsen(F, max){
   F.text({re:0.30, im:max*0.95}, 'Im', {gr:7.5, farbe:'var(--matt)', anker:'start'});
 }
 
+/* Der Winkel eines Zeigers in Grad, von 0 bis 360 - nicht von -180
+   bis 180, wie `atan2` rechnet. Beim Wurzelziehen liegen Loesungen bei
+   140 und 260 Grad; als «-100 Grad» waere die Drittelung nicht zu
+   sehen, und genau sie ist der Zweck. */
+function e2Grad(p){
+  const g = Math.atan2(p[1], p[0]) * 180 / Math.PI;
+  return (g % 360 + 360) % 360;
+}
+
+/* Ein Winkelbogen von der positiven reellen Achse bis zum Zeiger,
+   dazu die Gradzahl.
+
+   NEU (2026-09-21, Rikes Auftrag): «Es waere super, wenn wir dort
+   jeweils die Winkel einzeichnen lassen koennten, visualisieren
+   lassen koennten, sodass sie wie sehen, das ist jetzt ein Drittel des
+   Winkels oder das ist dreimal der Winkel.»
+
+   Als Streckenzug, nicht als SVG-Bogen: `zeichnen.js` liegt eingefroren
+   in fremd/ und kennt keinen Bogen. Ein Zug aus lauter kurzen Stuecken
+   sieht bei diesem Radius aus wie ein Kreisbogen und braucht die
+   fremde Datei nicht anzufassen. */
+function e2Bogen(F, p, radius, farbe){
+  const g = e2Grad(p);
+  if (g < 1) return;
+  const schritte = Math.max(6, Math.round(g / 4));
+  const punkte = [];
+  for (let i = 0; i <= schritte; i++){
+    const b = (g * i / schritte) * Math.PI / 180;
+    punkte.push({re: radius * Math.cos(b), im: radius * Math.sin(b)});
+  }
+  F.zug(punkte, {farbe, dicke:1.1});
+  // Die Zahl in die Mitte des Bogens, ein Stueck weiter aussen.
+  const bm = (g / 2) * Math.PI / 180;
+  F.text({re:(radius + 0.26) * Math.cos(bm), im:(radius + 0.26) * Math.sin(bm)},
+         Math.round(g) + '°', {farbe, gr:11});
+}
+
 function e2Bild(feld, wrap, s){
   const E = D.e2, max = E.max;
   const bs = e2Bildstand(feld.id);
@@ -1195,8 +1169,19 @@ function e2Bild(feld, wrap, s){
   e2Gitter(F, max, bs);
   e2Achsen(F, max);
 
-  F.pfeil(z2(E.z.ort), {farbe:E2FARBE_GEGEBEN, dicke:1.7, marke:E.z.marke});
-  F.pfeil(z2(E.w.ort), {farbe:E2FARBE_GEGEBEN, dicke:1.7, marke:E.w.marke});
+  /* Die Gegebenen. Ein Feld darf eigene mitbringen - das dritte tut es:
+     Es rechnet mit einem z im ersten Quadranten, waehrend die beiden
+     anderen Felder bei z = -1+i und w = 2-i bleiben. Sagt ein Feld
+     nichts, bleibt es bei z und w wie bisher. */
+  const zjetzt = e2Zjetzt(feld);
+  const gegeben = feld.gegeben
+    ? feld.gegeben.map((g, i) => (i === 0 && zjetzt) ? {marke:g.marke, ort:zjetzt} : g)
+    : [E.z, E.w];
+  gegeben.forEach(g =>
+    F.pfeil(z2(g.ort), {farbe:E2FARBE_GEGEBEN, dicke:1.7, marke:g.marke}));
+  // Ein Griff am Ende des beweglichen Zeigers, damit zu sehen ist,
+  // dass man ihn anfassen darf.
+  if (zjetzt) F.punkt(z2(zjetzt), {farbe:E2FARBE_GEGEBEN, gr:5.5, gefuellt:false});
 
   /* GEAENDERT (2026-09-09, Rikes Rueckmeldung): Hier stand
      `stand.loesungOffen ? auf.ziel : s.gesetzt[auf.id]` - die Loesung
@@ -1224,17 +1209,78 @@ function e2Bild(feld, wrap, s){
             aussehende Pfeile in derselben Farbe waeren nur zu
             unterscheiden, wenn man genau hinsieht - ein offener Punkt
             sagt «hierher», ohne mit dem eigenen Zeiger zu wetteifern. */
-      F.gerade({re:0, im:0}, z2(auf.ziel),
-               {farbe:auf.farbe, dicke:1.3, gestrichelt:true});
-      F.punkt(z2(auf.ziel), {farbe:auf.farbe, gr:3.2, gefuellt:false});
+      e2Ziele(feld, auf).ziele.forEach(zi => {
+        F.gerade({re:0, im:0}, z2(zi),
+                 {farbe:auf.farbe, dicke:1.3, gestrichelt:true});
+        F.punkt(z2(zi), {farbe:auf.farbe, gr:3.2, gefuellt:false});
+      });
     });
   }
 
+  /* DIE VERMUTUNGEN DER ANDEREN, zuerst und zurueckhaltend: kleine
+     offene Punkte im Farbton der jeweiligen Person. Sie sollen zu
+     sehen sein, aber nicht mit dem eigenen wetteifern. */
+  feld.aufgaben.forEach(auf => {
+    const andere = s.fremd[auf.id];
+    if (!andere) return;
+    Object.keys(andere).forEach(wer => {
+      F.punkt(z2(andere[wer]), {farbe:e2Farbton(wer), gr:4.2, gefuellt:false});
+    });
+  });
+
+  /* DER EIGENE: ein PUNKT, kein Pfeil. Rike am 2026-09-23: «Ich weiss
+     nicht, ob dann alle einen Pfeil legen. Sie sollten einfach nur
+     quasi einen Punkt hinlegen, da wo sie das Ergebnis erwarten.»
+
+     Sie hat recht, und es ist mehr als Geschmack: Sobald mehrere
+     Vermutungen nebeneinander liegen, waeren vier Pfeile aus dem
+     Ursprung ein Strahlenbuendel, in dem man die Enden nicht mehr
+     auseinanderhaelt. Der Ort ist die Auskunft - dasselbe Argument,
+     das schon fuer die eingeblendete Loesung galt. */
+  /* NEU (2026-09-23, Rikes Nachtrag): «Wir haben ja jetzt immer nur
+     Punkte. Und vielleicht ist es schon einfacher, wenn wir am Ende
+     irgendwie den Pfeil sehen. Das heisst, ich muesste in der Lage
+     sein, schon auch einen Pfeil zu setzen.»
+
+     Der Punkt bleibt, was man SETZT - mit mehreren Vermutungen
+     nebeneinander waeren Pfeile ein Strahlenbuendel, und das war der
+     Grund fuer den Punkt. Aber am ENDE, wenn die Sache besprochen ist,
+     will man den Zeiger sehen: Er zeigt Laenge und Winkel, der Punkt
+     nur den Ort.
+
+     Deshalb ein Schalter, kein zweites Werkzeug. Nichts muss noch
+     einmal gesetzt werden; derselbe Ort wird nur anders gezeigt. Er
+     steht bei Karos und Kreisen, gilt also je Bild - wie die anderen
+     beiden. */
   feld.aufgaben.forEach(auf => {
     const p = s.gesetzt[auf.id];
     if (!p) return;
-    F.pfeil(z2(p), {farbe:auf.farbe, dicke:2.6, marke:auf.text});
+    if (bs.pfeile){
+      F.pfeil(z2(p), {farbe:auf.farbe, dicke:2.4, marke:auf.text});
+    } else {
+      F.punkt(z2(p), {farbe:auf.farbe, gr:6.2, gefuellt:true});
+      F.text({re:p[0], im:p[1] + 0.26}, auf.text, {farbe:auf.farbe, gr:12});
+    }
   });
+
+  /* Die Winkelboegen ZULETZT, damit sie ueber den Zeigern liegen - und
+     NUR ZWEI auf einmal: der von z und der des gerade gewaehlten
+     Zeigers.
+
+     ERST BEIM ANSEHEN GEMERKT: Alle fuenf gleichzeitig gezeichnet
+     ergaben ein Knaeuel, in dem keine Gradzahl mehr zu lesen war - und
+     drei der vier Zeiger haben ohnehin denselben Winkel-Bereich. Zwei
+     Boegen beantworten Rikes Frage besser als fuenf: «das ist jetzt
+     ein Drittel des Winkels oder das ist dreimal der Winkel» ist ein
+     VERGLEICH, und ein Vergleich braucht genau zwei.
+
+     Wer nichts gewaehlt hat, sieht nur den Winkel von z. */
+  if (feld.winkel){
+    const dran = feld.aufgaben.find(a => a.id === s.dran);
+    const p = dran && s.gesetzt[dran.id];
+    if (p) e2Bogen(F, p, 1.25, dran.farbe);
+    gegeben.forEach(g => e2Bogen(F, g.ort, 0.62, E2FARBE_GEGEBEN));
+  }
 
   wrap.replaceChildren(F.svg);
   return F.svg;
@@ -1273,13 +1319,18 @@ function e2Feld(feld){
   schalter.className = 'bildschalter';
   const kKaro  = document.createElement('label');
   const kKreis = document.createElement('label');
-  kKaro.className = kKreis.className = 'schalter';
+  const kPfeil = document.createElement('label');
+  kKaro.className = kKreis.className = kPfeil.className = 'schalter';
   kKaro.innerHTML  = '<input type="checkbox"> Karos';
   kKreis.innerHTML = '<input type="checkbox"> Kreise';
+  kPfeil.innerHTML = '<input type="checkbox"> Pfeile';
+  kPfeil.title = 'Die gesetzten Punkte als Zeiger vom Ursprung zeigen';
   kKaro.querySelector('input').checked  = bs.karo;
   kKreis.querySelector('input').checked = bs.kreis;
+  kPfeil.querySelector('input').checked = bs.pfeile;
   kKaro.querySelector('input').onchange  = e => { bs.karo  = e.target.checked; neu(); };
   kKreis.querySelector('input').onchange = e => { bs.kreis = e.target.checked; neu(); };
+  kPfeil.querySelector('input').onchange = e => { bs.pfeile = e.target.checked; neu(); };
 
   /* «Richtige Zeiger einblenden» - Rikes Wort, nicht «Loesung
      anzeigen». Der Unterschied ist nicht nur der Name: Es wird
@@ -1292,11 +1343,15 @@ function e2Feld(feld){
   kVergleich.className = 'knopf leer klein';
   schalter.appendChild(kKaro);
   schalter.appendChild(kKreis);
+  schalter.appendChild(kPfeil);
   schalter.appendChild(kVergleich);
   kopf.appendChild(schalter);
 
   function vergleichZeichnen(){
-    const alleGesetzt = feld.aufgaben.every(a => s.gesetzt[a.id]);
+    // Im beweglichen Feld gibt es nichts freizuschalten: Rike zeigt
+    // dort Beispiele und will jederzeit aufdecken koennen.
+    const alleGesetzt = feld.beweglich
+                     || feld.aufgaben.every(a => s.gesetzt[a.id]);
     kVergleich.disabled = !alleGesetzt;
     kVergleich.title = alleGesetzt
       ? 'Die richtigen Zeiger zusätzlich einblenden'
@@ -1378,6 +1433,12 @@ function e2Feld(feld){
       const p = e2Ort(svg, ev, D.e2.max);
       // Liegt eine Spitze in der Naehe? Dann die, sonst die gewaehlte.
       let nah = null, d0 = D.e2.max * 0.13;
+      /* Der BEWEGLICHE Gegebene zaehlt mit. Er kommt zuerst, damit man
+         ihn auch dann noch fassen kann, wenn eine Vermutung daneben
+         liegt - er ist das Stellrad des Bildes, und wer ihn nicht mehr
+         greift, kann kein zweites Beispiel zeigen. */
+      const zj = e2Zjetzt(feld);
+      if (zj && abstand(zj, p) < d0){ nah = '@z'; d0 = abstand(zj, p); }
       feld.aufgaben.forEach(a => {
         const g = s.gesetzt[a.id];
         if (g && abstand(g, p) < d0){ nah = a.id; d0 = abstand(g, p); }
@@ -1385,7 +1446,7 @@ function e2Feld(feld){
       const welche = nah || s.dran
                   || (feld.aufgaben.find(a => !s.gesetzt[a.id]) || {}).id;
       if (!welche) return null;
-      s.dran = welche;
+      if (welche !== '@z') s.dran = welche;
       return {id: welche, p};
     };
     wrap.onpointerdown = ev => {
@@ -1393,13 +1454,15 @@ function e2Feld(feld){
       ev.preventDefault();
       wrap.setPointerCapture(ev.pointerId);
       zieht = t.id;
-      s.gesetzt[t.id] = t.p;
+      if (t.id === '@z') s.gegeben[feld.id] = t.p;
+      else s.gesetzt[t.id] = t.p;
       urteil.dataset.gefuellt = ''; urteil.textContent = '';
       neu();
     };
     wrap.onpointermove = ev => {
       if (!zieht) return;
-      s.gesetzt[zieht] = e2Ort(svg, ev, D.e2.max);
+      const p = e2Ort(svg, ev, D.e2.max);
+      if (zieht === '@z') s.gegeben[feld.id] = p; else s.gesetzt[zieht] = p;
       neu();
     };
     const los = ev => {
@@ -1435,7 +1498,13 @@ function e2Feld(feld){
    eindeutig bleibt, prueft inhalte.py beim Bauen. */
 function e2Urteil(auf, p){
   const T = D.e2.toleranz;
-  if (abstand(p, auf.ziel) <= T)
+  /* MEHRERE ZIELE. Die dritte Wurzel hat drei Loesungen, und welche
+     davon jemand zuerst setzt, ist seine Sache. `auf.ziele` nennt alle;
+     jede zaehlt. Dass es drei VERSCHIEDENE sein muessen, prueft
+     `e2Pruefen` ueber `auf.gruppe` - hier waere es falsch am Platz,
+     weil ein einzelner Zeiger fuer sich genommen richtig liegt. */
+  const ziele = auf.ziele || [auf.ziel];
+  if (ziele.some(zi => abstand(p, zi) <= T))
     return {gut:true, text:'<span class="gut">Ja.</span> Genau da liegt <b>'
                           + auf.text + '</b>.'};
   for (const f of auf.fehler)
@@ -1443,8 +1512,11 @@ function e2Urteil(auf, p){
       return {gut:false, text:'<span class="schlecht">Fast — aber nicht das.</span> '
                               + f.text};
 
-  const lz = betrag(auf.ziel), lp = betrag(p);
-  const wz = Math.atan2(auf.ziel[1], auf.ziel[0]);
+  // Gemessen wird am NAECHSTGELEGENEN Ziel - sonst bekaeme jemand, der
+  // dicht neben der zweiten Wurzel steht, eine Auskunft ueber die erste.
+  const nah = ziele.reduce((a, b) => abstand(p, b) < abstand(p, a) ? b : a);
+  const lz = betrag(nah), lp = betrag(p);
+  const wz = Math.atan2(nah[1], nah[0]);
   const wp = Math.atan2(p[1], p[0]);
   let dw = Math.abs(wz - wp) * 180 / Math.PI;
   if (dw > 180) dw = 360 - dw;
@@ -1464,12 +1536,58 @@ function e2Pruefen(haelften){
   const s = e2Stand();
   D.e2.felder.forEach((feld, i) => {
     const teile = [];
+    /* KEIN URTEIL im beweglichen Feld. Rike am 2026-09-23: «Wir
+       brauchen gar keinen Ueberpruefungsbutton.» Es waere dort auch
+       nicht zu halten: Die Ziele haengen am aktuellen z, und wer das
+       Beispiel wechselt, bekaeme ein Urteil ueber das vorige. Der
+       Knopf «Richtige Zeiger einblenden» bleibt - er zeigt, statt zu
+       urteilen. */
+    if (feld.beweglich){
+      const u0 = haelften[i]._urteil;
+      u0.dataset.gefuellt = '1';
+      u0.innerHTML = 'Hier wird nichts geprüft — blenden Sie die '
+                   + 'richtigen Zeiger ein und vergleichen Sie.';
+      return;
+    }
     feld.aufgaben.forEach(auf => {
       const p = s.gesetzt[auf.id];
       if (!p){ teile.push('<b>' + auf.text + '</b> ist noch nicht gesetzt.');
                return; }
       teile.push('<b>' + auf.text + '</b> — ' + e2Urteil(auf, p).text);
     });
+    /* DREI VERSCHIEDENE, nicht dreimal dieselbe.
+
+       Die drei Wurzeln duerfen in beliebiger Reihenfolge gesetzt
+       werden - `e2Urteil` laesst deshalb jedes der drei Ziele fuer
+       jeden der drei Zeiger gelten. Genau darum muss hier jemand
+       nachsehen, ob sie auch WIRKLICH verschieden sind: Drei Zeiger auf
+       derselben Wurzel bekaemen sonst dreimal «Ja», und die eigentliche
+       Einsicht - eine dritte Wurzel hat DREI Loesungen, im Abstand von
+       120 Grad - ginge unbemerkt verloren.
+
+       Gezaehlt wird ueber das naechstgelegene Ziel, nicht ueber die
+       Zeiger untereinander: Zwei Zeiger koennen weit auseinander liegen
+       und trotzdem beide zur selben Wurzel gehoeren. */
+    const gruppen = {};
+    feld.aufgaben.forEach(auf => {
+      if (!auf.gruppe || !auf.ziele) return;
+      const p2 = s.gesetzt[auf.id];
+      if (!p2) return;
+      let nah = 0;
+      auf.ziele.forEach((zi, k) => {
+        if (abstand(p2, zi) < abstand(p2, auf.ziele[nah])) nah = k;
+      });
+      if (abstand(p2, auf.ziele[nah]) > D.e2.toleranz) return;  // liegt eh daneben
+      (gruppen[auf.gruppe] = gruppen[auf.gruppe] || []).push(nah);
+    });
+    Object.values(gruppen).forEach(liste => {
+      const eigen = new Set(liste);
+      if (liste.length > 1 && eigen.size < liste.length)
+        teile.push('<span class="schlecht">Zwei Ihrer Zeiger liegen auf '
+          + 'derselben Lösung.</span> Eine dritte Wurzel hat <b>drei</b> '
+          + 'verschiedene — sehen Sie sich die <b>Winkel</b> an.');
+    });
+
     const u = haelften[i]._urteil;
     u.dataset.gefuellt = '1';
     u.innerHTML = teile.join('<br>');
@@ -1492,26 +1610,67 @@ function e2Pruefen(haelften){
    niemals mit einer Kartennummer verwechselt wird. */
 const E2VOR = 'e2:';
 
+/* NEU (2026-09-23, Rikes Auftrag): «Das kann immer nur eine machen.
+   Das waere natuerlich schoen, wenn jeder mal einen Tipp geben
+   koennte. Und dann kommt quasi der finale oder richtige Punkt hin.»
+
+   Bis heute trug die Leitung EINE Zeile je Aufgabe - `e2:wpz`. Wer
+   setzte, ueberschrieb damit den Vorschlag aller anderen; es sah aus,
+   als duerfe nur eine Person arbeiten. Das war kein Fehler, sondern
+   ein zu enges Modell.
+
+   Jetzt traegt die Kennung die PERSON mit: `e2:wpz:a7f3k2`. Damit hat
+   jede ihre eigene Zeile, und alle Vermutungen stehen nebeneinander im
+   Bild. Die Tabelle bleibt unveraendert - ihr Schluessel ist ohnehin
+   (Raum, Karte), und «Karte» ist nur eine Zeichenkette.
+
+   Eine Zeile im ALTEN Format (ohne Person) wird weiter angenommen und
+   als fremde Vermutung gefuehrt. Sonst verschwaende ein Brett, auf dem
+   vor der Umstellung schon gearbeitet wurde, stillschweigend seinen
+   Inhalt. */
 function e2Leitung(felder, neuZeichnen){
-  zusatzSetzen({
+  const ich = (window.GEMEINSAM && GEMEINSAM.ich) || 'allein';
+  window.KASPER_GEMEINSAM_ZUSATZ = {
     stand(){
       const s = e2Stand(), aus = {};
       felder.forEach(f => f.aufgaben.forEach(auf => {
         const p = s.gesetzt[auf.id];
-        if (p) aus[E2VOR + auf.id] = {ort:'e2', x: p[0]*100, y: p[1]*100, rot:0};
+        if (p) aus[E2VOR + auf.id + ':' + ich] =
+          {ort:'e2', x: p[0]*100, y: p[1]*100, rot:0};
       }));
+      /* Der bewegliche Gegebene geht OHNE Person hinaus: Es gibt nur
+         EIN z, und alle sollen dasselbe sehen. Wer es zieht, stellt
+         das Beispiel fuer die ganze Gruppe. */
+      felder.forEach(f => {
+        const zj = s.gegeben[f.id];
+        if (zj) aus['e2gegeben:' + f.id] =
+          {ort:'e2', x: zj[0]*100, y: zj[1]*100, rot:0};
+      });
       return aus;
     },
     anwenden(z){
+      if (z.karte.startsWith('e2gegeben:')){
+        const fid = z.karte.slice('e2gegeben:'.length);
+        e2Stand().gegeben[fid] = [z.x/100, z.y/100];
+        neuZeichnen();
+        return true;
+      }
       if (!z.karte.startsWith(E2VOR)) return false;
-      const id = z.karte.slice(E2VOR.length);
+      const rest = z.karte.slice(E2VOR.length);
+      const doppel = rest.indexOf(':');
+      const id  = doppel < 0 ? rest : rest.slice(0, doppel);
+      const wer = doppel < 0 ? 'frueher' : rest.slice(doppel + 1);
       const bekannt = felder.some(f => f.aufgaben.some(a => a.id === id));
       if (!bekannt) return true;      // fremde Etappe, aber nicht unsere Sache
-      e2Stand().gesetzt[id] = [z.x/100, z.y/100];
+      // Das eigene Echo nicht noch einmal setzen - es steht schon.
+      if (wer === ich) return true;
+      const s = e2Stand();
+      if (!s.fremd[id]) s.fremd[id] = {};
+      s.fremd[id][wer] = [z.x/100, z.y/100];
       neuZeichnen();
       return true;
     }
-  });
+  };
 }
 
 function e2Melden(){
@@ -1556,7 +1715,6 @@ function etappe2(){
 
   // Anmelden, BEVOR das Brett Zeilen liefert: `los()` ruft erst diese
   // Etappe und danach den Raumwechsel, der die Zeilen holt.
-  notizfeldBauen(b);
   e2Leitung(D.e2.felder, () => haelften.forEach(h => h._neu()));
 
   document.getElementById('pruefen2').onclick = () => e2Pruefen(haelften);
@@ -1744,7 +1902,7 @@ function etappe3(){
   // nichts zu bewegen, und das Getippte ist eine eigene Notiz, kein
   // Sortierstand. Die Zusatzleitung aus Etappe 2 muss trotzdem weg,
   // sonst meldet sie hier weiter.
-  zusatzSetzen(null);
+  window.KASPER_GEMEINSAM_ZUSATZ = null;
   const E = D.e3, a = D.etappen[2];
   const b = document.getElementById('buehne');
   window._nachAblegen = null;
@@ -2132,7 +2290,34 @@ ETAPPEN.push(etappe3);
      Gruppe. So kann derselbe Knopf naechstes Semester wieder benutzt
      werden, ohne dass Gruppe 3 die Karten des vorigen Jahrgangs
      vorfindet - das Semester steckt im Praefix. */
-  const raumname = (nr) => (D.raum_vorsatz || 'raum') + '-g' + nr;
+  /* NEU (2026-09-23): Der Raumname traegt jetzt auch den TAG.
+
+     Lars hat gemessen, was Rike gemeldet hatte: Meine Reparatur vom
+     21.09. raeumt den Tisch AM RECHNER - die Sortierung liegt aber auf
+     dem gemeinsamen Brett, und die blieb liegen. Wer Gruppe 8 waehlte,
+     fand 36 Kaertchen der vorigen Sitzung vor. Der Vorsatz nannte nur
+     das Semester (`kz-m1-hs26`), also trifft dieselbe Gruppennummer
+     naechste Woche auf die Arbeit von dieser.
+
+     Der Tag im Namen loest das ohne Aufraeumen: Alle, die am selben
+     Tag dieselbe Nummer waehlen, sind zusammen - und die naechste
+     Sitzung faengt von selbst auf leeren Brettern an. Gerechnet wird
+     der Tag im Browser, nicht beim Bauen: Sonst haengt der Raum am
+     Zeitpunkt der Auslieferung, und ein Neubau mitten in der Sitzung
+     risse eine Gruppe auseinander.
+
+     PRUEFEN (fuer Rike): Damit kommt eine Gruppe NICHT mehr an die
+     Arbeit der vorigen Woche heran. Fuer die Meilensteine ist das
+     richtig - jede Sitzung faengt neu an. Soll eine Gruppe je
+     fortsetzen koennen, muss der Tag wieder heraus, und dann braucht
+     es das Aufraeumen von Hand. */
+  const heute = () => {
+    const d = new Date();
+    return d.getFullYear().toString().slice(2)
+         + String(d.getMonth() + 1).padStart(2, '0')
+         + String(d.getDate()).padStart(2, '0');
+  };
+  const raumname = (nr) => (D.raum_vorsatz || 'raum') + '-' + heute() + '-g' + nr;
 
   /* Der unberuehrte Ausgangszustand, gesichert BEVOR irgendetwas
      wiederhergestellt wird.
@@ -2185,8 +2370,42 @@ ETAPPEN.push(etappe3);
        Raum wird frisch gelesen. Wer dieselbe Gruppe noch einmal waehlt,
        bekommt ihren Stand also vom Server zurueck, nicht aus diesem
        Rechner. */
-    Object.keys(stand).forEach(k => { delete stand[k]; });
-    Object.assign(stand, JSON.parse(JSON.stringify(LEERER_TISCH)));
+    /* NUR BEI EINEM ECHTEN WECHSEL leeren.
+
+       FEHLERBEHOBEN (2026-09-23, Rikes Befund): «Wenn man auf Refresh
+       macht, sollten die bisher sortierten Sachen nicht neu sortiert
+       sein.» Sie waren es. Wer neu laedt und SEINE EIGENE Gruppe noch
+       einmal waehlt, bekam den leeren Tisch der Reparatur vom 21.09. -
+       obwohl er gar nicht die Gruppe gewechselt hat, sondern nur die
+       Seite neu geladen hat.
+
+       Die Abfrage unten kostet nichts und nimmt der Reparatur nichts:
+       Die naechste Gruppe traegt eine andere Nummer, und fuer sie wird
+       weiter geleert. */
+    const wechsel = stand.gruppe && stand.gruppe !== nr;
+    if (wechsel || !stand.gruppe){
+      /* UND STUMM DABEI. Nach dem Leeren streut `felder()` die Karten
+         neu und ruft `merken()`, und `merken()` meldet an das
+         gemeinsame Brett. Der frisch gestreute Tisch ging damit an
+         alle hinaus und warf die Sortierung der Gruppe um - genau das
+         zweite, was Rike gesehen hat: «die Studierenden haben nicht
+         immer alle Kaertchen gesehen und das hat sich immer so ein
+         bisschen verschoben».
+
+         Der Riegel faellt nach zweieinhalb Sekunden. So lange braucht
+         die erste Antwort des Bretts; was in dieser Zeit von dort
+         kommt, setzt den Tisch, und erst danach wird wieder gemeldet.
+         Wer in diesen zwei Sekunden schon zieht, meldet es beim
+         naechsten Zug - eine Bewegung, nicht die Arbeit. */
+      window.KASPER_GEMEINSAM_STUMM = true;
+      setTimeout(() => {
+        window.KASPER_GEMEINSAM_STUMM = false;
+        if (window.KASPER_GEMEINSAM_MELDEN) KASPER_GEMEINSAM_MELDEN();
+      }, 2500);
+
+      Object.keys(stand).forEach(k => { delete stand[k]; });
+      Object.assign(stand, JSON.parse(JSON.stringify(LEERER_TISCH)));
+    }
 
     stand.gruppe = nr;
     stand.aufnahme = false; stand.etappe = 0;
@@ -2249,6 +2468,43 @@ ETAPPEN.push(etappe3);
     };
     return;
   }
+
+  /* FEHLERBEHOBEN (2026-09-23): Nach einem Neuladen der BLANKEN Adresse -
+     also des Links, den Rike im Zoom gibt - kam die Arbeit zwar
+     vollstaendig aus dem Browserspeicher zurueck, aber das gemeinsame
+     Brett blieb ABGEHAENGT. Der Raumname steht nur in der Adresse; ohne
+     `?raum=` faengt `gemeinsam.js` gar nicht erst an.
+
+     Die Folge ist die schlimmste Sorte: Es sieht richtig aus. Die eigene
+     Sortierung ist da, es fehlt keine Karte - nur sieht niemand sonst,
+     was man schiebt, und man sieht die anderen nicht. Das erklaert Rikes
+     «die Studierenden haben nicht immer alle Kaertchen gesehen und das
+     hat sich immer so ein bisschen verschoben».
+
+     Die Gruppe ist bekannt, sie ueberlebt im Speicher. Also wird die
+     Adresse wiederhergestellt und das Brett nachtraeglich gestartet -
+     beim ersten `los()`, denn erst dort holt der Kern den Stand zurueck.
+
+     HIER und nicht beim Weiter-Knopf: `RAUM_DA` und `raumname` liegen in
+     DIESEM Block. Ein erster Versuch stand im Abschnitt daneben und warf
+     «RAUM_DA is not defined»; der Browser meldete es sofort, und dabei
+     fiel auch der Weiter-Knopf aus. */
+  let raumNachgeholt = false;
+  const _losRaum = window.los;
+  window.los = function(){
+    const r = _losRaum.apply(this, arguments);
+    if (!raumNachgeholt){
+      raumNachgeholt = true;
+      if (!RAUM_DA && stand.gruppe){
+        const u = new URL(location.href);
+        u.searchParams.set('raum', raumname(stand.gruppe));
+        history.replaceState(null, '', u);
+        if (window.KASPER_GEMEINSAM_START)
+          KASPER_GEMEINSAM_START(raumname(stand.gruppe));
+      }
+    }
+    return r;
+  };
 
   window.startfeld = function(){
     /* Steht der Raum schon in der Adresse, ist die Gruppe entschieden -

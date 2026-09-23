@@ -112,6 +112,7 @@ if (buehne) new MutationObserver(()=>{
    Nur, was sich seit dem letzten Blick geaendert hat. `wann` traegt
    dafuer einen Index. */
 async function holen(alles){
+  const meine = wechselNr;
   const frage = alles
     ? `?raum=eq.${encodeURIComponent(raum)}&select=*`
     : `?raum=eq.${encodeURIComponent(raum)}&wann=gt.${encodeURIComponent(zuletztGesehen)}&select=*`;
@@ -119,6 +120,9 @@ async function holen(alles){
     const a = await fetch(REST + frage, {headers: KOPF});
     if (!a.ok) throw new Error('HTTP ' + a.status);
     const zeilen = await a.json();
+    // Unterwegs ist die Gruppe gewechselt: Diese Antwort gehoert zum
+    // alten Raum und darf das neue Brett nicht anfassen.
+    if (meine !== wechselNr) return true;
     zeilen.forEach(z => {
       if (z.wann > zuletztGesehen) zuletztGesehen = z.wann;
       uebernehmen(z);
@@ -241,6 +245,23 @@ const schluessel = s => `${s.ort}|${Math.round(s.x)}|${Math.round(s.y)}|${s.rot|
 
 /* Was hat sich seit meiner letzten Meldung geaendert? */
 function melden(){
+  /* STUMM. Wer gerade erst einen Raum betreten hat, hat noch nichts
+     gehoert - sein Tisch steht auf der Voreinstellung. Wuerde er die
+     sofort melden, schriebe er die Arbeit der Gruppe mit lauter
+     Voreinstellungen zu.
+
+     NEU (2026-09-23, nach Rikes Befund «wenn man auf Refresh macht,
+     sollten die bisher sortierten Sachen nicht neu sortiert sein»):
+     Genau das ist passiert. Die Gruppenwahl leert seit dem 21.09. den
+     Tisch, damit die naechste Gruppe nicht die Sortierung der vorigen
+     erbt. Danach streut `felder()` die Karten neu und ruft `merken()`,
+     und `merken()` meldet - der frisch gestreute Tisch ging an alle
+     hinaus und warf die Sortierung der Gruppe um.
+
+     Wer den Riegel setzt, nimmt ihn auch wieder weg; hier wird nur
+     nachgesehen. Fuer SORT und «Daten und Zufall» ist die Marke nie
+     gesetzt, dort aendert sich nichts. */
+  if (window.KASPER_GEMEINSAM_STUMM) return;
   const neu = [];
   Object.entries(stand.karten).forEach(([id, s])=>{
     const k = schluessel(s);
@@ -313,6 +334,7 @@ function raumSetzen(){
    keine Bestaetigung, wird stattdessen im Sekundentakt nachgefragt.
    Beides funktioniert; der Unterschied ist die Verzoegerung. */
 function realtime(){
+  const meine = wechselNr;
   const ws = new WebSocket(
     CFG.url.replace(/^http/, 'ws') + '/realtime/v1/websocket'
     + '?apikey=' + encodeURIComponent(CFG.schluessel) + '&vsn=1.0.0');
@@ -360,6 +382,7 @@ function realtime(){
       holen(true);
     }
     if (n.event === 'postgres_changes'){
+      if (meine !== wechselNr) return;      // Kanal der vorigen Gruppe
       const z = n.payload && n.payload.data && n.payload.data.record;
       if (z && z.raum === raum){
         if (z.wann > zuletztGesehen) zuletztGesehen = z.wann;
@@ -400,8 +423,44 @@ function raeume(){
    darf. Zweimal gerufen tut nichts - `gestartet` haelt das fest. */
 let gestartet = false;
 
+/* Zaehlt die Gruppenwechsel. Jede Antwort - aus `holen()` wie aus dem
+   Realtime-Kanal - traegt die Nummer, die beim Losschicken galt. Kommt
+   sie nach einem Wechsel an, gehoert sie zum ALTEN Raum und wird
+   verworfen. Ohne das setzt eine verspaetete Antwort die Karten der
+   vorigen Gruppe auf das frisch gebaute Brett. */
+let wechselNr = 0;
+
 function starten(name){
-  if (gestartet) return;
+  /* FEHLERBEHOBEN (2026-09-23, Lars' Messung): Hier stand nur
+     `if (gestartet) return;`. Der erste Aufruf hielt den Raum fuer
+     immer fest - `gruppeGewaehlt()` ruft `starten()` bei JEDEM
+     Wechsel, und ab dem zweiten Mal lief es ins Leere. Adresse und
+     Stand sagten die neue Gruppe, das Brett schrieb weiter in die
+     alte.
+
+     Lars hat es dreifach gemessen: der Koerper einer Schreibanfrage
+     nannte `…-g5-e1`, waehrend Adresse und Stand Gruppe 12 sagten; ein
+     Durchgang durch die Gruppen 5 bis 12 hinterliess auf dem Brett
+     einen EINZIGEN Raum mit 22 Zeilen; und 200 ms nach dem Wechsel
+     erschien die Notiz der vorigen Gruppe im frisch gebauten Feld.
+
+     Ein echter Wechsel baut die Verbindung ab und neu auf. Beides ist
+     noetig: Der Realtime-Filter nennt die Raeume der ALTEN Gruppe, und
+     zwei offene Kanaele wuerden sich vervielfachen. */
+  if (gestartet){
+    if (!name || name === ROH) return;      // dieselbe Gruppe: nichts zu tun
+    wechselNr++;
+    ROH = name;
+    raum = ROH + '-e' + ((typeof stand !== 'undefined' && stand.etappe || 0) + 1);
+    letzter = {};
+    zuletztGesehen = '1970-01-01T00:00:00Z';
+    try { if (kanal) kanal.close(); } catch(_) {}
+    kanal = null;
+    if (pollen){ clearInterval(pollen); pollen = null; }
+    anzeigen('warten', 'Gemeinsames Brett wird verbunden …');
+    realtime();
+    return;
+  }
   if (name) ROH = name;
   if (!ROH) return;                 // keine Gruppe, keine Adresse: allein
   gestartet = true;
