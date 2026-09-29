@@ -346,13 +346,24 @@ function mengeGleich(eingaben, sollwerte, passt){
 
 /* Ist die Eingabe irgendein Wert von log(z)?
    log(z) = ln|z| + i(arg z + 2πk), k ganz. */
-function istLogarithmusWert(eingabe, z){
+/* Die beiden Haelften einzeln, damit ein Winkelfehler den richtigen
+   Betrag nicht mitreisst. Aufgeteilt am 27.09.2026; der Vergleich
+   selbst ist unveraendert, er stand vorher nur in einer Funktion. */
+function istLogRealteil(eingabe, z){
   if (!eingabe || !z) return false;
   const r = betrag(z);
-  if (r === 0) return false;
-  if (!nahe(eingabe.re, Math.log(r))) return false;
+  return r !== 0 && nahe(eingabe.re, Math.log(r));
+}
+function istLogImaginaerteil(eingabe, z){
+  if (!eingabe || !z) return false;
+  if (betrag(z) === 0) return false;
+  /* Alle Werte unterscheiden sich um 2πk - verglichen wird deshalb der
+     Abstand zum naechsten Vielfachen. */
   const d = (eingabe.im - arg(z)) / (2*Math.PI);
   return Math.abs(d - Math.round(d)) * 2*Math.PI <= 0.01 + Math.abs(eingabe.im)*0.005;
+}
+function istLogarithmusWert(eingabe, z){
+  return istLogRealteil(eingabe, z) && istLogImaginaerteil(eingabe, z);
 }
 
 /* Ist die Eingabe irgendein Wert von a^b?
@@ -462,6 +473,7 @@ window.Zahl = {
   mengeGleich: mengeGleich,
 
   istLogarithmusWert: istLogarithmusWert, istPotenzWert: istPotenzWert,
+  istLogRealteil: istLogRealteil, istLogImaginaerteil: istLogImaginaerteil,
   anzahlPotenzwerte: anzahlPotenzwerte, naeherungsbruch: naeherungsbruch,
 
   zahlText: zahlText, normalform: normalform,

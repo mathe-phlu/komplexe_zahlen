@@ -300,7 +300,11 @@ const AUFGABEN = [
       f.pfeil(g.z2, { farbe: 'var(--matt)',   marke: 'z₂' });
       f.pfeil(g.z3, { farbe: 'var(--akzent)', dicke: 2.2, marke: 'z₃' });
 
-      sp.kasten(['a','b','c'][k] + ')');
+      /* Der Titel nennt die Frage, nicht nur den Buchstaben: Er wird
+         zur Aufschrift in der Rueckmeldung, und «a)» allein sagte dort
+         nichts. Rike, 27.09., zu Aenderungen an den schon abgelegten
+         Stationen: «Titel oder Formulierungen waeren moeglich.» */
+      sp.kasten(['a','b','c'][k] + ') Welche Rechenart?');
       sp.bild(f);
       /* Die Gleichung steht ueber der Auswahl, weil ihre FORM die
          Aufgabe eindeutig macht. Ohne sie waere bei z₁ × z₂ = z₃ auch

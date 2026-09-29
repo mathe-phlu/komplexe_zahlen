@@ -159,6 +159,15 @@ function Bau(aufgabe, wurzel){
      «mit p0 ist falsch ist mir nicht soviel geholfen, wenn es p3
      sein muesste. Das muesste fuer jemanden gemacht sein, der nur
      die Pruefung sieht.» */
+  /* Das sichtbare Etikett neben einem Feld, als Aufschrift brauchbar
+     gemacht: Auszeichnung und Entitaeten weg, das nackte «=» oder «:»
+     am Ende weg. Siehe die Begruendung bei `reell`. */
+  function ausEtikett(vor){
+    if (!vor) return null;
+    return String(vor).replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ')
+                      .replace(/\s+/g, ' ').replace(/[=:]\s*$/, '').trim() || null;
+  }
+
   function nimm(t){
     const innen = t.zeigt || null;
     const marke = (teilMarke && (kastenWort || '').indexOf(teilMarke) < 0)
@@ -399,6 +408,7 @@ function Bau(aufgabe, wurzel){
             return w ? Z.plus(bez.A, Z.mal(bez.B, w)) : s.soll;
           };
           nimm({ name: s.name, p: s.p, art: art,
+            zeigt: s.zeigt || null,
             gefuellt: () => !!f.roh(),
             pruefen: () => { const w = f.wert(); return w ? Z.gleich(w, erwartet()) : false; },
             gegeben: () => f.roh(),
@@ -415,6 +425,11 @@ function Bau(aufgabe, wurzel){
         }
 
         nimm({ name: s.name, p: s.p, art: art,
+          /* Im Lueckentext steht kein Etikett neben dem Feld - die
+             Luecke sitzt IM Satz. Ohne `zeigt` traegt jede Luecke
+             denselben Kastentitel, und die Rueckmeldung zeigt drei
+             gleich benannte Zeilen mit verschiedenen Antworten. */
+          zeigt: s.zeigt || null,
           gefuellt: () => !!f.roh(),
           pruefen: () => {
             const x = f.wert();
@@ -495,6 +510,7 @@ function Bau(aufgabe, wurzel){
       }
 
       nimm({ name: o.name, p: o.p, art: 'komplex',
+        zeigt: o.zeigt || ausEtikett(o.vor),
         gefuellt: () => !!f.roh(),
         pruefen: () => {
           const w = f.wert();
@@ -606,6 +622,45 @@ function Bau(aufgabe, wurzel){
       const f = feld(o.name, { lesen: Z.lies, platzhalter: 'z. B. 1.1 + 1.57i',
         lesehinweis: 'Das lese ich nicht als komplexe Zahl.' });
       zeileMit(o.vor, [f.eingabe, el('span', 'hinweis', o.nach || ''), f.stand]);
+      /* GETRENNT: Betrag und Winkel sind zwei Einsichten (27.09.2026).
+
+         Der Logarithmus zerlegt eine Zahl in genau diese zwei: der
+         Realteil ist ln des Betrags, der Imaginaerteil der Winkel. Wer
+         den Betrag logarithmiert und den Winkel verrechnet, hat die
+         halbe Einsicht - und soll die halben Punkte bekommen.
+
+         Station 1 hat das am 08.09.2026 fuer die Polarform abgeraeumt
+         («Teilpunkte nach Einsichten»), Station 4 nutzte den
+         Mechanismus nicht; notiert am 17.09. als «nicht mitrepariert».
+
+         GEKOPPELT, weil beide Teile in dasselbe Feld schreiben. */
+      if (o.getrennt){
+        [['re', 'Realteil — ln des Betrags', Z.istLogRealteil],
+         ['im', 'Imaginärteil — der Winkel',  Z.istLogImaginaerteil]].forEach(paar => {
+          const teil = paar[0], wort = paar[1], pruefer = paar[2];
+          nimm({ name: o.name + '#' + teil, p: o.p / 2, art: 'log',
+            zeigt: wort, gekoppelt: o.name,
+            gefuellt: () => !!f.roh(),
+            pruefen: () => { const x = f.wert(); return x ? pruefer(x, o.von) : false; },
+            gegeben: () => f.roh(),
+            soll: () => wort + ' ' + Z.zahlText(Z.ln(o.von)[teil], 3),
+            sollRoh: { art: 'logTeil', teil: teil, felder: [o.name], von: o.von },
+            /* Falsch heisst sicher falsch, und GENAU in dieser Groesse:
+               2 auf den Realteil ist kein Logarithmus desselben
+               Betrags; π auf den Imaginaerteil trifft kein Vielfaches
+               von 2π. Das jeweils andere bleibt richtig. */
+            setzen: (wie) => {
+              const l = Z.ln(o.von);
+              const z = wie === 'richtig' ? l
+                : (teil === 're' ? Z.K(l.re + 2, l.im) : Z.K(l.re, l.im + Math.PI));
+              schreiben(f, komplexText(z));
+              return true;
+            }
+          });
+        });
+        return B;
+      }
+
       nimm({ name: o.name, p: o.p, art: 'log',
         gefuellt: () => !!f.roh(),
         pruefen: () => { const x = f.wert();
@@ -634,7 +689,18 @@ function Bau(aufgabe, wurzel){
       /* ohneWertung: Das Feld steht da, zaehlt aber nicht. Gebraucht,
          wo schon das Fehlen eines Feldes etwas verraten wuerde. */
       if (o.ohneWertung) return B;
+      /* DAS SICHTBARE ETIKETT IST DIE AUFSCHRIFT (2026-09-27).
+         `vor` steht neben dem Feld auf der Seite - «Zyklenlaenge»,
+         «φ =» -, wanderte aber nicht in die Rueckmeldung. Dort blieb
+         nur der Kastentitel, und drei Felder desselben Kastens waren
+         nicht zu unterscheiden. Gefunden an Station 3: «a)» stand
+         zweimal, «Und wenn es mehr werden» dreimal.
+
+         Das ist dieselbe Sache wie am 18.09.2026, nur eine Ebene
+         tiefer - Rike damals: «Das muesste fuer jemanden gemacht
+         sein, der nur die Pruefung sieht.» */
       nimm({ name: o.name, p: o.p, art: 'zahl',
+        zeigt: o.zeigt || ausEtikett(o.vor),
         gefuellt: () => !!f.roh(),
         pruefen: () => Z.nahe(f.wert(), o.soll),
         gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 3),
@@ -652,6 +718,7 @@ function Bau(aufgabe, wurzel){
       const f = feld(o.name, { lesen: Z.liesWinkelGrad, schmal: true, platzhalter: 'Grad' });
       zeileMit(o.vor, [f.eingabe, el('span', 'hinweis', '°'), f.stand]);
       nimm({ name: o.name, p: o.p, art: 'winkel',
+        zeigt: o.zeigt || ausEtikett(o.vor),
         gefuellt: () => !!f.roh(),
         pruefen: () => Z.winkelGleich(f.wert(), o.soll),
         gegeben: () => f.roh(), soll: () => Z.zahlText(o.soll, 2) + '°',

@@ -1219,8 +1219,24 @@ function e2Bild(feld, wrap, s){
 
   /* DIE VERMUTUNGEN DER ANDEREN, zuerst und zurueckhaltend: kleine
      offene Punkte im Farbton der jeweiligen Person. Sie sollen zu
-     sehen sein, aber nicht mit dem eigenen wetteifern. */
+     sehen sein, aber nicht mit dem eigenen wetteifern.
+
+     NEU (2026-09-23, Rikes Entscheidung): Sie erscheinen ERST, wenn
+     die eigene Vermutung zu DIESER Aufgabe steht. Rike: «Erst wenn man
+     seinen eigenen Punkt gesetzt hat, sieht man die Punkte der
+     anderen … das faende ich grandios.»
+
+     Der Grund ist die Sache selbst: Wer die fremden Punkte vorher
+     sieht, legt seinen daneben. Am Ende haette man EINE Schaetzung und
+     vier Bestaetigungen statt fuenf Schaetzungen - und die Etappe
+     lebt davon, dass fuenf Leute unabhaengig schaetzen.
+
+     JE AUFGABE, nicht je Feld: In Feld 1 stehen zwei Aufgaben, und wer
+     «w + z» gesetzt hat, darf die Vermutungen dazu sehen, auch wenn
+     «w − z» noch offen ist. Lars' Lesart, und sie ueberzeugt - Rike
+     hat es nicht ausdruecklich gesagt. */
   feld.aufgaben.forEach(auf => {
+    if (!s.gesetzt[auf.id]) return;          // erst selbst setzen
     const andere = s.fremd[auf.id];
     if (!andere) return;
     Object.keys(andere).forEach(wer => {
@@ -1348,14 +1364,23 @@ function e2Feld(feld){
   kopf.appendChild(schalter);
 
   function vergleichZeichnen(){
-    // Im beweglichen Feld gibt es nichts freizuschalten: Rike zeigt
-    // dort Beispiele und will jederzeit aufdecken koennen.
-    const alleGesetzt = feld.beweglich
-                     || feld.aufgaben.every(a => s.gesetzt[a.id]);
+    /* FEHLERBEHOBEN (2026-09-23, Lars' Befund): Hier stand
+       `feld.beweglich || …`. Im beweglichen Feld war die Bedingung
+       damit wahr, BEVOR irgendwer etwas gesetzt hatte - die Antwort lag
+       einen Klick entfernt, ausgerechnet dort, wo das Schaetzen am
+       meisten bringt.
+
+       Mein Kommentar dazu stimmte in der Sache und trug nicht bis zum
+       Schluss: Dass bei beweglichem z kein URTEIL zu halten ist,
+       heisst nicht, dass der Knopf frei sein muss. «Erst selbst
+       setzen» urteilt nicht, es wartet nur auf die Festlegung. Rike
+       wollte dieselbe Bedingung wie in den anderen Feldern. */
+    const alleGesetzt = feld.aufgaben.every(a => s.gesetzt[a.id]);
     kVergleich.disabled = !alleGesetzt;
     kVergleich.title = alleGesetzt
       ? 'Die richtigen Zeiger zusätzlich einblenden'
-      : 'Erst beide Zeiger setzen';
+      : (feld.aufgaben.length === 2 ? 'Erst beide Zeiger setzen'
+                                    : 'Erst alle Zeiger setzen');
     kVergleich.textContent = bs.vergleich
       ? 'Richtige Zeiger ausblenden' : 'Richtige Zeiger einblenden';
     if (!alleGesetzt && bs.vergleich) bs.vergleich = false;

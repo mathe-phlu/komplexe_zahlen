@@ -199,7 +199,22 @@ section.kapitel > h2 .nr{font-family:var(--druck);font-size:14px;
 .merksatz.betont > h4{color:var(--akzent)}
 .merksatz > h4{margin:0 0 6px;font-size:.78rem;text-transform:uppercase;
      letter-spacing:.07em}
+/* **Die Bemerkung bleibt ungefuellt.** Rike, 20.09.2026: «Wir haben
+   jetzt da unten drei braune Kaesten. Mir ist gar nicht klar, welche
+   ist jetzt eine Bemerkung und welche ist eine Information.»
+   Die Auszeichnung war schon richtig — es fehlte der Abstand zwischen
+   den beiden Darstellungen. Beide lagen auf derselben Creme, und der
+   betonte Kasten mischt nur neun Prozent der Kapitelfarbe darunter:
+   Bei `aktion` (violett) sieht man das, bei `beweis` (Ocker) ist Ocker
+   auf Creme wieder Creme. Gemessen an der gebauten Seite 4-1:
+   #F4E5D3 gegen #F6ECDF — zwoelf Stufen im Blaukanal, sonst nichts.
+   Die Bemerkung nimmt darum den Ton des Blattes an, auf dem sie
+   liegt. Sie bleibt abgesetzt (Linie links, Rundung rechts), aber sie
+   traegt keine Flaeche mehr: Was nicht zur Loesung gehoert, soll auch
+   nicht so aussehen. Angefasst wird nur der schlichte Kasten — die
+   betonte Fassung stammt aus Lores Modell, das Rike abgenommen hat. */
 .merksatz:not(.betont){border-radius:0 8px 8px 0;padding:12px 16px;
+     background:var(--karte);border-left:2px dashed var(--matt);
      color:var(--matt);font-size:14.5px}
 .merksatz:not(.betont) > h4{color:var(--matt)}
 
@@ -1270,25 +1285,25 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 .karte.offen .was:empty::after{content:'noch offen'}
 
 /* Ausschnitte aus den Symbolbogen, Werte aus den srcRect der Folien */
-.sym.sym-skript-komplett{-webkit-mask-image:url(symbole/bogen-a.png?f=87f6c245);mask-image:url(symbole/bogen-a.png?f=87f6c245);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:6.26% 47.19%;mask-position:6.26% 47.19%}
+.sym.sym-skript-komplett{-webkit-mask-image:url(symbole/bogen-a.png);mask-image:url(symbole/bogen-a.png);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:6.26% 47.19%;mask-position:6.26% 47.19%}
 /* Eigenes Zeichen statt Ausschnitt aus dem Bogen: Buch mit
    Schluessel und Haken (Henrike, 22.08.). Kam wie das
    Pruefungszeichen mit weiss gefuellten Flaechen und ist
    freigestellt. */
-.sym.sym-loesungsband{-webkit-mask-image:url(symbole/loesungsband.png?f=87f6c245);mask-image:url(symbole/loesungsband.png?f=87f6c245)}
-.sym.sym-lernziele{-webkit-mask-image:url(symbole/bogen-a.png?f=87f6c245);mask-image:url(symbole/bogen-a.png?f=87f6c245);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:64.65% 45.95%;mask-position:64.65% 45.95%}
-.sym.sym-stationsseite{-webkit-mask-image:url(symbole/bogen-b.png?f=87f6c245);mask-image:url(symbole/bogen-b.png?f=87f6c245);-webkit-mask-size:422.2% 321.1%;mask-size:422.2% 321.1%;-webkit-mask-position:93.74% 42.20%;mask-position:93.74% 42.20%}
-.sym.sym-skript{-webkit-mask-image:url(symbole/skript.png?f=87f6c245);mask-image:url(symbole/skript.png?f=87f6c245)}
-.sym.sym-playliste{-webkit-mask-image:url(symbole/playliste.png?f=87f6c245);mask-image:url(symbole/playliste.png?f=87f6c245)}
-.sym.sym-buch{-webkit-mask-image:url(symbole/buch.png?f=87f6c245);mask-image:url(symbole/buch.png?f=87f6c245)}
+.sym.sym-loesungsband{-webkit-mask-image:url(symbole/loesungsband.png);mask-image:url(symbole/loesungsband.png)}
+.sym.sym-lernziele{-webkit-mask-image:url(symbole/bogen-a.png);mask-image:url(symbole/bogen-a.png);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:64.65% 45.95%;mask-position:64.65% 45.95%}
+.sym.sym-stationsseite{-webkit-mask-image:url(symbole/bogen-b.png);mask-image:url(symbole/bogen-b.png);-webkit-mask-size:422.2% 321.1%;mask-size:422.2% 321.1%;-webkit-mask-position:93.74% 42.20%;mask-position:93.74% 42.20%}
+.sym.sym-skript{-webkit-mask-image:url(symbole/skript.png);mask-image:url(symbole/skript.png)}
+.sym.sym-playliste{-webkit-mask-image:url(symbole/playliste.png);mask-image:url(symbole/playliste.png)}
+.sym.sym-buch{-webkit-mask-image:url(symbole/buch.png);mask-image:url(symbole/buch.png)}
 /* Die Werkstatt hat ein eigenes Zeichen — das Buchsymbol passte
    zum neuen Namen nicht mehr (Henrike, 22.08.). Wie alle Symbole
    eine Maske: Die Form steckt im Alphakanal, die Farbe kommt aus
    `--akzent` und wechselt damit mit dem Kapitel (G17). */
-.sym.sym-pruefung{-webkit-mask-image:url(symbole/pruefung.png?f=87f6c245);mask-image:url(symbole/pruefung.png?f=87f6c245)}
-.sym.sym-werkstatt{-webkit-mask-image:url(symbole/werkstatt.png?f=87f6c245);mask-image:url(symbole/werkstatt.png?f=87f6c245)}
-.sym.sym-lernpfad{-webkit-mask-image:url(symbole/lernpfad.png?f=87f6c245);mask-image:url(symbole/lernpfad.png?f=87f6c245)}
-.sym.sym-loesungen{-webkit-mask-image:url(symbole/loesungen.png?f=87f6c245);mask-image:url(symbole/loesungen.png?f=87f6c245)}
+.sym.sym-pruefung{-webkit-mask-image:url(symbole/pruefung.png);mask-image:url(symbole/pruefung.png)}
+.sym.sym-werkstatt{-webkit-mask-image:url(symbole/werkstatt.png);mask-image:url(symbole/werkstatt.png)}
+.sym.sym-lernpfad{-webkit-mask-image:url(symbole/lernpfad.png);mask-image:url(symbole/lernpfad.png)}
+.sym.sym-loesungen{-webkit-mask-image:url(symbole/loesungen.png);mask-image:url(symbole/loesungen.png)}
 
 @media (max-width:760px){
   .material{grid-template-columns:1fr}

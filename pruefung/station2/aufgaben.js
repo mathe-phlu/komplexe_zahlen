@@ -604,7 +604,13 @@ const AUFGABEN = [
                    { name: 'S2A2.a', soll: a, p: 1.5, platzhalter: 'a',
                      getrennt: 'polar' },
                    '· z +',
+                   /* `zeigt` benennt die Luecke fuer die Rueckmeldung.
+                      Ohne sie stand dort «S2A2.b» - Rike, 27.09.: «So
+                      Kuerzel versteht man nicht.» Die Luecke sitzt im
+                      Satz, hat also kein Etikett daneben, aus dem die
+                      Wiedergabe den Namen holen koennte. */
                    { name: 'S2A2.b', soll: bb, p: 1.5, platzhalter: 'b',
+                     zeigt: 'der Summand b',
                      passtZu: { feld: 'S2A2.a', A: c, B: Z.K(-c.re, -c.im) } }]);
     /* Der Hinweis auf die Polarform ist hier nicht Beiwerk, sondern
        der Grund, warum diese Aufgabe auch 45-Grad-Winkel ziehen darf:

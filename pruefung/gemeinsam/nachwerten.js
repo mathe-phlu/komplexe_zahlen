@@ -130,6 +130,15 @@ function teilStimmt(sollRoh, stand){
       return w ? Z.istLogarithmusWert(w, sollRoh.von) : false;
     }
 
+    case 'logTeil': {
+      /* Ein Feld, zwei Teile - wie `komplexTeil`, nur mit den
+         Vergleichern des Logarithmus. */
+      const w = Z.lies(roh(sollRoh.felder[0]) || '');
+      if (!w) return false;
+      return sollRoh.teil === 're' ? Z.istLogRealteil(w, sollRoh.von)
+                                   : Z.istLogImaginaerteil(w, sollRoh.von);
+    }
+
     case 'wurzelschar': {
       /* Über alle Zeilen zusammen und mit DEMSELBEN Vergleicher wie in
          der Prüfung: `wurzeln.js` steht genau einmal da, und beide Wege
