@@ -370,6 +370,23 @@ a:focus-visible .kachel, a:focus-visible .material,
 }
 .amtlich p { margin: .5rem 0; }
 
+/* **Aenderungen sichtbar lassen** (Rike, 12.10.2026): Was nicht mehr
+   gilt, wird durchgestrichen statt geloescht und mit einer kleinen
+   Marke versehen -- die Studierenden sollen sehen, dass sich etwas
+   geaendert hat. */
+.gestrichen s, .klapper s { color: var(--grau, #666); }
+.aenderung {
+  display: inline-block;
+  margin-left: .35rem;
+  padding: 0 .4rem;
+  border-radius: .25rem;
+  background: #FCE9C8;
+  color: #7A4A00;
+  font-size: .9em;
+  font-weight: 600;
+}
+.hervor .aenderung { margin-left: 0; margin-right: .3rem; }
+
 /* --------------------------------------------------------- Enge ---- */
 
 @media (max-width: 62rem) {

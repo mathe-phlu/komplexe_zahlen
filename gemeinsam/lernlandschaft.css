@@ -1285,25 +1285,25 @@ details summary{cursor:pointer;font-family:var(--hand);font-weight:400;font-size
 .karte.offen .was:empty::after{content:'noch offen'}
 
 /* Ausschnitte aus den Symbolbogen, Werte aus den srcRect der Folien */
-.sym.sym-skript-komplett{-webkit-mask-image:url(symbole/bogen-a.png);mask-image:url(symbole/bogen-a.png);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:6.26% 47.19%;mask-position:6.26% 47.19%}
+.sym.sym-skript-komplett{-webkit-mask-image:url(symbole/bogen-a.png?f=87f6c245);mask-image:url(symbole/bogen-a.png?f=87f6c245);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:6.26% 47.19%;mask-position:6.26% 47.19%}
 /* Eigenes Zeichen statt Ausschnitt aus dem Bogen: Buch mit
    Schluessel und Haken (Henrike, 22.08.). Kam wie das
    Pruefungszeichen mit weiss gefuellten Flaechen und ist
    freigestellt. */
-.sym.sym-loesungsband{-webkit-mask-image:url(symbole/loesungsband.png);mask-image:url(symbole/loesungsband.png)}
-.sym.sym-lernziele{-webkit-mask-image:url(symbole/bogen-a.png);mask-image:url(symbole/bogen-a.png);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:64.65% 45.95%;mask-position:64.65% 45.95%}
-.sym.sym-stationsseite{-webkit-mask-image:url(symbole/bogen-b.png);mask-image:url(symbole/bogen-b.png);-webkit-mask-size:422.2% 321.1%;mask-size:422.2% 321.1%;-webkit-mask-position:93.74% 42.20%;mask-position:93.74% 42.20%}
-.sym.sym-skript{-webkit-mask-image:url(symbole/skript.png);mask-image:url(symbole/skript.png)}
-.sym.sym-playliste{-webkit-mask-image:url(symbole/playliste.png);mask-image:url(symbole/playliste.png)}
-.sym.sym-buch{-webkit-mask-image:url(symbole/buch.png);mask-image:url(symbole/buch.png)}
+.sym.sym-loesungsband{-webkit-mask-image:url(symbole/loesungsband.png?f=87f6c245);mask-image:url(symbole/loesungsband.png?f=87f6c245)}
+.sym.sym-lernziele{-webkit-mask-image:url(symbole/bogen-a.png?f=87f6c245);mask-image:url(symbole/bogen-a.png?f=87f6c245);-webkit-mask-size:435.9% 430.9%;mask-size:435.9% 430.9%;-webkit-mask-position:64.65% 45.95%;mask-position:64.65% 45.95%}
+.sym.sym-stationsseite{-webkit-mask-image:url(symbole/bogen-b.png?f=87f6c245);mask-image:url(symbole/bogen-b.png?f=87f6c245);-webkit-mask-size:422.2% 321.1%;mask-size:422.2% 321.1%;-webkit-mask-position:93.74% 42.20%;mask-position:93.74% 42.20%}
+.sym.sym-skript{-webkit-mask-image:url(symbole/skript.png?f=87f6c245);mask-image:url(symbole/skript.png?f=87f6c245)}
+.sym.sym-playliste{-webkit-mask-image:url(symbole/playliste.png?f=87f6c245);mask-image:url(symbole/playliste.png?f=87f6c245)}
+.sym.sym-buch{-webkit-mask-image:url(symbole/buch.png?f=87f6c245);mask-image:url(symbole/buch.png?f=87f6c245)}
 /* Die Werkstatt hat ein eigenes Zeichen — das Buchsymbol passte
    zum neuen Namen nicht mehr (Henrike, 22.08.). Wie alle Symbole
    eine Maske: Die Form steckt im Alphakanal, die Farbe kommt aus
    `--akzent` und wechselt damit mit dem Kapitel (G17). */
-.sym.sym-pruefung{-webkit-mask-image:url(symbole/pruefung.png);mask-image:url(symbole/pruefung.png)}
-.sym.sym-werkstatt{-webkit-mask-image:url(symbole/werkstatt.png);mask-image:url(symbole/werkstatt.png)}
-.sym.sym-lernpfad{-webkit-mask-image:url(symbole/lernpfad.png);mask-image:url(symbole/lernpfad.png)}
-.sym.sym-loesungen{-webkit-mask-image:url(symbole/loesungen.png);mask-image:url(symbole/loesungen.png)}
+.sym.sym-pruefung{-webkit-mask-image:url(symbole/pruefung.png?f=87f6c245);mask-image:url(symbole/pruefung.png?f=87f6c245)}
+.sym.sym-werkstatt{-webkit-mask-image:url(symbole/werkstatt.png?f=87f6c245);mask-image:url(symbole/werkstatt.png?f=87f6c245)}
+.sym.sym-lernpfad{-webkit-mask-image:url(symbole/lernpfad.png?f=87f6c245);mask-image:url(symbole/lernpfad.png?f=87f6c245)}
+.sym.sym-loesungen{-webkit-mask-image:url(symbole/loesungen.png?f=87f6c245);mask-image:url(symbole/loesungen.png?f=87f6c245)}
 
 @media (max-width:760px){
   .material{grid-template-columns:1fr}
@@ -2328,6 +2328,42 @@ mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;
    F6). Neben dem Video sind knapp 290 Pixel Platz; eine Tabelle mit
    zwoelf Spalten passt dort nicht und darf trotzdem nicht die ganze
    Seite waagrecht verschiebbar machen. */
+/* ---------- Die Gruppentabelle zum Anklicken ----------
+   Rike, 20.09.2026: «Ich dachte daran, dass wir nur die Tabelle haben,
+   und wenn man in eine Zelle klickt, dann erscheint rechts daneben die
+   Erklaerung dazu. Keine Schritte drunter.»
+
+   Neben der Tabelle, nicht darunter — solange der Platz reicht. Unter
+   700 Pixeln rutscht die Tafel unter die Tabelle; nebeneinander bliebe
+   fuer beides zu wenig, und eine Erklaerung in vier Zeichen Breite ist
+   keine. Die Tafel haelt eine Mindesthoehe, damit die Seite beim
+   Weiterklicken nicht springt — dieselbe Ueberlegung wie bei der
+   Buehne. */
+.zellentabelle{display:grid;gap:14px;align-items:start;margin:12px 0;
+     grid-template-columns:minmax(0,1fr) minmax(15rem,20rem)}
+@media (max-width:700px){.zellentabelle{grid-template-columns:minmax(0,1fr)}}
+.zellentabelle .tabelle{margin:0}
+.zt-tafel{border-left:4px solid var(--akzent);border-radius:0 8px 8px 0;
+     background:color-mix(in srgb, var(--akzent) 9%, var(--creme));
+     padding:12px 16px;font-size:14.5px;min-height:9rem}
+.zt-tafel > .zt-ruf{margin:0;color:var(--matt);font-style:italic}
+.zt-inhalt > h4{margin:0 0 6px;font-size:.78rem;text-transform:uppercase;
+     letter-spacing:.07em;color:var(--akzent)}
+.zt-inhalt > h4 .zt-mal{opacity:.55}
+.zt-inhalt > :last-child{margin-bottom:0}
+/* **Anfassbar aussehen muss es auch ohne Mauszeiger.** Der Zeiger
+   verraet sich nur der Maus; auf dem Tablett bleibt die gepunktete
+   Unterstreichung der einzige Hinweis, dass hier etwas zu holen ist. */
+.bedienbar td[data-zelle]{cursor:pointer;
+     text-decoration:underline dotted var(--linie) 1px;
+     text-underline-offset:3px}
+.bedienbar td[data-zelle]:hover{
+     background:color-mix(in srgb, var(--akzent) 12%, transparent)}
+.bedienbar td[data-zelle]:focus-visible{outline:2px solid var(--akzent);
+     outline-offset:-2px}
+.bedienbar td[data-zelle].da{text-decoration:none;
+     background:color-mix(in srgb, var(--akzent) 22%, transparent)}
+
 .tabelle{overflow-x:auto;margin:12px 0;-webkit-overflow-scrolling:touch}
 .tabelle table{border-collapse:collapse;font-size:14.5px;
      background:var(--karte);margin:0}

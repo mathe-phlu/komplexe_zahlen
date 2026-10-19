@@ -1055,6 +1055,7 @@
     document.querySelectorAll('.stufen').forEach(stufenAufsetzen);
     document.querySelectorAll('.schrittfolge[data-szenen]')
             .forEach(buehneAufsetzen);
+    document.querySelectorAll('.zellentabelle').forEach(zellentafelAufsetzen);
     /* Nach `etappeAufsetzen`, damit das Video der Etappe schon
        beansprucht ist und hier nicht doppelt verdrahtet wird. */
     document.querySelectorAll('.rahmen.vorschau[data-video]')
@@ -1121,6 +1122,88 @@
     fuss.hidden = false;
     kopf.hidden = false;
     zeigen();
+  }
+
+  /* **Die Gruppentabelle zum Anklicken.** Rike, 20.09.2026: «Ich dachte
+     daran, dass wir nur die Tabelle haben, und wenn man in eine Zelle
+     klickt, dann erscheint rechts daneben die Erklaerung dazu. Keine
+     Schritte drunter.»
+
+     Die Erklaerungen stehen als Liste unter der Tabelle im Quelltext —
+     eine je Zelle, ueber `data-zelle` zugeordnet. Hier wird die Liste
+     weggeblendet und ihr Inhalt auf Klick in die Tafel gehoben. Ohne
+     JavaScript bleibt die Liste stehen: dann keine Tafel, aber auch
+     kein verlorener Satz.
+
+     **Die Ueberschrift wird aus der Tabelle genommen, nicht aus dem
+     Schluessel.** Im Schluessel steht `(Z,+)`, in der Tabelle steht die
+     gesetzte Formel — und die will man lesen. Der Schluessel ist eine
+     Adresse, kein Text. */
+  function zellentafelAufsetzen(block) {
+    const tafel  = block.querySelector('.zt-tafel');
+    const inhalt = block.querySelector('.zt-inhalt');
+    const ruf    = block.querySelector('.zt-ruf');
+    const liste  = block.querySelector('.zt-texte');
+    const zellen = [...block.querySelectorAll('td[data-zelle]')];
+    if (!tafel || !inhalt || !liste || !zellen.length) return;
+
+    const texte = {};
+    liste.querySelectorAll('dt[data-zelle]').forEach(dt => {
+      const dd = dt.nextElementSibling;
+      if (dd && dd.tagName === 'DD') texte[dt.dataset.zelle] = dd;
+    });
+    /* Fehlt auch nur ein Text, bleibt die Liste stehen. Eine Tabelle,
+       bei der jede zweite Zelle nichts sagt, ist aergerlicher als eine
+       Liste, die alles sagt. */
+    if (zellen.some(z => !texte[z.dataset.zelle])) return;
+
+    const kopfzeile = block.querySelector('tr');
+    const kopf = kopfzeile ? [...kopfzeile.children] : [];
+
+    function beschriftung(zelle) {
+      const stelle = zelle.dataset.zelle.split('-');
+      const reihe  = zelle.closest('tr');
+      const links  = reihe ? reihe.children[0] : null;
+      const oben   = kopf[Number(stelle[1])];
+      const teile  = [];
+      if (links) teile.push(links.innerHTML);
+      if (oben)  teile.push(oben.innerHTML);
+      return teile.join(' <span class="zt-mal">·</span> ');
+    }
+
+    function zeigen(zelle) {
+      zellen.forEach(z => z.classList.toggle('da', z === zelle));
+      inhalt.innerHTML = '<h4>' + beschriftung(zelle) + '</h4>'
+                       + texte[zelle.dataset.zelle].innerHTML;
+      if (ruf) ruf.hidden = true;
+      /* Wurde die Zelle angeklickt, bevor MathJax fertig war, steht im
+         Text noch das rohe Dollarzeichen. Einmal nachsetzen kostet
+         nichts und rettet diesen Fall. */
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([inhalt]).catch(function () {});
+      }
+    }
+
+    zellen.forEach((zelle, i) => {
+      zelle.tabIndex = 0;
+      zelle.setAttribute('role', 'button');
+      zelle.onclick = () => zeigen(zelle);
+      zelle.onkeydown = e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zeigen(zelle); return; }
+        /* Pfeiltasten wandern durch das Raster — fuenf mal fuenf lassen
+           sich mit der Tabulatortaste nur muehsam durchqueren. */
+        const spalten = kopf.length - 1;
+        const schritt = { ArrowRight: 1, ArrowLeft: -1,
+                          ArrowDown: spalten, ArrowUp: -spalten }[e.key];
+        if (schritt === undefined) return;
+        const ziel = zellen[i + schritt];
+        if (ziel) { e.preventDefault(); ziel.focus(); }
+      };
+    });
+
+    liste.hidden = true;
+    tafel.hidden = false;
+    block.classList.add('bedienbar');
   }
 
   if (document.readyState === 'loading') {
