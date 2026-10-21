@@ -1070,10 +1070,14 @@ const RUSTIL = `
   color:var(--matt);display:flex;align-items:center;gap:10px}
 .buehne.m2r .zone.gef{background:#FDF1D6}
 .buehne.m2r .zone.paarzone{background:#EAF2EC}
-.buehne.m2r .zone.zu .paargitter{opacity:.45}
+.buehne.m2r .zone.zu .paargitter{opacity:.45;pointer-events:none}
+.buehne.m2r .rpaar:not(.feld){display:grid;grid-template-columns:repeat(2,auto);
+  gap:3px;padding:4px;border-radius:10px;background:rgba(255,255,255,.55);
+  border:1px solid rgba(0,0,0,.06)}
 .buehne.m2r .gefgitter{display:grid;gap:4px;justify-content:center}
 .buehne.m2r .paargitter{display:grid;gap:6px;justify-content:center}
-.buehne.m2r .feld.gefplatz{position:static;display:block;padding:0;border:none;background:none;height:auto}
+.buehne.m2r .gefgitter.feld{position:static;display:grid;padding:0;border:none;
+  background:none;height:auto;min-height:0}
 .buehne.m2r .feld.rpaar{position:static;display:grid;grid-template-columns:repeat(2,auto);
   gap:3px;padding:4px;height:auto;border-radius:10px;background:rgba(255,255,255,.55);
   border:1px solid rgba(0,0,0,.06)}
@@ -1141,6 +1145,14 @@ function eigenschaftsspiel(){
      2026-10-11: «dass es uebersichtlich bleibt»). */
   const AUSWAHL = RU.runden[ruSpiel().offen].auswahl;
   const IDS = RU.karten.filter(id => AUSWAHL.includes(RU.gehoert[id]));
+  /* NEU (2026-10-20): Die Plaetze tragen die Mischung der Runde im Namen
+     (`g7-3`, `p7-2`). Vorher hiessen sie in jeder Runde gleich, und eine
+     Zeile aus einer frueheren Runde, die noch auf dem Brett stand, legte
+     eine Karte beim Neuladen in «Gefunden» - obwohl sie in dieser Runde
+     niemand dorthin gelegt hatte. */
+  const M = ruSpiel().mischung || 1;
+  const GEF = 'g' + M, PAAR = n => 'p' + M + '-' + n;
+  const TISCH = 'tisch' + vorrat.id;
   const els = {};
   IDS.forEach(id => {
     els[id] = karte(id);
@@ -1160,16 +1172,25 @@ function eigenschaftsspiel(){
         <span>${S.schritt === 'suchen'
           ? 'Legen Sie <b>alle</b> Karten, die diese Eigenschaft haben — Terme <b>und</b> Bilder —, nach rechts unter «Gefunden».'
           : 'Bilden Sie jetzt aus den gefundenen Karten <b>Paare</b>: Je ein Term und ein Bild gehören zusammen.'}</span>
-        <button class="knopf klein" id="naechste">${rest > 0 ? 'Nächste Eigenschaft aufdecken' : 'Der Stapel ist leer'}</button>
-        <span class="rest">noch ${rest} im Stapel</span></span>`
+        <button class="knopf klein" id="naechste">${rest > 0 ? 'Nächste Eigenschaft aufdecken' : 'Nächste Eigenschaft — von vorn'}</button>
+        <span class="rest">${rest > 0 ? 'noch ' + rest + ' im Stapel' : 'alle einmal gespielt'}</span></span>`
       + (RU_LEITUNG ? `<div class="m2leitung"><span class="leitmarke">Leitung</span> aufdecken:
-          ${RU.runden.map((r, i) => `<button data-i="${i}" class="${i === S.offen ? 'an' : S.war.includes(i) ? 'war' : ''}">${r.name}</button>`).join('')}</div>` : '');
+          ${RU.runden.map((r, i) => `<button data-i="${i}" class="${i === S.offen ? 'an' : S.war.includes(i) ? 'war' : ''}">${r.name}</button>`).join('')}</div>`
+      /* NEU (Rike, 2026-10-21): «Man kann einmal alle Karten nacheinander
+         aufdecken, und dann ist vorbei. Man kann nicht wieder zu einer
+         anderen Karte zurück. Das ist doof.» Jetzt sieht jede Gruppe die
+         schon gespielten Karten und kann jede nochmals aufdecken. Die
+         noch nicht gespielten bleiben verdeckt - die zieht «Nächste». */
+      : (S.war.filter(i => i !== S.offen).length ? `<div class="m2leitung">Nochmals spielen:
+          ${S.war.filter(i => i !== S.offen).map(i => `<button data-i="${i}">${RU.runden[i].name}</button>`).join('')}</div>` : ''));
     const n = ziel.querySelector('#naechste');
-    n.disabled = rest <= 0;
     n.onclick = () => {
       const S = ruSpiel();
-      const i = RU.runden.findIndex((_, j) => !S.war.includes(j));
-      if (i >= 0) aufdecken(i);
+      // Erst, was noch verdeckt ist; ist der Stapel durch, geht es in der
+      // Reihenfolge des Stapels weiter, nach der offenen Karte.
+      let i = RU.runden.findIndex((_, j) => !S.war.includes(j));
+      if (i < 0) i = (S.offen + 1) % RU.runden.length;
+      aufdecken(i);
     };
     ziel.querySelectorAll('.m2leitung button').forEach(b => b.onclick = () => aufdecken(Number(b.dataset.i)));
   }
@@ -1226,45 +1247,50 @@ function eigenschaftsspiel(){
     const kh = Math.round(kw * 0.845);
     feld.style.setProperty('--m2karte', kw + 'px');
     tisch.style.setProperty('--m2vorrat', tischbreite(kw) + 'px');
+    /* FEHLERBEHOBEN (2026-10-20, im Browser gesehen): Jeder der zwoelf
+       Plaetze war ein eigenes kleines Feld. Wer daneben losliess (etwa auf
+       die noch gesperrten Paare), bekam vom Kern das naechste FELD - und
+       die Karte lag dann gross und schief im Feld statt auf dem Platz.
+       Jetzt ist «Gefunden» EIN Feld mit zwoelf Plaetzen; der Kern sucht
+       darin selbst den naechsten freien. */
     const gg = gef.querySelector('.gefgitter');
     gg.innerHTML = '';
+    gg.className = 'gefgitter feld';
+    gg.dataset.ort = GEF;
     gg.style.gridTemplateColumns = 'repeat(6,auto)';
-    for (let i = 0; i < RU_GEF; i++){
-      const d = document.createElement('div');
-      d.className = 'feld gefplatz';
-      d.dataset.ort = 'gef' + i;
-      d.appendChild(platz('gef' + i, 0, kw + RAND, kh + RAND));
-      gg.appendChild(d);
-    }
+    for (let i = 0; i < RU_GEF; i++) gg.appendChild(platz(GEF, i, kw + RAND, kh + RAND));
     const offen = S.schritt === 'paare';
     pz.classList.toggle('zu', !offen);
     pz.innerHTML = `<h4>Paare ${offen ? '' : '<button class="knopf klein" id="paarebilden">Jetzt Paare bilden</button>'}</h4>
       <div class="paargitter" style="grid-template-columns:repeat(3,auto)"></div>`;
     const pg = pz.querySelector('.paargitter');
+    /* FEHLERBEHOBEN (2026-10-20): Solange die Paare zu waren, gab es ihre
+       Plaetze gar nicht. Hatte jemand anderes schon «Jetzt Paare bilden»
+       gedrueckt und eine Karte in ein Paar gelegt, fand dieser Rechner
+       den Ort nicht: Die Karte blieb bei ihm liegen (nicht bei allen
+       gleich) oder fiel beim Neuaufbau mit ihren paar Pixeln Versatz in
+       die linke obere Ecke des Tisches - alle uebereinander. Jetzt gibt
+       es die Plaetze immer; zu sind sie nur fuer die eigene Hand
+       (pointer-events, keine Klasse «feld», damit der Kern sie beim
+       Loslassen daneben nicht als naechstes Feld waehlt). */
     for (let n = 1; n <= RU_PAARE; n++){
       const d = document.createElement('div');
-      d.className = 'feld rpaar';
-      if (offen){
-        d.dataset.ort = 'pa' + n;
-        for (let p = 0; p < 2; p++) d.appendChild(platz('pa' + n, p, kw + RAND, kh + RAND));
-      } else {
-        // Zu: Platzhalter in derselben Groesse, ohne Ort - hier legt
-        // niemand etwas ab, bevor gesammelt ist.
-        for (let p = 0; p < 2; p++){
-          const x = document.createElement('div');
-          x.style.cssText = `width:${kw + RAND}px;height:${kh + RAND}px;border-radius:8px;background:rgba(255,255,255,.5)`;
-          d.appendChild(x);
-        }
-      }
+      d.className = offen ? 'feld rpaar' : 'rpaar';
+      d.dataset.ort = PAAR(n);
+      for (let p = 0; p < 2; p++) d.appendChild(platz(PAAR(n), p, kw + RAND, kh + RAND));
       pg.appendChild(d);
     }
     const pb = pz.querySelector('#paarebilden');
     if (pb) pb.onclick = () => { ruSpiel().schritt = 'paare'; melden(); kopf(); felder(); };
     Object.entries(stand.karten).forEach(([id, s]) => {
       const el = els[id]; if (!el) return;
-      const ziel = document.querySelector(`[data-ort="${s.ort}"]`) || tisch;
-      ziel.appendChild(el); el._x = s.x; el._y = s.y; el._rot = s.rot; pos(el);
+      const ziel = s.ort !== TISCH && document.querySelector(`[data-ort="${s.ort}"]`);
+      if (ziel){ ziel.appendChild(el); el._x = s.x; el._y = s.y; el._rot = s.rot; pos(el); }
+      // Auf dem Tisch - oder an einem Ort, den es hier nicht gibt: auf
+      // seinen festen Platz, nie an die mitgebrachten Pixel.
+      else { tisch.appendChild(el); s.ort = TISCH; }
     });
+    tischOrdnen();
   }
 
   /* ---------- Links: der Tisch ----------
@@ -1291,39 +1317,81 @@ function eigenschaftsspiel(){
     let x = (saat * 7919) % 233280;
     return () => { x = (x * 9301 + 49297) % 233280; return x / 233280; };
   }
-  function auslegen(neu, mischen){
-    neu.forEach(el => tisch.appendChild(el));
+  /* NEU (2026-10-20): Jede Karte hat in jeder Runde einen FESTEN Platz
+     auf dem Tisch - ihre Stelle in der Mischung der Runde. Alle Rechner
+     rechnen ihn selbst aus; ueber die Leitung geht nur «liegt auf dem
+     Tisch». Vorher gingen Pixel hinueber: Die Lage vom grossen Bildschirm
+     legte Karten auf dem kleinen uebereinander oder neben den Rand, und
+     erst das naechste Neuordnen zog sie wieder auseinander. Wer eine Karte
+     auf dem Tisch verschiebt oder zuruecklegt, findet sie wieder auf
+     ihrem Platz. */
+  const HEIM = {};
+  (function(){
+    const z = zufall(M);
+    IDS.slice().sort().map(id => [z(), id]).sort((a, b) => a[0] - b[0])
+      .forEach(([, id], i) => { HEIM[id] = i; });
+  })();
+  function tischOrdnen(){
     const luft = 6;
     const w = parseFloat(tisch.style.getPropertyValue('--m2vorrat')) || 80;
-    const h = Math.max(w * 0.845, ...neu.map(el => el.offsetHeight || 0));
-    let folge;
-    if (mischen){
-      const z = zufall(ruSpiel().mischung || 1);
-      folge = neu.slice().sort((a, b) => a.dataset.id.localeCompare(b.dataset.id))
-        .map(el => [z(), el]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
-    } else folge = neu.slice().sort((p, q) => (p._y - q._y) || (p._x - q._x));
-    folge.forEach((el, i) => {
+    const karten = [...tisch.querySelectorAll(':scope > .k')];
+    const h = Math.max(w * 0.845, ...karten.map(el => el.offsetHeight || 0));
+    karten.forEach(el => {
+      const i = HEIM[el.dataset.id] || 0;
       el._rot = 0;
       el._x = 8 + (i % TSPALTEN) * (w + luft);
       el._y = 6 + Math.floor(i / TSPALTEN) * (h + luft);
-      el.style.zIndex = ++zmax;
       pos(el);
+      const s = stand.karten[el.dataset.id];
+      if (s && s.ort === TISCH){ s.x = el._x; s.y = el._y; s.rot = 0; }
+    });
+  }
+  /* Was ueber die Leitung geht: auf dem Tisch nur der Ort. */
+  window.KASPER_GEMEINSAM_NORM = s => s.ort === TISCH ? {ort: TISCH, x: 0, y: 0, rot: 0} : s;
+  /* Was alle ohnehin wissen, wird nicht gemeldet: Zu Beginn einer Runde
+     liegt alles auf dem Tisch. */
+  function alleAufDemTischBekannt(){
+    if (!window.GEMEINSAM || !GEMEINSAM.bekannt) return;
+    IDS.forEach(id => {
+      const s = stand.karten[id];
+      if (!s || s.ort === TISCH) GEMEINSAM.bekannt(id, {ort: TISCH, x: 0, y: 0, rot: 0});
     });
   }
 
   window._neuzeichnen = felder;
-  window._nachAblegen = null;
+  /* Nach jedem Ablegen: Was auf dem Tisch liegt, geht auf seinen Platz.
+     Und eine Karte, die rechts NEBEN einem Platz liegt, kommt auf den
+     naechsten freien: Der Kern gibt einer Karte, die zwischen den
+     Feldern losgelassen wird, das naechstgelegene Feld, setzt sie darin
+     aber nicht auf einen Platz (im Browser gesehen 2026-10-20: Karte auf
+     die gesperrten Paare gezogen, lag dann gross ueber ihnen). */
+  function verirrteEinordnen(){
+    let anders = false;
+    feld.querySelectorAll('.k').forEach(el => {
+      if (el.parentElement.classList.contains('paar')) return;
+      const f = (el.parentElement.closest && el.parentElement.closest('.feld')) || gef.querySelector('.gefgitter');
+      const frei = [...f.querySelectorAll('.paar')].find(p => !p.querySelector('.k'))
+                || [...gef.querySelectorAll('.paar')].find(p => !p.querySelector('.k'));
+      if (frei){
+        const r = frei.getBoundingClientRect();
+        frei.appendChild(el);
+        einrasten(el, frei, r.left + r.width / 2, r.top + r.height / 2);
+      } else tisch.appendChild(el);
+      anders = true;
+    });
+    if (anders) merken();
+  }
+  window._nachAblegen = () => { verirrteEinordnen(); tischOrdnen(); };
   /* Erst der Kopf - die Eigenschaftskarte macht ihn hoeher, und davon
      haengt die Hoehe des Tisches ab. Vorher gemessen, lag die letzte
      Kartenreihe 33 Pixel unter dem Rand (2026-10-11, 1280 x 720). */
   sobaldBreit(feld, () => {
     kopf();
+    const neu = IDS.filter(id => !(id in stand.karten));
+    neu.forEach(id => { stand.karten[id] = {ort: TISCH, x: 0, y: 0, rot: 0}; });
     felder();
-    const neu = IDS.filter(id => !(id in stand.karten)).map(id => els[id]);
-    sobaldBreit(tisch, () => {
-      if (neu.length){ auslegen(neu, true); merken(); }
-      else auslegen([...tisch.querySelectorAll(':scope > .k')], false);
-    });
+    alleAufDemTischBekannt();
+    sobaldBreit(tisch, () => { tischOrdnen(); if (neu.length) merken(); });
   });
   let hoeheVorher = 0, breiteVorher = 0;
   if (window._m2beobachter) window._m2beobachter.disconnect();
@@ -1331,10 +1399,9 @@ function eigenschaftsspiel(){
     if (!document.body.contains(feld)) return;
     if (feld.clientHeight === hoeheVorher && feld.clientWidth === breiteVorher) return;
     hoeheVorher = feld.clientHeight; breiteVorher = feld.clientWidth;
-    felder();
     // Kein merken() hier: Der Kern loescht dabei die Pruefmarken, und die
     // Pruefmeldung selbst veraendert die Hoehe (2026-10-10 gemessen).
-    auslegen([...tisch.querySelectorAll(':scope > .k')], false);
+    felder();
   });
   window._m2beobachter.observe(feld);
 
@@ -1352,6 +1419,17 @@ function eigenschaftsspiel(){
     },
     anwenden(r){
       const S = ruSpiel();
+      /* Eine Karte, die laut Brett auf dem Tisch liegt: auf ihren Platz,
+         nicht an fremde Pixel (siehe HEIM). */
+      if (r.ort === TISCH && els[r.karte]){
+        const el = els[r.karte];
+        if (el.classList.contains('zieht')) return true;
+        if (el.parentElement !== tisch) tisch.appendChild(el);
+        stand.karten[r.karte] = {ort: TISCH, x: 0, y: 0, rot: 0};
+        if (window.GEMEINSAM) GEMEINSAM.bekannt(r.karte, {ort: TISCH, x: 0, y: 0, rot: 0});
+        tischOrdnen();
+        return true;
+      }
       if (r.karte === 'm2w'){
         S.war = RU.runden.map((_, i) => i).filter(i => r.x & (1 << i));
         kopf(); return true;
@@ -1362,14 +1440,26 @@ function eigenschaftsspiel(){
       if (neueRunde) rundeFesthalten();
       S.offen = r.x; S.mischung = mischung;
       if (!S.war.includes(r.x)) S.war.push(r.x);
-      if (neueRunde){ S.schritt = schritt; alleZurueck(); return true; }
+      if (neueRunde){
+        S.schritt = schritt; alleZurueck();
+        /* Zeilen, die vor dem Wechsel hereinkamen, gehoerten zum alten
+           Aufbau - noch einmal lesen, was in der neuen Runde schon liegt. */
+        if (window.GEMEINSAM && GEMEINSAM.neuHolen) setTimeout(() => GEMEINSAM.neuHolen(), 300);
+        return true;
+      }
       if (schritt !== S.schritt){ S.schritt = schritt; kopf(); felder(); }
       return true;
     }
   };
 
+  /* GEAENDERT (2026-10-20): «Alle Karten zurück» gilt fuer die ganze
+     Gruppe - eine neue Mischung derselben Runde, die ueber das Brett geht.
+     Vorher raeumte nur der eigene Rechner ab, und bei den anderen blieben
+     die Karten liegen. */
   document.getElementById('zurueck').onclick = () => {
-    ruSpiel().schritt = 'suchen';
+    const S = ruSpiel();
+    S.schritt = 'suchen';
+    S.mischung = (S.mischung || 1) + 1;
     melden();
     alleZurueck();
   };
@@ -1383,7 +1473,7 @@ function eigenschaftsspiel(){
    Wechsel fest. Eine Runde, in der rechts nichts liegt, gibt kein Bild. */
 window.m2BildSchluessel = function(){
   const S = ruSpiel();
-  const rechts = Object.values(stand.karten).some(s => /^(gef|pa)/.test(s.ort || ''));
+  const rechts = Object.values(stand.karten).some(s => /^(g\d+\/|p\d+-)/.test(s.ort || ''));
   if (!rechts) return null;
   window._ruNamen = window._ruNamen || {};
   const n = S.war.indexOf(S.offen) + 1;
@@ -1427,6 +1517,8 @@ function ruGross(id){
    Eigenschaft haben, aber nicht zusammengehoeren.
    «Es fehlen noch Karten» - ohne zu sagen, welche oder wie viele. */
 function ruPruefen(R){
+  const M = ruSpiel().mischung || 1;
+  const istGef = o => o.startsWith('g' + M + '/'), istPaar = (o, n) => o.startsWith('p' + M + '-' + n + '/');
   document.querySelectorAll('.k').forEach(k => k.classList.remove('ok', 'falsch', 'fastok'));
   const drin = fn => R.funktionen.includes(fn);
   const m = (id, c) => { const el = document.querySelector(`.k[data-id="${id}"]`); if (el) el.classList.add(c); };
@@ -1434,14 +1526,14 @@ function ruPruefen(R){
   Object.entries(stand.karten).forEach(([id, s]) => {
     if (!(id in RU.gehoert)) return;
     const o = s.ort || '';
-    if (!o.startsWith('gef') && !o.startsWith('pa')) return;
+    if (!istGef(o) && !o.startsWith('p' + M + '-')) return;
     if (drin(RU.gehoert[id])) gefunden++;
     else { m(id, 'falsch'); falsch++; }
   });
   if (ruSpiel().schritt === 'paare'){
     for (let n = 1; n <= RU_PAARE; n++){
       const ids = Object.entries(stand.karten)
-        .filter(([id, s]) => (s.ort || '').startsWith('pa' + n + '/') && id in RU.gehoert)
+        .filter(([id, s]) => istPaar(s.ort || '', n) && id in RU.gehoert)
         .map(([id]) => id).filter(id => drin(RU.gehoert[id]));
       if (ids.length !== 2) continue;
       const [x, y] = ids;

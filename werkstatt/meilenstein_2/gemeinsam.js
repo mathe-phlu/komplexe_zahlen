@@ -74,6 +74,24 @@ let kanal = null;
 let pollen = null;
 let zuletztGesehen = '1970-01-01T00:00:00Z';
 
+/* NEU (2026-10-20, Rikes Befund aus zwei Durchfuehrungen von Meilenstein
+   2: «die Kaertchen liegen nicht bei allen gleich, sind immer mal an
+   einer Stelle komplett gestapelt und stapeln sich dann wieder
+   auseinander»).
+
+   ERST HOEREN, DANN SPRECHEN. Bis heute meldete ein Rechner, sobald
+   `merken()` lief - auch dann, wenn er das Brett noch gar nicht gelesen
+   hatte. Wer neu lud oder spaet dazukam, schickte so seinen eigenen,
+   veralteten oder frisch gemischten Tisch an alle und warf die Arbeit der
+   Gruppe um. Der Riegel KASPER_GEMEINSAM_STUMM (2,5 s) half nur nach der
+   Gruppenwahl, nicht beim Neuladen, und war zu kurz, wenn die
+   Verbindung erst nach 5 s auf Nachfragen auswich.
+
+   Jetzt meldet ein Rechner erst, wenn die erste vollstaendige Antwort des
+   Bretts verarbeitet ist (`bereit`), und nach jedem Raumwechsel wieder
+   erst dann. */
+let bereit = false;
+
 /* ---------- Anzeige ----------
    Ein Punkt in der Leiste. Rikes alte Supabase-Seite hatte denselben,
    und er war dort das Nuetzlichste: Man sieht beim Oeffnen, ob die
@@ -127,6 +145,7 @@ async function holen(alles){
       if (z.wann > zuletztGesehen) zuletztGesehen = z.wann;
       uebernehmen(z);
     });
+    if (alles) bereit = true;
     return true;
   } catch(e){
     anzeigen('fehler', 'Verbindung unterbrochen');
@@ -225,20 +244,44 @@ function hand(z){
     el.classList.add('fremdehand');
     el.style.setProperty('--hand', 'hsl(' + (z.x|0) + ' 70% 45%)');
     gehalten[karte] = z.ort;
+    /* Eine Hand haelt nicht ewig. Geht das Loslassen verloren (Fenster zu,
+       Netz weg), verschwindet der Rahmen nach acht Sekunden von selbst. */
+    clearTimeout(el._handUhr);
+    el._handUhr = setTimeout(() => {
+      el.classList.remove('fremdehand');
+      el.style.removeProperty('--hand');
+      delete gehalten[karte];
+    }, 8000);
   }
 }
 
 /* ---------- Schreiben ---------- */
-async function schreiben(zeilen){
-  if (!zeilen.length) return;
-  try {
-    await fetch(REST, {
-      method: 'POST',
-      headers: Object.assign({}, KOPF,
-        {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
-      body: JSON.stringify(zeilen.map(z => Object.assign({raum}, z)))
-    });
-  } catch(e){ anzeigen('fehler', 'Nicht gesendet'); }
+/* FEHLERBEHOBEN (2026-10-20, im Pruefraum mit zwei Fenstern gesehen):
+   Jede Meldung ging als eigene Anfrage hinaus, ohne auf die vorige zu
+   warten. Bei einer schnellen Bewegung kam «ich lasse los» vor «ich halte»
+   an - und die Karte blieb bei allen anderen dauerhaft rot umrandet, als
+   halte sie noch jemand. Dasselbe konnte eine Kartenlage treffen: die
+   aeltere Lage ueberschrieb die neuere. Jetzt stehen die Meldungen in
+   einer Reihe und gehen in der Reihenfolge hinaus, in der sie entstanden.
+
+   Und: Antwortet Supabase mit einem Fehler (nicht nur: gar nicht), steht
+   das jetzt in der Leiste. Vorher blieb der Punkt gruen. */
+let reihe = Promise.resolve();
+function schreiben(zeilen){
+  if (!zeilen.length) return reihe;
+  const fuerRaum = raum;
+  reihe = reihe.then(async () => {
+    try {
+      const a = await fetch(REST, {
+        method: 'POST',
+        headers: Object.assign({}, KOPF,
+          {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify(zeilen.map(z => Object.assign({raum: fuerRaum}, z)))
+      });
+      if (!a.ok) anzeigen('fehler', 'Nicht gesendet (HTTP ' + a.status + ')');
+    } catch(e){ anzeigen('fehler', 'Nicht gesendet'); }
+  });
+  return reihe;
 }
 
 const schluessel = s => `${s.ort}|${Math.round(s.x)}|${Math.round(s.y)}|${s.rot||0}`;
@@ -262,8 +305,16 @@ function melden(){
      nachgesehen. Fuer SORT und «Daten und Zufall» ist die Marke nie
      gesetzt, dort aendert sich nichts. */
   if (window.KASPER_GEMEINSAM_STUMM) return;
+  if (!bereit) return;                 // siehe `bereit` oben
+  /* NEU (2026-10-20): Eine Etappe darf sagen, was von einer Lage ueber
+     die Leitung geht (`KASPER_GEMEINSAM_NORM`). Meilenstein 2 legt den
+     Tisch bei jedem selbst aus und schickt dort nur «liegt auf dem
+     Tisch», keine Pixel - die Pixel eines grossen Bildschirms legten die
+     Karten auf einem kleinen uebereinander oder neben den Rand. */
+  const norm = window.KASPER_GEMEINSAM_NORM || (s => s);
   const neu = [];
-  Object.entries(stand.karten).forEach(([id, s])=>{
+  Object.entries(stand.karten).forEach(([id, s0])=>{
+    const s = norm(s0);
     const k = schluessel(s);
     if (letzter[id] !== k){
       letzter[id] = k;
@@ -301,15 +352,23 @@ window.merken = function(){
 
 /* Aufheben und Loslassen - nur dafuer, dass die anderen sehen, woran
    gerade jemand arbeitet. */
+let meineHand = null;      // die Karte, die ich gerade halte
 document.addEventListener('pointerdown', e=>{
   const k = e.target.closest && e.target.closest('.k');
-  if (k) schreiben([{karte: '!' + k.dataset.id, ort: ICH,
-                     x: parseInt(MEINE_FARBE.slice(1,3), 16) % 360, y: 0, rot: 0}]);
+  if (!k || !gestartet) return;
+  meineHand = k.dataset.id;
+  schreiben([{karte: '!' + meineHand, ort: ICH,
+              x: parseInt(MEINE_FARBE.slice(1,3), 16) % 360, y: 0, rot: 0}]);
 }, true);
-document.addEventListener('pointerup', e=>{
-  const k = e.target.closest && e.target.closest('.k');
-  if (k) schreiben([{karte: '!' + k.dataset.id, ort: '-', x: 0, y: 0, rot: 0}]);
-}, true);
+// Losgelassen wird die Karte, die ich angefasst habe - auch wenn der
+// Zeiger beim Loslassen ueber etwas anderem steht.
+const loslassen = ()=>{
+  if (!meineHand) return;
+  schreiben([{karte: '!' + meineHand, ort: '-', x: 0, y: 0, rot: 0}]);
+  meineHand = null;
+};
+document.addEventListener('pointerup', loslassen, true);
+document.addEventListener('pointercancel', loslassen, true);
 
 /* Beim Etappenwechsel wechselt das Brett. */
 const _los = window.los;
@@ -324,6 +383,7 @@ function raumSetzen(){
   if (neu === raum) return;
   raum = neu;
   letzter = {};
+  bereit = false;
   zuletztGesehen = '1970-01-01T00:00:00Z';
   holen(true);
 }
@@ -453,6 +513,7 @@ function starten(name){
     ROH = name;
     raum = ROH + '-e' + ((typeof stand !== 'undefined' && stand.etappe || 0) + 1);
     letzter = {};
+    bereit = false;
     zuletztGesehen = '1970-01-01T00:00:00Z';
     try { if (kanal) kanal.close(); } catch(_) {}
     kanal = null;
@@ -479,6 +540,16 @@ window.KASPER_GEMEINSAM_START = starten;
 if (ROH) starten();
 
 window.GEMEINSAM = {raum: ()=>raum, ich: ICH, raeume,
+  /* NEU (2026-10-20): Die Etappe sagt, was alle ohnehin wissen - etwa
+     «nach dem Rundenwechsel liegen alle Karten auf dem Tisch» -, damit es
+     NICHT gemeldet wird. Sonst ging beim Wechsel jede Karte einzeln
+     hinaus und konnte eine Karte ueberschreiben, die jemand anderes in
+     derselben Sekunde schon gelegt hatte. */
+  bekannt: (id, s) => { letzter[id] = schluessel(s); },
+  // Alles noch einmal lesen - nach einem Rundenwechsel, der die Karten
+  // neu aufgebaut hat, waehrend schon Zeilen hereinkamen.
+  neuHolen: () => holen(true),
+  bereit: () => bereit,
   leeren: async ()=>{
     await fetch(REST + '?raum=eq.' + encodeURIComponent(raum),
                 {method:'DELETE', headers: KOPF});
