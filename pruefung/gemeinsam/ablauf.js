@@ -574,11 +574,23 @@ function pruefung(def){
         laufStand.innerHTML = '';
 
         if (!r.gut){
+          /* Auf iPad und iPhone hilft ein anderer Browser nicht: Dort
+             sind Chrome, Edge und Firefox Huellen um Safaris Motor und
+             scheitern alle am selben WebKit-Fehler (ENTSCHEIDUNGEN.md,
+             2026-08-25). iPadOS gibt sich als Mac aus - daher die
+             Beruehrungspunkte, wie in notizen.js. */
+          const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
           laufStand.appendChild(el('div', 'fehl',
             '<b>Die Probeaufnahme hat nicht geklappt.</b> ' + r.grund +
-            '<br>Bitte versuchen Sie es in einem anderen Browser — ' +
-            'Chrome, Edge, Firefox und Safari sollten alle gehen. ' +
-            'Sagen Sie Ihrer Dozentin Bescheid, welcher es war.'));
+            (iOS
+              ? '<br>Auf iPad und iPhone lässt sich die Prüfung leider nicht ' +
+                'aufnehmen — in keinem Browser, denn dort laufen alle auf ' +
+                'derselben Grundlage. Bitte wechseln Sie an einen Computer ' +
+                '(Windows oder Mac) mit Chrome, Edge oder Firefox.'
+              : '<br>Bitte versuchen Sie es in einem anderen Browser — ' +
+                'Chrome, Edge oder Firefox. Safari geht leider nicht. ' +
+                'Sagen Sie Ihrer Dozentin Bescheid, welcher es war.')));
           laufKnopf.disabled = false;
           return;
         }

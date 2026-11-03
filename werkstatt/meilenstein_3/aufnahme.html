@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- FEHLERBEHOBEN (2026-08-21): Der Browser hielt diese Seite fest und
+     zeigte nach einem Neubau die alte Fassung weiter. Beim Pruefen sah
+     es aus, als haette die Aenderung nicht gewirkt - zweimal fast auf
+     eine falsche Faehrte gefuehrt.
+     Die Seite selbst wird immer nachgefragt; sie ist klein. Die grossen
+     Teile daneben tragen ein ?v= mit dem Fingerabdruck ihres Inhalts
+     und duerfen im Zwischenspeicher bleiben, solange sie gleich sind. -->
+<meta http-equiv="Cache-Control" content="no-cache">
+<title>Meilenstein — Station III</title>
+<!-- ERSETZT (2026-08-22, Rikes Auftrag «können wir das nicht mitgeben,
+     damit nichts von Google live geholt wird?»): Hier standen drei
+     Zeilen, die Fira Sans, Source Sans und Patrick Hand von
+     fonts.googleapis.com holten.
+
+     Sie waren das EINZIGE Externe an einer sonst selbsttragenden Seite -
+     und sie hielten sie an: Ein <link rel=stylesheet> im <head> blockiert
+     die Ausfuehrung aller nachfolgenden Skripte, bis er geladen ist.
+     Haengt Google, laeuft das Flaechenskript nie an: Seite halb da,
+     Schrift falsch, Karten unbeweglich. Genau dieses Bild am 2026-08-22.
+
+     Dazu ging bei jedem Aufruf einer Schulklasse eine IP an einen
+     Dritten. Siehe bauen/schriften/HERKUNFT.md. -->
+<style>
+@font-face{font-family:'Fira Sans';font-style:normal;font-weight:400;src:url('schriften/FiraSans-Regular.woff') format('woff')}
+@font-face{font-family:'Fira Sans';font-style:italic;font-weight:400;src:url('schriften/FiraSans-Italic.woff') format('woff')}
+@font-face{font-family:'Fira Sans';font-style:normal;font-weight:600;src:url('schriften/FiraSans-SemiBold.woff') format('woff')}
+@font-face{font-family:'Fira Sans';font-style:normal;font-weight:700;src:url('schriften/FiraSans-Bold.woff') format('woff')}
+@font-face{font-family:'Patrick Hand';font-style:normal;font-weight:400;src:url('schriften/PatrickHand-Regular.woff') format('woff')}
+</style>
+
+<link rel="stylesheet" href="flaeche.css?v=52d9b8b2">
+</head><body>
+
+<header><div class="streifen"></div>
+  <h1>Station III · Meilenstein</h1>
+  
+  <nav id="nav"></nav>
+</header>
+<div id="buehne" style="flex:1 1 auto;display:flex;flex-direction:column;min-height:0"></div>
+
+<script>const D = {"kapitel": 3, "farbe": "beweis", "kopfzeile": "Station III · Meilenstein", "seitentitel": "Meilenstein — Station III", "stueck": "Meilenstein Station III", "nachweis": "<b>Vier Meilensteine, drei davon mit mir.</b> Sie brauchen im Semester drei besuchte Meilensteine. Welche drei, wählen Sie selbst.", "aufnahme": "immer", "mitnehmen": true, "gemeinsam": {"url": "https://sklhmtilrmltkosyiyvl.supabase.co", "schluessel": "sb_publishable_IryjVb6sPqCQBZfoWFbMVQ_8HhlDYmi"}, "leitung": "039b0765057f53b927aea0bf14d9aacaef9eb2d9711f5f8b3c54fa7a767fe539", "start": {"titel": "Komplexe Folgen: Iteratoren und Zyklen", "lage": "", "frage": "", "nachsatz": ""}, "pate": null, "gruppen_max": 15, "raum_vorsatz": "kz-m3-hs26", "fassung_allein": "aufnahme.html", "etappen": [{"nr": 1, "name": "Iteratoren sortieren", "rang": "Etappe 1 · Sortieren", "etappe": 1, "teil": "Sortieren", "unterteil": "", "auftrag_allein": "Was geschieht mit der Folge <i>z</i><sub>0</sub>, <i>f</i>(<i>z</i><sub>0</sub>), <i>f</i>(<i>f</i>(<i>z</i><sub>0</sub>)), …? Legen Sie jeden Term in ein Feld. Der Fixpunkt selbst zählt nicht als Startwert.", "rolle": "ordnen", "auftrag": "Was geschieht mit der Folge <i>z</i><sub>0</sub>, <i>f</i>(<i>z</i><sub>0</sub>), <i>f</i>(<i>f</i>(<i>z</i><sub>0</sub>)), …? Legen Sie jeden Term in ein Feld. Der Fixpunkt selbst zählt nicht als Startwert.", "art": "tisch", "wie": "gemeinsam"}, {"nr": 2, "name": "Iteratoren besprechen", "rang": "Etappe 1 · Besprechen", "etappe": 1, "teil": "Besprechen", "unterteil": "", "auftrag_allein": "Stimmt Ihre Einteilung? Tippen Sie ▶ an einer Karte und probieren Sie rechts Bahnen aus. Woher kommt die Drehung? Klappen Sie dazu «Drehung untersuchen» auf.", "rolle": "ordnen", "auftrag": "Stimmt Ihre Einteilung? Tippen Sie ▶ an einer Karte und probieren Sie rechts Bahnen aus. Woher kommt die Drehung? Klappen Sie dazu «Drehung untersuchen» auf.", "art": "tisch_sim", "wie": "gemeinsam"}, {"nr": 3, "name": "Bahnen legen", "rang": "Etappe 2 · Sortieren", "etappe": 2, "teil": "Sortieren", "unterteil": "", "auftrag_allein": "Welche Startwerte kehren unter <i>f</i>(<i>z</i>) = <i>z</i><sup>2</sup> zurück? Legen Sie neben jeden Startwert sein Quadrat, bis die Bahn wieder am Anfang ist.", "rolle": "ordnen", "auftrag": "Welche Startwerte kehren unter <i>f</i>(<i>z</i>) = <i>z</i><sup>2</sup> zurück? Legen Sie neben jeden Startwert sein Quadrat, bis die Bahn wieder am Anfang ist.", "art": "bahnen", "wie": "aufgeteilt"}, {"nr": 4, "name": "Zyklen zählen", "rang": "Etappe 2 · Besprechen", "etappe": 2, "teil": "Besprechen", "unterteil": "Zählen", "auftrag_allein": "Wie viele Zyklen der Länge 1 bis 4 haben Sie gefunden — und wie hängt das mit der Gleichung <i>z</i> hoch 2<sup><i>n</i></sup> = <i>z</i> zusammen?", "rolle": "ordnen", "auftrag": "Wie viele Zyklen der Länge 1 bis 4 haben Sie gefunden — und wie hängt das mit der Gleichung <i>z</i> hoch 2<sup><i>n</i></sup> = <i>z</i> zusammen?", "art": "tabelle", "wie": "gemeinsam"}, {"nr": 5, "name": "Länge 5 bis 7", "rang": "Etappe 2 · Besprechen", "etappe": 2, "teil": "Besprechen", "unterteil": "Vermuten", "auftrag_allein": "Wie viele Zyklen gibt es bei Länge 5, 6 und 7? Tragen Sie Ihre Vermutung ein, dann prüfen Sie.", "rolle": "ordnen", "auftrag": "Wie viele Zyklen gibt es bei Länge 5, 6 und 7? Überlegen Sie zuerst für sich, dann decken Sie gemeinsam auf.", "art": "allein", "wie": "allein"}, {"nr": 6, "name": "Wegnehmen", "rang": "Etappe 2 · Besprechen", "etappe": 2, "teil": "Besprechen", "unterteil": "Wegnehmen", "auftrag_allein": "Woran sieht man, was wegfällt? Nehmen Sie die kürzeren Zyklen weg und zählen Sie, was übrig bleibt.", "rolle": "ordnen", "auftrag": "Woran sieht man, was wegfällt? Nehmen Sie die kürzeren Zyklen weg und zählen Sie, was übrig bleibt.", "art": "werkzeug", "wie": "gemeinsam"}], "auftrag": "", "m3": {"e1": {"karten": ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12", "T13", "T14"], "terme": {"T1": {"typ": "affin", "a": [0.0, 0.25], "b": [0.75, -1.25], "teile": ["0,25i", "+ 0,75 − 1,25i"]}, "T2": {"typ": "affin", "a": [0.8, 0.5], "b": [-0.4, -1.0], "teile": ["(0,8 + 0,5i)", "− (0,4 + i)"]}, "T3": {"typ": "affin", "a": [0.5, 0.0], "b": [1.0, 0.0], "teile": ["0,5", "+ 1"]}, "T4": {"typ": "affin", "a": [-1.5, 0.0], "b": [-0.0, -2.5], "teile": ["−1,5", "− 2,5i"]}, "T5": {"typ": "affin", "a": [-0.75, -1.75], "b": [0.0, 3.5], "teile": ["(−0,75 − 1,75i)", "+ 3,5i"]}, "T6": {"typ": "affin", "a": [2.0, 0.0], "b": [-1.0, 0.0], "teile": ["2", "− 1"]}, "T7": {"typ": "affin", "a": [-1.0, 0.0], "b": [-0.0, -4.0], "teile": ["−", "− 4i"]}, "T8": {"typ": "affin", "a": [0.0, 1.0], "b": [1.0, 1.0], "teile": ["i", "+ 1 + i"]}, "T9": {"typ": "affin", "a": [0.707106781187, 0.707106781187], "b": [0.0, 0.0], "teile": ["0,5√2 (1 + i)", ""]}, "T10": {"typ": "affin", "a": [1.0, 0.0], "b": [1.0, -1.0], "teile": ["", "+ 1 − i"]}, "T11": {"typ": "affin", "a": [-0.5, 0.866025403784], "b": [1.0, 0.0], "teile": ["cis(120°)", "+ 1"]}, "T12": {"typ": "z2"}, "T13": {"typ": "z2m1"}, "T14": {"typ": "z3"}}, "felder": [{"id": "konv", "name": "auf jeden Fall konvergent"}, {"id": "div", "name": "auf jeden Fall divergent"}, {"id": "zykl", "name": "auf jeden Fall zyklisch"}, {"id": "ab", "name": "hängt vom Startwert ab"}]}, "e2": {"karten": ["S0", "S0_1", "S1_15", "S2_15", "S1_7", "S1_5", "S4_15", "S2_7", "S1_3", "S2_5", "S3_7", "S7_15", "S8_15", "S4_7", "S3_5", "S2_3", "S5_7", "S11_15", "S4_5", "S6_7", "S13_15", "S14_15"], "winkel": {"S0": null, "S0_1": 0, "S1_15": 7, "S2_15": 14, "S1_7": 15, "S1_5": 21, "S4_15": 28, "S2_7": 30, "S1_3": 35, "S2_5": 42, "S3_7": 45, "S7_15": 49, "S8_15": 56, "S4_7": 60, "S3_5": 63, "S2_3": 70, "S5_7": 75, "S11_15": 77, "S4_5": 84, "S6_7": 90, "S13_15": 91, "S14_15": 98}, "nenner": 105, "legen": [1, 2, 3, 4], "zaehlen": [1, 2, 3, 4, 5, 6, 7], "werkzeug": [1, 2, 3, 4, 5, 6, 7, 8]}}, "zyklusfarben": ["#C2562F", "#2F7F8C", "#7A5AA6", "#B0861E", "#4F8A3C", "#B0457B", "#3E64A8", "#8C6B3E", "#5E6E2C"]};</script>
+<script src="aufnahme.js?v=5900d59b"></script>
+<script src="flaeche.js?v=2708faa0"></script>
+<script src="etappen.js?v=8bad1fcf"></script>
+<script>window.KASPER_GEMEINSAM={url:"https://sklhmtilrmltkosyiyvl.supabase.co",schluessel:"sb_publishable_IryjVb6sPqCQBZfoWFbMVQ_8HhlDYmi"};</script>
+<script src="gemeinsam.js?v=cbbe6b06"></script>
+<script>los();</script>
+</body></html>

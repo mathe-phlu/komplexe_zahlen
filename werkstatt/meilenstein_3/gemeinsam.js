@@ -1,0 +1,632 @@
+/* ============================================================
+   KOPIE von bauen/gemeinsam.js fuer Meilenstein 3 (2026-10-29).
+
+   Rike: «Wir machen die Probe an Meilenstein 3 und bauen dann
+   gegebenenfalls Meilenstein 1 und 2 entsprechend um.» Deshalb hier eine
+   eigene Fassung - bauen/gemeinsam.js bleibt, wie es ist, und Meilenstein
+   1 und 2 bauen weiter damit. Bewaehrt sich das hier, wandern die
+   Aenderungen zurueck. Jede Aenderung traegt die Marke «M3:».
+
+   M3: 1  EIN Brett fuer den ganzen Meilenstein. Der Raum ist die Gruppe,
+          nicht mehr Gruppe + Etappe. Die Karten-IDs sind ueber alle
+          Etappen eindeutig (T*, P*, G*). Kein Raumwechsel mehr, also auch
+          kein Wettlauf beim Wechseln - Rikes Befund «wenn einer zurueck-
+          geht, ist es auf einmal irgendwo ganz anders».
+   M3: 2  Zuege fuer Karten, die gerade nicht zu sehen sind, gehen in den
+          Stand. Vorher verwarf `uebernehmen()` sie - wer spaeter dorthin
+          kam, sah einen alten Stand.
+   M3: 3  Zwei neue Zeilenarten neben Karten und Haenden («!»):
+            «#spiel»  der Spielstand der Gruppe: ort = «e<Etappe>-t<Topf>»,
+                      x = Fassung (zaehlt hoch). Was damit geschieht,
+                      entscheidet die Etappe (window._m3spiel).
+            «~<name>» ein Text oder Schalter: ort = der Wert
+                      (window._m3wert).
+   M3: 4  Nachfragen im Sekundentakt liest das GANZE Brett. Befund vom
+          2026-10-29, am echten Brett gemessen: Die Tabelle setzt `wann`
+          nur beim Anlegen einer Zeile (default now()), nicht beim
+          Aendern. Das Nachfragen «seit wann» sah deshalb nur neue Karten,
+          nie eine verschobene. Realtime ist davon nicht betroffen.
+          PRUEFEN (Rike): Betrifft auch Meilenstein 1 und 2, sobald
+          Realtime ausfaellt. Abhilfe an der Wurzel waere ein Trigger in
+          Supabase (`wann = now()` bei jedem update) - das geht nur im
+          Dashboard.
+   M3: 5  NEU (2026-10-30, F3): Der Wert «sim» (die Simulation der Leitung) geht an
+          window._m3simBrett statt an die Etappe.
+   M3: 6  NEU (2026-10-30, Notizblatt): Werte «nb…» (Striche und Texte
+          des Notizblatts) gehen an window._m3blatt.
+   ============================================================ */
+/* ============================================================
+   Gemeinsames Brett — mehrere Browser an derselben Sortierflaeche.
+
+   Angelegt 2026-09-08 fuer die Meilensteine von «Komplexe Zahlen».
+   Rikes Anlass: Bisher lief jede Gruppe auf einem Zoom-Whiteboard, auf
+   dem alle gleichzeitig schieben konnten. Die HTML-Flaechen konnten das
+   nicht - sie waren auf EINEN Rechner ausgelegt, vor dem die Gruppe
+   gemeinsam sitzt.
+
+   BAUART: dasselbe Muster wie `aufnahme.js`. Das Modul haengt sich von
+   aussen an eine fertige Sortierflaeche, liest ueber `merken()` mit,
+   was sich bewegt, und setzt umgekehrt, was von anderen hereinkommt.
+   KEINE der bestehenden Flaechen wird dafuer veraendert.
+
+   WAS UEBER DIE LEITUNG GEHT: je Bewegung zwei Meldungen - «ich hebe
+   Karte 7 an» und «ich lege sie hier ab». Nicht der Weg dazwischen.
+   Der empfangende Browser laesst die Karte selbst von A nach B
+   gleiten, in rund 400 ms. Das sieht aus wie eine wandernde Karte und
+   kostet ein Zehntel der Nachrichten - nachgerechnet in
+   ANLEITUNG_supabase.md.
+
+   ES GEHEN KEINE PERSONENDATEN UEBER DIE LEITUNG. Eine Zeile ist
+   Raum, Kartennummer, Ort und drei Zahlen. Wer schiebt, wird nur
+   waehrend des Schiebens als zufaellige Farbe und ein Kuerzel
+   angezeigt, das der Browser bei jedem Laden neu wuerfelt.
+
+   Erwartet `window.KASPER_GEMEINSAM = {url, schluessel, raum}`.
+   Fehlt das, tut das Modul nichts - die Flaeche laeuft dann wie
+   bisher allein.
+   ============================================================ */
+(function(){
+'use strict';
+
+const CFG = window.KASPER_GEMEINSAM;
+if (!CFG || !CFG.url || !CFG.schluessel) return;
+
+/* ---------- Raum ----------
+   Der Raum steht in der Adresse: ?raum=m1-g03. Die Etappe haengt das
+   Modul selbst an, weil jede Etappe ein eigenes Brett ist.
+
+   NEU (2026-09-09): Der Raum darf jetzt auch SPAETER kommen. Rikes
+   Auftrag: ein Link fuer alle, und die Studierenden waehlen am
+   Startfeld ihre Gruppennummer - dann steht der Raum beim Laden noch
+   nicht fest.
+
+   Bis heute stieg das Modul an dieser Stelle endgueltig aus
+   (`if (!ROH) return;`). Jetzt wartet es: `KASPER_GEMEINSAM_START(name)`
+   startet die Verbindung, sobald die Gruppe gewaehlt ist. Steht der
+   Raum schon in der Adresse, laeuft alles wie bisher - Rikes fertige
+   `?raum=`-Links und ein Neuladen mitten in der Sitzung eingeschlossen.
+
+   Ohne beides bleibt die Flaeche allein. Das ist der Normalfall beim
+   Entwickeln und bei einer Einzelperson. */
+let ROH = new URLSearchParams(location.search).get('raum') || '';
+
+const REST = CFG.url + '/rest/v1/brett';
+const KOPF = {
+  'apikey': CFG.schluessel,
+  'Authorization': 'Bearer ' + CFG.schluessel,
+  'Content-Type': 'application/json'
+};
+
+/* Wer bin ich? Nur fuer die Anzeige «diese Karte haelt gerade jemand».
+   Bei jedem Laden neu gewuerfelt, nirgends gespeichert, kein Name. */
+const ICH = Math.random().toString(36).slice(2, 8);
+const FARBEN = ['#c2410c','#0369a1','#4d7c0f','#a21caf','#b45309','#0f766e'];
+const MEINE_FARBE = FARBEN[Math.floor(Math.random() * FARBEN.length)];
+
+let raum = ROH;
+let letzter = {};        // Kartenlage, wie ich sie zuletzt gemeldet habe
+let gehalten = {};       // karte -> {wer, farbe} - fremde Haende
+let anzeige = null;
+let kanal = null;
+let pollen = null;
+let zuletztGesehen = '1970-01-01T00:00:00Z';
+
+/* NEU (2026-10-20, Rikes Befund aus zwei Durchfuehrungen von Meilenstein
+   2: «die Kaertchen liegen nicht bei allen gleich, sind immer mal an
+   einer Stelle komplett gestapelt und stapeln sich dann wieder
+   auseinander»).
+
+   ERST HOEREN, DANN SPRECHEN. Bis heute meldete ein Rechner, sobald
+   `merken()` lief - auch dann, wenn er das Brett noch gar nicht gelesen
+   hatte. Wer neu lud oder spaet dazukam, schickte so seinen eigenen,
+   veralteten oder frisch gemischten Tisch an alle und warf die Arbeit der
+   Gruppe um. Der Riegel KASPER_GEMEINSAM_STUMM (2,5 s) half nur nach der
+   Gruppenwahl, nicht beim Neuladen, und war zu kurz, wenn die
+   Verbindung erst nach 5 s auf Nachfragen auswich.
+
+   Jetzt meldet ein Rechner erst, wenn die erste vollstaendige Antwort des
+   Bretts verarbeitet ist (`bereit`), und nach jedem Raumwechsel wieder
+   erst dann. */
+let bereit = false;
+
+/* ---------- Anzeige ----------
+   Ein Punkt in der Leiste. Rikes alte Supabase-Seite hatte denselben,
+   und er war dort das Nuetzlichste: Man sieht beim Oeffnen, ob die
+   Verbindung steht, statt es zu merken, wenn nichts geht. */
+let letzteMeldung = null;
+
+function anzeigen(art, text){
+  letzteMeldung = [art, text];
+  const l = document.querySelector('.leiste');
+  if (!l) return;                       // Startfeld - noch keine Leiste
+  if (!anzeige || !anzeige.isConnected){
+    anzeige = document.createElement('span');
+    anzeige.className = 'gemeinsam';
+    l.appendChild(anzeige);
+  }
+  anzeige.className = 'gemeinsam ' + art;
+  anzeige.innerHTML = '<i></i>' + text;
+}
+
+/* FEHLERBEHOBEN (2026-09-08): Die Verbindung steht meist schon,
+   waehrend noch das Startfeld sichtbar ist - dort gibt es keine
+   Leiste, die Meldung fiel ins Leere, und danach kam keine mehr. Wer
+   die Aufnahmefrage schnell wegklickte, sah nie eine Anzeige und
+   musste glauben, es sei nichts verbunden.
+
+   Jede Etappe baut die Leiste neu; deshalb wird die letzte Meldung
+   danach erneut gesetzt. Der Beobachter kostet nichts - er reagiert
+   nur, wenn die Buehne ausgetauscht wird. */
+const buehne = document.getElementById('buehne');
+if (buehne) new MutationObserver(()=>{
+  if (letzteMeldung && (!anzeige || !anzeige.isConnected))
+    anzeigen(letzteMeldung[0], letzteMeldung[1]);
+}).observe(buehne, {childList: true, subtree: true});
+
+/* ---------- Lesen ----------
+   Nur, was sich seit dem letzten Blick geaendert hat. `wann` traegt
+   dafuer einen Index. */
+async function holen(alles){
+  const meine = wechselNr;
+  const frage = alles
+    ? `?raum=eq.${encodeURIComponent(raum)}&select=*`
+    : `?raum=eq.${encodeURIComponent(raum)}&wann=gt.${encodeURIComponent(zuletztGesehen)}&select=*`;
+  try {
+    const a = await fetch(REST + frage, {headers: KOPF});
+    if (!a.ok) throw new Error('HTTP ' + a.status);
+    const zeilen = await a.json();
+    // Unterwegs ist die Gruppe gewechselt: Diese Antwort gehoert zum
+    // alten Raum und darf das neue Brett nicht anfassen.
+    if (meine !== wechselNr) return true;
+    zeilen.forEach(z => {
+      if (z.wann > zuletztGesehen) zuletztGesehen = z.wann;
+      uebernehmen(z);
+    });
+    if (alles && !bereit){
+      bereit = true;
+      if (window._m3bereit) window._m3bereit();     // M3: 3
+    }
+    return true;
+  } catch(e){
+    anzeigen('fehler', 'Verbindung unterbrochen');
+    return false;
+  }
+}
+
+/* ---------- Was nicht Kaertchen ist ----------
+   NEU (2026-09-08, Rikes Auftrag): «Es muessen alle sehen, was wie wo
+   passiert.» Etappe 2 hat keine Kaertchen, sondern gesetzte Zeiger -
+   und Rikes Beobachtung trifft den Punkt:
+
+     «Die fangen aber immer bei null an und enden immer an einem
+      bestimmten Ort. Als Uebertragung waere ja eigentlich auch wieder
+      nur ein Ort notwendig, naemlich: Endpunkt des Pfeils liegt an
+      Ort y.»
+
+   Genau. Ein Zeiger ist eine Zahl und ein Ort - dieselbe Form wie eine
+   Karte. Es braucht deshalb KEINE zweite Tabelle und keine zweite
+   Leitung: Wer etwas anderes als Kaertchen mitschicken will, haengt
+   sich hier ein.
+
+     window.KASPER_GEMEINSAM_ZUSATZ = {
+       stand()        liefert {id: {ort, x, y, rot}} wie stand.karten
+       anwenden(z)    setzt eine hereinkommende Zeile, liefert true
+     }
+
+   Die Werte gehen als GANZE ZAHLEN ueber die Leitung: `schluessel()`
+   unten rundet, um zu erkennen, was sich geaendert hat. Wer Bruchteile
+   schickt, schickt sie einmal und nie wieder. Die Etappe rechnet
+   deshalb selbst mal hundert und wieder zurueck. */
+const zusatz = () => window.KASPER_GEMEINSAM_ZUSATZ || null;
+
+/* ---------- Eine fremde Bewegung uebernehmen ---------- */
+function uebernehmen(z){
+  if (z.karte.startsWith('!')) { hand(z); return; }
+  // M3: 3 - Spielstand und Werte
+  if (z.karte === '#spiel'){ if (window._m3spiel) window._m3spiel(z); return; }
+  if (z.karte.startsWith('~')){
+    const name = z.karte.slice(1);
+    letzterWert[name] = z.ort;
+    if (stand.texte[name] !== z.ort){
+      stand.texte[name] = z.ort;
+      if (name === 'sim'){ if (window._m3simBrett) window._m3simBrett(); }   // M3: 5
+      else if (name.startsWith('nb')){ if (window._m3blatt) window._m3blatt(name); }   // M3: 6
+      else if (window._m3wert) window._m3wert(name);
+    }
+    return;
+  }
+  const zu = zusatz();
+  if (zu && zu.anwenden && zu.anwenden(z)) return;
+  const el = document.querySelector(`.k[data-id="${z.karte}"]`);
+  // M3: 2 - nicht zu sehen: nur in den Stand, ohne Gleiten
+  if (!el){ nachtragen(z, true); return; }
+  // Was ich selbst gerade halte, nimmt mir niemand aus der Hand.
+  if (el.classList.contains('zieht')) return;
+
+  const s = stand.karten[z.karte];
+  if (s && s.ort === z.ort && Math.abs(s.x - z.x) < 0.5
+        && Math.abs(s.y - z.y) < 0.5) return;   // steht schon so
+
+  const ziel = document.querySelector(`[data-ort="${z.ort}"]`)
+            || document.getElementById('tisch');
+  /* M3: 2 - Den Ort gibt es hier (noch) nicht, etwa ein Zyklusfach, das
+     erst entsteht, wenn das vorige voll ist. In den Stand, und die Etappe
+     baut neu auf. */
+  if (!ziel){ nachtragen(z, true); return; }
+  gleiten(el, ziel, z);
+}
+
+/* Die Karte wandern lassen, statt sie springen zu lassen.
+   Der Weg wurde nie uebertragen - er wird hier erfunden, und das
+   genuegt: Zu sehen ist, dass sich etwas bewegt und wohin. */
+function gleiten(el, ziel, z){
+  const vorher = el.getBoundingClientRect();
+  ziel.appendChild(el);
+  el._x = z.x; el._y = z.y; el._rot = z.rot;
+  pos(el);
+  const nachher = el.getBoundingClientRect();
+  const dx = vorher.left - nachher.left, dy = vorher.top - nachher.top;
+  if (Math.abs(dx) < 1 && Math.abs(dy) < 1) { nachtragen(z); return; }
+  el.style.transition = 'none';
+  el.style.transform = `translate(${dx}px,${dy}px) rotate(${el._rot||0}deg)`;
+  requestAnimationFrame(()=>{
+    el.style.transition = 'transform .40s cubic-bezier(.22,.61,.36,1)';
+    el.style.transform = `rotate(${el._rot||0}deg)`;
+    setTimeout(()=>{ el.style.transition = ''; }, 440);
+  });
+  nachtragen(z);
+}
+
+/* Den eigenen Stand nachfuehren, OHNE ihn wieder zu melden - sonst
+   schaukeln sich zwei Browser gegenseitig auf. */
+function nachtragen(z, neuAufbauen){
+  stand.karten[z.karte] = {ort: z.ort, x: z.x, y: z.y, rot: z.rot};
+  letzter[z.karte] = schluessel(stand.karten[z.karte]);
+  if (neuAufbauen && window._m3neu) window._m3neu();
+  else if (window._nachAblegen) window._nachAblegen();
+}
+
+/* M3: 3 - Werte und Spielstand schreiben. Werte nur, wenn sie sich
+   geaendert haben; beides erst nach dem ersten vollstaendigen Lesen
+   (siehe `bereit`). */
+let letzterWert = {};
+function wert(name, w){
+  if (!bereit || !gestartet) return;
+  w = String(w == null ? '' : w);
+  if (letzterWert[name] === w) return;
+  letzterWert[name] = w;
+  schreiben([{karte: '~' + name, ort: w, x: 0, y: 0, rot: 0}]);
+}
+function spiel(ort, fassung){
+  if (!bereit || !gestartet) return;
+  schreiben([{karte: '#spiel', ort, x: fassung, y: 0, rot: 0}]);
+}
+
+/* ---------- Fremde Haende ----------
+   Eine Zeile, deren Kartennummer mit «!» beginnt, ist keine Karte,
+   sondern die Meldung «ich halte gerade». Sie steht in derselben
+   Tabelle, damit es nicht zwei Wege braucht. */
+function hand(z){
+  const karte = z.karte.slice(1);
+  const el = document.querySelector(`.k[data-id="${karte}"]`);
+  if (!el) return;
+  if (z.ort === '-' || z.ort === ICH){
+    el.classList.remove('fremdehand');
+    el.style.removeProperty('--hand');
+    delete gehalten[karte];
+  } else {
+    el.classList.add('fremdehand');
+    el.style.setProperty('--hand', 'hsl(' + (z.x|0) + ' 70% 45%)');
+    gehalten[karte] = z.ort;
+    /* Eine Hand haelt nicht ewig. Geht das Loslassen verloren (Fenster zu,
+       Netz weg), verschwindet der Rahmen nach acht Sekunden von selbst. */
+    clearTimeout(el._handUhr);
+    el._handUhr = setTimeout(() => {
+      el.classList.remove('fremdehand');
+      el.style.removeProperty('--hand');
+      delete gehalten[karte];
+    }, 8000);
+  }
+}
+
+/* ---------- Schreiben ---------- */
+/* FEHLERBEHOBEN (2026-10-20, im Pruefraum mit zwei Fenstern gesehen):
+   Jede Meldung ging als eigene Anfrage hinaus, ohne auf die vorige zu
+   warten. Bei einer schnellen Bewegung kam «ich lasse los» vor «ich halte»
+   an - und die Karte blieb bei allen anderen dauerhaft rot umrandet, als
+   halte sie noch jemand. Dasselbe konnte eine Kartenlage treffen: die
+   aeltere Lage ueberschrieb die neuere. Jetzt stehen die Meldungen in
+   einer Reihe und gehen in der Reihenfolge hinaus, in der sie entstanden.
+
+   Und: Antwortet Supabase mit einem Fehler (nicht nur: gar nicht), steht
+   das jetzt in der Leiste. Vorher blieb der Punkt gruen. */
+let reihe = Promise.resolve();
+function schreiben(zeilen){
+  if (!zeilen.length) return reihe;
+  const fuerRaum = raum;
+  reihe = reihe.then(async () => {
+    try {
+      const a = await fetch(REST, {
+        method: 'POST',
+        headers: Object.assign({}, KOPF,
+          {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify(zeilen.map(z => Object.assign({raum: fuerRaum}, z)))
+      });
+      if (!a.ok) anzeigen('fehler', 'Nicht gesendet (HTTP ' + a.status + ')');
+    } catch(e){ anzeigen('fehler', 'Nicht gesendet'); }
+  });
+  return reihe;
+}
+
+const schluessel = s => `${s.ort}|${Math.round(s.x)}|${Math.round(s.y)}|${s.rot||0}`;
+
+/* Was hat sich seit meiner letzten Meldung geaendert? */
+function melden(){
+  /* STUMM. Wer gerade erst einen Raum betreten hat, hat noch nichts
+     gehoert - sein Tisch steht auf der Voreinstellung. Wuerde er die
+     sofort melden, schriebe er die Arbeit der Gruppe mit lauter
+     Voreinstellungen zu.
+
+     NEU (2026-09-23, nach Rikes Befund «wenn man auf Refresh macht,
+     sollten die bisher sortierten Sachen nicht neu sortiert sein»):
+     Genau das ist passiert. Die Gruppenwahl leert seit dem 21.09. den
+     Tisch, damit die naechste Gruppe nicht die Sortierung der vorigen
+     erbt. Danach streut `felder()` die Karten neu und ruft `merken()`,
+     und `merken()` meldet - der frisch gestreute Tisch ging an alle
+     hinaus und warf die Sortierung der Gruppe um.
+
+     Wer den Riegel setzt, nimmt ihn auch wieder weg; hier wird nur
+     nachgesehen. Fuer SORT und «Daten und Zufall» ist die Marke nie
+     gesetzt, dort aendert sich nichts. */
+  if (window.KASPER_GEMEINSAM_STUMM) return;
+  if (!bereit) return;                 // siehe `bereit` oben
+  /* NEU (2026-10-20): Eine Etappe darf sagen, was von einer Lage ueber
+     die Leitung geht (`KASPER_GEMEINSAM_NORM`). Meilenstein 2 legt den
+     Tisch bei jedem selbst aus und schickt dort nur «liegt auf dem
+     Tisch», keine Pixel - die Pixel eines grossen Bildschirms legten die
+     Karten auf einem kleinen uebereinander oder neben den Rand. */
+  const norm = window.KASPER_GEMEINSAM_NORM || (s => s);
+  const neu = [];
+  Object.entries(stand.karten).forEach(([id, s0])=>{
+    const s = norm(s0);
+    const k = schluessel(s);
+    if (letzter[id] !== k){
+      letzter[id] = k;
+      neu.push({karte: id, ort: s.ort, x: s.x, y: s.y, rot: s.rot || 0});
+    }
+  });
+  // Und was sonst noch auf dem Brett liegt - siehe `zusatz` oben.
+  const zu = zusatz();
+  if (zu && zu.stand){
+    Object.entries(zu.stand()).forEach(([id, s])=>{
+      const k = schluessel(s);
+      if (letzter[id] !== k){
+        letzter[id] = k;
+        neu.push({karte: id, ort: s.ort, x: s.x, y: s.y, rot: s.rot || 0});
+      }
+    });
+  }
+  schreiben(neu);
+}
+
+/* Etappen ohne Kaertchen koennen `merken()` nicht rufen - es baut
+   `stand.karten` aus dem DOM neu und wuerde die Karten der anderen
+   Etappe loeschen. Sie melden deshalb hierueber. */
+window.KASPER_GEMEINSAM_MELDEN = melden;
+
+/* ---------- An die Flaeche haengen ----------
+   `merken()` ist die eine Stelle, durch die JEDE Bewegung laeuft.
+   Wir legen uns davor, statt die Flaeche zu aendern. */
+const _merken = window.merken;
+window.merken = function(){
+  const r = _merken.apply(this, arguments);
+  melden();
+  return r;
+};
+
+/* Aufheben und Loslassen - nur dafuer, dass die anderen sehen, woran
+   gerade jemand arbeitet. */
+let meineHand = null;      // die Karte, die ich gerade halte
+document.addEventListener('pointerdown', e=>{
+  const k = e.target.closest && e.target.closest('.k');
+  if (!k || !gestartet) return;
+  meineHand = k.dataset.id;
+  schreiben([{karte: '!' + meineHand, ort: ICH,
+              x: parseInt(MEINE_FARBE.slice(1,3), 16) % 360, y: 0, rot: 0}]);
+}, true);
+// Losgelassen wird die Karte, die ich angefasst habe - auch wenn der
+// Zeiger beim Loslassen ueber etwas anderem steht.
+const loslassen = ()=>{
+  if (!meineHand) return;
+  schreiben([{karte: '!' + meineHand, ort: '-', x: 0, y: 0, rot: 0}]);
+  meineHand = null;
+};
+document.addEventListener('pointerup', loslassen, true);
+document.addEventListener('pointercancel', loslassen, true);
+
+/* Beim Etappenwechsel wechselt das Brett. */
+const _los = window.los;
+if (_los) window.los = function(){
+  const r = _los.apply(this, arguments);
+  raumSetzen();
+  return r;
+};
+function raumSetzen(){
+  if (!gestartet) return;          // Gruppe noch nicht gewaehlt
+  const neu = ROH;                 // M3: 1 - ein Brett, kein Wechsel
+  if (neu === raum) return;
+  raum = neu;
+  letzter = {};
+  bereit = false;
+  zuletztGesehen = '1970-01-01T00:00:00Z';
+  holen(true);
+}
+
+/* ---------- Verbindung ----------
+   Zuerst der Versuch ueber Realtime: Supabase meldet sich dann von
+   selbst, sobald jemand etwas schreibt. Kommt binnen fuenf Sekunden
+   keine Bestaetigung, wird stattdessen im Sekundentakt nachgefragt.
+   Beides funktioniert; der Unterschied ist die Verzoegerung. */
+function realtime(){
+  const meine = wechselNr;
+  const ws = new WebSocket(
+    CFG.url.replace(/^http/, 'ws') + '/realtime/v1/websocket'
+    + '?apikey=' + encodeURIComponent(CFG.schluessel) + '&vsn=1.0.0');
+  let bestaetigt = false;
+  const frist = setTimeout(()=>{ if (!bestaetigt){ try{ws.close();}catch(e){} nachfragen(); } }, 5000);
+
+  ws.onopen = ()=>{
+    /* FEHLERBEHOBEN (2026-09-09): Hier stand ein Abonnement auf die
+       GANZE Tabelle, ohne Filter - jeder Browser bekam jede Bewegung
+       jeder Gruppe zugeschickt und sortierte erst hier im Skript aus,
+       was nicht sein Raum war.
+
+       Solange eine Gruppe nach der anderen arbeitet, ist das
+       gleichgueltig. Bei Rike arbeiten mehrere Gruppen GLEICHZEITIG -
+       und genau diese Annahme steckt unausgesprochen in der Rechnung
+       in ANLEITUNG_supabase.md, die fuenf Empfaenger je Bewegung
+       annimmt. Bei neun gleichzeitigen Gruppen sind es 45, bei
+       fuenfzehn 75; dann traegt das Kartenschieben allein rund
+       2,25 Millionen Nachrichten im Monat und reisst die Freigrenze.
+
+       Mit Filter sind es 150 000, unabhaengig davon, wie viele
+       gleichzeitig arbeiten. NACHGEMESSEN am 2026-09-09 in Rikes
+       Projekt, mit drei Verbindungen gleichzeitig: ohne Filter kamen
+       Aenderungen aus beiden Pruefraeumen an, mit `raum=eq.` und mit
+       `raum=in.(…)` nur die des eigenen.
+
+       `in.(…)` statt `eq.`, weil jede Etappe ihr eigenes Brett ist:
+       So deckt EIN Abonnement alle Etappen der Gruppe ab und muss beim
+       Etappenwechsel nicht neu aufgebaut werden. */
+    const filter = 'raum=in.(' + raeume().join(',') + ')';
+    ws.send(JSON.stringify({topic:'realtime:brett-' + ROH,
+      event:'phx_join', ref:'1',
+      payload:{config:{broadcast:{self:false}, presence:{key:''},
+        postgres_changes:[{event:'*', schema:'public', table:'brett',
+                           filter}]}}}));
+    setInterval(()=>{ if (ws.readyState===1) ws.send(JSON.stringify(
+      {topic:'phoenix', event:'heartbeat', payload:{}, ref:'h'})); }, 25000);
+  };
+  ws.onmessage = m=>{
+    let n; try{ n = JSON.parse(m.data); } catch(e){ return; }
+    if (n.event === 'phx_reply' && n.ref === '1'
+        && n.payload && n.payload.status === 'ok'){
+      bestaetigt = true; clearTimeout(frist);
+      anzeigen('gut', 'Gemeinsam · sofort');
+      holen(true);
+    }
+    if (n.event === 'postgres_changes'){
+      if (meine !== wechselNr) return;      // Kanal der vorigen Gruppe
+      const z = n.payload && n.payload.data && n.payload.data.record;
+      if (z && z.raum === raum){
+        if (z.wann > zuletztGesehen) zuletztGesehen = z.wann;
+        uebernehmen(z);
+      }
+    }
+  };
+  ws.onclose = ()=>{ if (bestaetigt){ anzeigen('fehler','Verbindung verloren'); nachfragen(); } };
+  ws.onerror = ()=>{};
+  kanal = ws;
+}
+
+function nachfragen(){
+  if (pollen) return;
+  anzeigen('gut', 'Gemeinsam · im Sekundentakt');
+  holen(true);
+  pollen = setInterval(()=>holen(true), 1000);    // M3: 4
+}
+
+/* ---------- Wie viele Etappen hat die Flaeche? ----------
+   Fuer den Filter braucht das Abonnement die Namen ALLER Raeume dieser
+   Gruppe, nicht nur des aktuellen. Die Zahl der Etappen sagt die
+   Flaeche selbst (`ETAPPEN`), nicht dieses Modul - sonst stuende hier
+   eine Drei, die niemand nachfuehrt, wenn eine Etappe dazukommt.
+
+   Eins mehr als gefunden, als Reserve: Ein Filter, der einen Raum
+   nicht nennt, laesst dessen Zeilen still verschwinden - und still ist
+   der schlechteste Fehler. */
+function raeume(){
+  return [ROH];                    // M3: 1
+}
+
+/* ---------- Anfangen ----------
+   Getrennt vom Laden, damit die Gruppennummer aus dem Startfeld kommen
+   darf. Zweimal gerufen tut nichts - `gestartet` haelt das fest. */
+let gestartet = false;
+
+/* Zaehlt die Gruppenwechsel. Jede Antwort - aus `holen()` wie aus dem
+   Realtime-Kanal - traegt die Nummer, die beim Losschicken galt. Kommt
+   sie nach einem Wechsel an, gehoert sie zum ALTEN Raum und wird
+   verworfen. Ohne das setzt eine verspaetete Antwort die Karten der
+   vorigen Gruppe auf das frisch gebaute Brett. */
+let wechselNr = 0;
+
+function starten(name){
+  /* FEHLERBEHOBEN (2026-09-23, Lars' Messung): Hier stand nur
+     `if (gestartet) return;`. Der erste Aufruf hielt den Raum fuer
+     immer fest - `gruppeGewaehlt()` ruft `starten()` bei JEDEM
+     Wechsel, und ab dem zweiten Mal lief es ins Leere. Adresse und
+     Stand sagten die neue Gruppe, das Brett schrieb weiter in die
+     alte.
+
+     Lars hat es dreifach gemessen: der Koerper einer Schreibanfrage
+     nannte `…-g5-e1`, waehrend Adresse und Stand Gruppe 12 sagten; ein
+     Durchgang durch die Gruppen 5 bis 12 hinterliess auf dem Brett
+     einen EINZIGEN Raum mit 22 Zeilen; und 200 ms nach dem Wechsel
+     erschien die Notiz der vorigen Gruppe im frisch gebauten Feld.
+
+     Ein echter Wechsel baut die Verbindung ab und neu auf. Beides ist
+     noetig: Der Realtime-Filter nennt die Raeume der ALTEN Gruppe, und
+     zwei offene Kanaele wuerden sich vervielfachen. */
+  if (gestartet){
+    if (!name || name === ROH) return;      // dieselbe Gruppe: nichts zu tun
+    wechselNr++;
+    ROH = name;
+    raum = ROH;                      // M3: 1
+    letzter = {};
+    letzterWert = {};                 // M3: 3
+    bereit = false;
+    zuletztGesehen = '1970-01-01T00:00:00Z';
+    try { if (kanal) kanal.close(); } catch(_) {}
+    kanal = null;
+    if (pollen){ clearInterval(pollen); pollen = null; }
+    anzeigen('warten', 'Gemeinsames Brett wird verbunden …');
+    realtime();
+    return;
+  }
+  if (name) ROH = name;
+  if (!ROH) return;                 // keine Gruppe, keine Adresse: allein
+  gestartet = true;
+  raum = ROH;                      // M3: 1
+  anzeigen('warten', 'Gemeinsames Brett wird verbunden …');
+  realtime();
+}
+
+/* Das Startfeld ruft das hier, sobald die Gruppe gewaehlt ist. */
+window.KASPER_GEMEINSAM_START = starten;
+
+/* Steht der Raum schon in der Adresse, wird nicht gewartet. Das ist der
+   Weg fuer Rikes fertige Links und fuer jedes Neuladen mitten in der
+   Sitzung - dort hat das Startfeld die Gruppe bereits in die Adresse
+   geschrieben. */
+if (ROH) starten();
+
+window.GEMEINSAM = {raum: ()=>raum, ich: ICH, raeume, wert, spiel,   // M3: 3
+  gestartet: () => gestartet,
+  /* NEU (2026-10-20): Die Etappe sagt, was alle ohnehin wissen - etwa
+     «nach dem Rundenwechsel liegen alle Karten auf dem Tisch» -, damit es
+     NICHT gemeldet wird. Sonst ging beim Wechsel jede Karte einzeln
+     hinaus und konnte eine Karte ueberschreiben, die jemand anderes in
+     derselben Sekunde schon gelegt hatte. */
+  bekannt: (id, s) => { letzter[id] = schluessel(s); },
+  // Alles noch einmal lesen - nach einem Rundenwechsel, der die Karten
+  // neu aufgebaut hat, waehrend schon Zeilen hereinkamen.
+  neuHolen: () => holen(true),
+  bereit: () => bereit,
+  leeren: async ()=>{
+    await fetch(REST + '?raum=eq.' + encodeURIComponent(raum),
+                {method:'DELETE', headers: KOPF});
+    letzter = {};
+  }};
+
+})();

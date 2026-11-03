@@ -1,0 +1,150 @@
+<!doctype html>
+<!-- VORLAGE fuer ausgabe/meilenstein_3/leitung.html. flaeche.py setzt die
+     Daten an der Marke nach «const L =» ein. Nicht die Ausgabe von Hand aendern.
+
+     Rikes Leitungsseite (Ablauf-Vorschlag D, Rike 2026-10-30: «Ja, D und
+     F3»): alle Gruppen eines Tages, der Schritt, in dem jede ist, ein Knopf
+     zum Oeffnen (mit Leitungslink, also mit geteilter Simulation) und einer
+     zum Weiterschicken. Gelesen wird nur die Zeile «#spiel» jedes Raums;
+     geschrieben nur beim Weiterschicken - dieselbe Zeile, die «Weiter» in
+     der Gruppe schreibt. -->
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meilenstein 3 · Leitung</title>
+<style>
+:root{--grund:#f4efe6;--text:#2b2622;--matt:#7a7268;--akzent:#B5762F;--linie:rgba(0,0,0,.1)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--grund);color:var(--text);
+  font:15px/1.45 "Source Sans 3","Source Sans Pro",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:22px;margin:0 0 4px}
+.unter{color:var(--matt);margin:0 0 18px;font-size:14px}
+.kopf{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.kopf input{font:inherit;padding:4px 8px;border:1px solid var(--linie);border-radius:2px;background:#fff}
+.stand{color:var(--matt);font-size:13px}
+table{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 14px rgba(0,0,0,.06)}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--linie);vertical-align:middle}
+th{font-size:12.5px;color:var(--matt);font-weight:600}
+td.gr{font-weight:600;white-space:nowrap}
+td.schr b{display:inline-block;min-width:1.6em}
+.leiste{display:flex;gap:4px}
+.leiste i{width:14px;height:8px;background:#e8e0d3;display:block}
+.leiste i.an{background:var(--akzent)}
+button,a.knopf{font:inherit;font-size:13px;padding:4px 12px;border:1px solid var(--linie);border-radius:2px;
+  background:#fff;color:var(--text);cursor:pointer;text-decoration:none;white-space:nowrap}
+button:hover,a.knopf:hover{border-color:var(--akzent);color:var(--akzent)}
+.leer td{color:var(--matt)}
+.leer td.gr{font-weight:400}
+.sperre{background:#fff;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.sperre input{font:inherit;padding:4px 8px;margin-right:6px}
+.fehler{color:#b03a2e}
+</style>
+</head>
+<body>
+<main>
+  <h1>Meilenstein 3 · Leitung</h1>
+  <p class="unter">Alle Gruppen eines Tages. «Öffnen» geht mit dem Leitungslink in die Gruppe:
+    Eine Simulation, die du dort öffnest, sehen alle der Gruppe.</p>
+  <div id="inhalt"></div>
+</main>
+<script>
+const L = {"url": "https://sklhmtilrmltkosyiyvl.supabase.co", "schluessel": "sb_publishable_IryjVb6sPqCQBZfoWFbMVQ_8HhlDYmi", "vorsatz": "kz-m3-hs26", "gruppen_max": 15, "leitung": "039b0765057f53b927aea0bf14d9aacaef9eb2d9711f5f8b3c54fa7a767fe539", "schritte": ["Iteratoren sortieren", "Iteratoren besprechen", "Bahnen legen", "Zyklen zählen", "Länge 5 bis 7", "Wegnehmen"], "orte": ["Etappe 1 · Sortieren", "Etappe 1 · Besprechen", "Etappe 2 · Sortieren", "Etappe 2 · Besprechen Zählen", "Etappe 2 · Besprechen Vermuten", "Etappe 2 · Besprechen Wegnehmen"]};
+const REST = L.url + '/rest/v1/brett';
+const KOPF = {apikey: L.schluessel, Authorization: 'Bearer ' + L.schluessel,
+              'Content-Type': 'application/json'};
+const inhalt = document.getElementById('inhalt');
+const wort = (new URLSearchParams(location.search).get('leitung') || '').trim().toLowerCase();
+
+function heute(){
+  const d = new Date();
+  return d.getFullYear().toString().slice(2) + String(d.getMonth() + 1).padStart(2, '0')
+       + String(d.getDate()).padStart(2, '0');
+}
+const tag = () => (document.getElementById('tag') || {}).value || heute();
+const raum = (t, nr) => L.vorsatz + '-' + t + '-g' + nr;
+const ortname = e => e >= L.orte.length ? 'Mitnehmen' : L.orte[e];
+
+async function pruefen(w){
+  if (!w || !(window.crypto && crypto.subtle)) return false;
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(w));
+  return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join('') === L.leitung;
+}
+
+let spiele = {};          // raum -> {e, n}
+async function holen(){
+  const st = document.getElementById('stand');
+  try {
+    const a = await fetch(REST + '?raum=like.' + encodeURIComponent(L.vorsatz + '-' + tag() + '-g*')
+                          + '&karte=eq.' + encodeURIComponent('#spiel') + '&select=raum,ort,x', {headers: KOPF});
+    if (!a.ok) throw new Error('HTTP ' + a.status);
+    spiele = {};
+    (await a.json()).forEach(z => {
+      const m = z.ort.match(/^e(\d+)-t\d+$/);
+      if (m) spiele[z.raum] = {e: Number(m[1]), n: z.x};
+    });
+    if (st){ st.className = 'stand'; st.textContent = 'gelesen ' + new Date().toLocaleTimeString('de-CH'); }
+    zeichnen();
+  } catch(e){
+    if (st){ st.className = 'stand fehler'; st.textContent = 'Brett nicht erreichbar'; }
+  }
+}
+
+async function weiterschicken(nr){
+  const r = raum(tag(), nr), s = spiele[r];
+  if (!s || s.e >= L.schritte.length) return;
+  if (!confirm('Gruppe ' + nr + ' von ' + ortname(s.e) + ' zu ' + ortname(s.e + 1) + ' schicken?')) return;
+  const a = await fetch(REST, {method: 'POST',
+    headers: Object.assign({}, KOPF, {Prefer: 'resolution=merge-duplicates,return=minimal'}),
+    body: JSON.stringify([{raum: r, karte: '#spiel', ort: 'e' + (s.e + 1) + '-t0', x: s.n + 1, y: 0, rot: 0}])});
+  if (!a.ok) alert('Nicht gesendet (HTTP ' + a.status + ')');
+  holen();
+}
+
+function zeichnen(){
+  const t = tag();
+  const zeilen = [];
+  for (let nr = 1; nr <= L.gruppen_max; nr++){
+    const r = raum(t, nr), s = spiele[r];
+    const link = 'index.html?raum=' + encodeURIComponent(r) + '&leitung=' + encodeURIComponent(wort);
+    /* GEAENDERT (Rike, 2026-10-30: «ich komm nicht rein»): alle Gruppen
+       stehen da, auch die noch nicht begonnenen - «Öffnen» geht immer. */
+    if (!s){
+      zeilen.push(`<tr class="leer"><td class="gr">Gruppe ${nr}</td><td>noch nicht begonnen</td><td></td>
+        <td><a class="knopf" href="${link}" target="_blank" rel="noopener">Öffnen</a></td><td></td></tr>`);
+      continue;
+    }
+    const leiste = L.schritte.map((_, i) => `<i class="${i <= s.e ? 'an' : ''}"></i>`).join('');
+    zeilen.push(`<tr><td class="gr">Gruppe ${nr}</td>
+      <td class="schr"><b>${ortname(s.e)}</b></td>
+      <td><div class="leiste" title="${ortname(s.e)}">${leiste}</div></td>
+      <td><a class="knopf" href="${link}" target="_blank" rel="noopener">Öffnen</a></td>
+      <td>${s.e < L.schritte.length ? `<button data-nr="${nr}">Weiterschicken</button>` : ''}</td></tr>`);
+  }
+  const tab = document.getElementById('tabelle');
+  tab.innerHTML = `<tr><th>Gruppe</th><th>wo</th><th></th><th></th><th></th></tr>` + zeilen.join('');
+  tab.querySelectorAll('button[data-nr]').forEach(b => b.onclick = () => weiterschicken(Number(b.dataset.nr)));
+}
+
+(async function(){
+  if (!await pruefen(wort)){
+    inhalt.innerHTML = `<div class="sperre"><p>Diese Seite braucht das Leitungswort in der Adresse.</p>
+      <form id="f"><input id="w" placeholder="Leitungswort" autocomplete="off"><button>Öffnen</button></form></div>`;
+    document.getElementById('f').onsubmit = e => {
+      e.preventDefault();
+      location.search = '?leitung=' + encodeURIComponent(document.getElementById('w').value.trim());
+    };
+    return;
+  }
+  inhalt.innerHTML = `<div class="kopf"><label>Tag <input id="tag" value="${heute()}" size="7"
+      title="JJMMTT, wie in den Gruppenadressen"></label>
+    <span class="stand" id="stand"></span></div>
+    <table id="tabelle"></table>`;
+  document.getElementById('tag').addEventListener('change', holen);
+  holen();
+  setInterval(holen, 3000);
+})();
+</script>
+</body>
+</html>
