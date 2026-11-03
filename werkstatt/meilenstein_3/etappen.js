@@ -306,6 +306,7 @@ body.m3privat .auftrag .knopf.weiter{display:none}
 .m3linksbox{background:#fffefb;margin:8px;padding:8px 10px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .m3linksbox .m3werkzeug{flex-direction:column;align-items:center}
 .m3zyknav{display:flex;gap:8px;align-items:center;justify-content:center;margin:4px 0;font-size:13px}
+.m3zyknav[hidden]{display:none}
 .m3teile{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .m3teile button{font:inherit;font-size:12.5px;padding:2px 10px;border-radius:2px;cursor:pointer;
   border:1.2px solid var(--linie);background:#fff;color:var(--matt)}
@@ -1082,10 +1083,17 @@ function m3Bahnen(){
     for (let i = 1; i < ids.length; i++)
       if (W[ids[i]] === null || W[ids[i]] !== quadrat(ids[i - 1])) kette = false;
     const letzte = ids[ids.length - 1];
-    const zu = kette && (W[ids[0]] === null ? ids.length === 1
-                         : quadrat(letzte) === W[ids[0]]);
-    return {j, ids, kette, zu, laenge: zu ? ids.length : 0,
-            alle: Object.values(roh[j])};
+    const stimmt = kette && (W[ids[0]] === null ? ids.length === 1
+                             : quadrat(letzte) === W[ids[0]]);
+    /* GEAENDERT (Rike, 2026-11-03: «sobald sie den Zyklus der Laenge 4
+       erwischt haben, wird ihnen schon angegeben, dass er richtig ist ...
+       man muss entscheiden: ich bin fertig»): Die Gruppe erklaert selbst
+       «zurueck am Start» (Wert bz:<j>); erst dann sagt die Seite, ob es
+       stimmt. */
+    const fertig = stand.texte['bz:' + j] === '1';
+    const zu = fertig && stimmt;
+    return {j, ids, kette, zu, fertig, falsch: fertig && !stimmt,
+            laenge: zu ? ids.length : 0, alle: Object.values(roh[j])};
   });
 }
 
@@ -1151,7 +1159,8 @@ function m3KreisBahnen(cv, farbeVon){
    der Mitte, die anderen auf dem Kreis. `weg` sind die Laengen d, deren
    Zyklen weggenommen sind (blass grau); `farbig`: der Rest in Zyklen
    gefaerbt. Liefert die Zahl der Punkte, die noch uebrig sind. */
-function m3KreisLoesungen(cv, n, weg, farbig, farben, gewaehlt, zeigNr){
+function m3KreisLoesungen(cv, n, weg, farbig, farben, gewaehlt, zeigNr, einen){
+  if (einen === undefined) einen = true;
   const N = 2 ** n - 1;
   const S = cv.width, g = cv.getContext('2d');
   g.clearRect(0, 0, S, S);
@@ -1193,17 +1202,19 @@ function m3KreisLoesungen(cv, n, weg, farbig, farben, gewaehlt, zeigNr){
       g.lineTo(mx - l * Math.cos(w + .45), my - l * Math.sin(w + .45)); g.fill();
     });
   }
-  if (farbig) lange.forEach(i => { g.globalAlpha = .45; verbinden(zyklen[i], fz[i], 1.1, false); g.globalAlpha = 1; });
-  if (lange.length) verbinden(zyklen[lange[zeig]], fz[lange[zeig]] || '#2b2622', 2.6, true);
-  else if (gewaehlt !== undefined && von[gewaehlt] !== undefined)
+  if (farbig) lange.forEach(i => { g.globalAlpha = .8; verbinden(zyklen[i], fz[i], 1.6, false); g.globalAlpha = 1; });
+  if (einen && lange.length) verbinden(zyklen[lange[zeig]], fz[lange[zeig]] || '#2b2622', 2.6, true);
+  else if (einen && gewaehlt !== undefined && von[gewaehlt] !== undefined)
     verbinden(zyklen[von[gewaehlt]], '#8c8579', 1.8, true);
+  // Im Zustand «einen» nur der gezeigte Zyklus farbig
+  const nurDer = einen && !farbig && lange.length ? lange[zeig] : -1;
   const klein = N > 100 ? 2.6 : N > 40 ? 3.6 : 5;
   for (let k = 0; k < N; k++){
     const [x, y] = pW(k);
     const w = istWeg(k);
     if (!w) uebrig++;
     g.globalAlpha = w ? 0.18 : 1;
-    g.fillStyle = (!w && farbig && fz[von[k]]) ? fz[von[k]] : (w ? '#a39b8e' : '#2b2622');
+    g.fillStyle = (!w && (farbig || von[k] === nurDer) && fz[von[k]]) ? fz[von[k]] : (w ? '#a39b8e' : '#2b2622');
     g.beginPath(); g.arc(x, y, klein, 0, 2 * Math.PI); g.fill();
     g.globalAlpha = 1;
   }
@@ -1298,8 +1309,19 @@ function etappeZyklen(i, modus){
     const f = document.createElement('div');
     f.className = 'm3bahn' + (b && b.zu ? ' fertig' : '');
     f.style.setProperty('--fach', farbeVon(j));
-    const titel = b && b.zu ? `Zyklus der Länge ${b.laenge} ✓` : 'Bahn';
-    f.innerHTML = `<h5>${titel}</h5>`;
+    const titel = b && b.zu ? `Zyklus der Länge ${b.laenge} ✓`
+                : b && b.falsch ? 'Noch nicht zurück am Start'
+                : 'Bahn';
+    const knopf = !b || !b.ids.length ? ''
+      : b.zu ? `<button class="m3knopf leise" data-bz="${j}" data-an="">doch nicht fertig</button>`
+      : b.falsch ? `<button class="m3knopf leise" data-bz="${j}" data-an="">weiter legen</button>`
+      : `<button class="m3knopf" data-bz="${j}" data-an="1">Fertig: zurück am Start</button>`;
+    f.innerHTML = `<h5>${titel} ${knopf}</h5>`;
+    const kb = f.querySelector('button[data-bz]');
+    if (kb){
+      kb.addEventListener('pointerdown', e => e.stopPropagation());
+      kb.onclick = e => { e.stopPropagation(); m3Wert('bz:' + j, kb.dataset.an); felder(); };
+    }
     const g = document.createElement('div');
     g.className = 'feld';
     g.dataset.ort = 'B' + j;
@@ -1337,7 +1359,7 @@ function etappeZyklen(i, modus){
   }
   window._nachAblegen = () => { m3melden(); felder(); };
   window._m3neu = () => felder();
-  window._m3wert = () => {};
+  window._m3wert = name => { if (String(name).startsWith('bz:')) felder(); };
   m3Bald(felder);
   if (window._m3weg) window._m3weg();
   window.addEventListener('resize', felder);
@@ -1510,7 +1532,15 @@ function etappeZyklen(i, modus){
        eine arithmetische Sache, die eigentlich huebsch ist»). */
     function werkzeug(n, box){
       const weg = teiler(n).filter(d => stand.texte['weg:' + n + ':' + d] === '1');
-      const farbig = stand.texte['farb:' + n] === '1';
+      /* GEAENDERT (Rike, 2026-11-03: «die Striche sind schon da, die will
+         ich eigentlich noch nicht ... ich verstehe noch nicht, wann man was
+         wie anzeigen kann»): drei klare Zustaende, am Anfang nur Punkte.
+           keine  nur Punkte
+           einen  ein Zyklus verbunden, mit ◀ ▶ zum naechsten
+           alle   alle Zyklen der Laenge n verbunden und gefaerbt */
+      const zmod = modus === 'besprechen' ? (stand.texte['zmod:' + n] || 'keine')
+                                          : (stand.texte['farb:' + n] === '1' ? 'alle' : 'einen');
+      const farbig = zmod === 'alle';
       const g0 = stand.texte['gew:' + n];
       const zi = Number(stand.texte['zyk:' + n] || 0);
       const kopf = modus === 'besprechen'
@@ -1518,17 +1548,21 @@ function etappeZyklen(i, modus){
         : `<p class="m3still">Die Lösungen von <i>z</i><sup>${2 ** n}</sup> = <i>z</i>;
           die 0 in der Mitte. Einen Punkt antippen: Sein Zyklus bekommt Pfeile.</p>`;
       box.innerHTML = `${kopf}
-        <div class="m3zyknav"><button class="m3knopf" data-zyk="-1">◀</button>
+        ${modus === 'besprechen' ? `<div class="m3zyknav">Zyklen:
+          ${[['keine', 'keine'], ['einen', 'einen'], ['alle', 'alle']].map(([k, t]) =>
+            `<button class="m3knopf ${zmod === k ? 'an' : 'leise'}" data-zmod="${k}">${t}</button>`).join('')}</div>` : ''}
+        <div class="m3zyknav" ${zmod === 'einen' ? '' : 'hidden'}><button class="m3knopf" data-zyk="-1">◀</button>
           <span class="m3zyktext"></span><button class="m3knopf" data-zyk="1">▶</button></div>
         <div class="m3werkzeug"><canvas class="m3kreis" width="380" height="380"></canvas>
           <div class="m3wegknoepfe">
             ${teiler(n).map(d => `<button class="m3knopf ${weg.includes(d) ? 'an' : ''}" data-weg="${d}">Länge ${d} ${weg.includes(d) ? 'zurück' : 'wegnehmen'}</button>`).join('')}
-            <button class="m3knopf ${farbig ? 'an' : ''}" data-farb="1">Rest in Zyklen ${farbig ? 'grau' : 'färben'}</button>
+            ${modus === 'besprechen' ? '' : `<button class="m3knopf ${farbig ? 'an' : ''}" data-farb="1">Rest in Zyklen ${farbig ? 'grau' : 'färben'}</button>`}
             <span class="m3uebrig"></span></div></div>`;
       const cv = box.querySelector('canvas');
       cv.style.width = cv.style.height = modus === 'besprechen' ? 'min(380px, 100%)' : '270px';
       const res = m3KreisLoesungen(cv, n, weg, farbig, FARBEN,
-                                   g0 === undefined || g0 === '' ? undefined : Number(g0), zi);
+                                   g0 === undefined || g0 === '' ? undefined : Number(g0), zi,
+                                   zmod === 'einen');
       box.querySelector('.m3uebrig').textContent = `übrig: ${res.uebrig} von ${2 ** n}`;
       /* Springen zwischen den Zyklen der Laenge n (Rike: «zwischen Zyklus
          1, 2 und 3, sodass man das immer wirklich sieht»). */
@@ -1547,10 +1581,11 @@ function etappeZyklen(i, modus){
         m3Wert(k, stand.texte[k] === '1' ? '' : '1');
         zeichnen();
       });
-      box.querySelector('button[data-farb]').onclick = () => {
-        m3Wert('farb:' + n, farbig ? '' : '1');
-        zeichnen();
-      };
+      const bf = box.querySelector('button[data-farb]');
+      if (bf) bf.onclick = () => { m3Wert('farb:' + n, farbig ? '' : '1'); zeichnen(); };
+      box.querySelectorAll('button[data-zmod]').forEach(b => b.onclick = () => {
+        m3Wert('zmod:' + n, b.dataset.zmod); m3Wert('gew:' + n, ''); zeichnen();
+      });
       cv.style.cursor = 'pointer';
       cv.onclick = e => {
         const r = cv.getBoundingClientRect();
@@ -1558,13 +1593,15 @@ function etappeZyklen(i, modus){
         const y = cv.height / 2 - (e.clientY - r.top) / r.height * cv.height;
         let w = Math.atan2(y, x) / (2 * Math.PI); if (w < 0) w += 1;
         m3Wert('gew:' + n, Math.round(w * res.N) % res.N);
+        // Ein Punkt angetippt: seinen Zyklus zeigen
+        if (modus === 'besprechen' && zmod === 'keine') m3Wert('zmod:' + n, 'einen');
         zeichnen();
       };
     }
     window._nachAblegen = null;
     window._m3neu = () => {};
     window._m3wert = name => {
-      if (/^(loes|weg:|farb:|gew:|zyk:|aufgedeckt|geprueft)/.test(name)) { zeichnen(); return; }
+      if (/^(loes|weg:|farb:|gew:|zyk:|zmod:|aufgedeckt|geprueft)/.test(name)) { zeichnen(); return; }
       // Eine neue Person vor dem Aufdecken: nur der Zaehler aendert sich.
       // FEHLERBEHOBEN (2026-10-30, mit zwei Fenstern gesehen): Hier wurde
       // neu gezeichnet - aber nicht, solange jemand tippte, und dann blieb
@@ -1850,7 +1887,10 @@ function m3Etappe(fn){ return function(){
    Ausprobieren und Drehung sind ein Schritt; die Simulation steht als
    Spalte daneben, die Drehung liegt darin eingeklappt. */
 ETAPPEN.length = 0;
-ETAPPEN.push(m3Etappe(() => etappeIteratoren(0, 0)),
+/* GEAENDERT (Rike, 2026-11-03): ▶ schon beim Sortieren - wer unsicher
+   ist, soll ausprobieren koennen, bevor entschieden wird. Die Drehung
+   bleibt im Besprechen. */
+ETAPPEN.push(m3Etappe(() => etappeIteratoren(0, 1)),
              m3Etappe(() => etappeIteratoren(1, 2)),
              m3Etappe(() => etappeZyklen(2, 'bahnen')),
              /* GEAENDERT (Rike, 2026-11-03): Zaehlen, Vermuten und Wegnehmen
