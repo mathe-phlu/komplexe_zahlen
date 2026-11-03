@@ -32,6 +32,8 @@
           Dashboard.
    M3: 5  NEU (2026-10-30, F3): Der Wert «sim» (die Simulation der Leitung) geht an
           window._m3simBrett statt an die Etappe.
+   M3: 7  FEHLERBEHOBEN (2026-11-03): Tischkarten vom Brett nicht mehr
+          auf 0,0 gleiten lassen; Gleiten endet auf der Lage von pos().
    M3: 6  NEU (2026-10-30, Notizblatt): Werte «nb…» (Striche und Texte
           des Notizblatts) gehen an window._m3blatt.
    ============================================================ */
@@ -246,6 +248,12 @@ function uebernehmen(z){
   const s = stand.karten[z.karte];
   if (s && s.ort === z.ort && Math.abs(s.x - z.x) < 0.5
         && Math.abs(s.y - z.y) < 0.5) return;   // steht schon so
+  /* M3: 7 - FEHLERBEHOBEN (Rike, 2026-11-03: «wenn ich in der Gruppe
+     anklicke ... stapeln sich alle Karten oben»): Auf dem Tisch geht nur
+     «liegt auf dem Tisch» ueber das Brett (x = y = 0); die Lage rechnet
+     jeder Rechner selbst. Liegt die Karte hier schon auf dem Tisch, ist
+     nichts zu tun - vorher wurde sie auf 0,0 gesetzt. */
+  if (s && s.ort === z.ort && String(z.ort).startsWith('tisch')) return;
 
   const ziel = document.querySelector(`[data-ort="${z.ort}"]`)
             || document.getElementById('tisch');
@@ -264,14 +272,21 @@ function gleiten(el, ziel, z){
   ziel.appendChild(el);
   el._x = z.x; el._y = z.y; el._rot = z.rot;
   pos(el);
+  /* M3: 7 - Auf den Tisch ohne Gleiten: Den Platz dort vergibt das
+     Ordnen des Tisches (in nachtragen), nicht das Brett. */
+  if (String(z.ort).startsWith('tisch')) { nachtragen(z); return; }
   const nachher = el.getBoundingClientRect();
   const dx = vorher.left - nachher.left, dy = vorher.top - nachher.top;
   if (Math.abs(dx) < 1 && Math.abs(dy) < 1) { nachtragen(z); return; }
+  /* M3: 7 - Die Karten von Meilenstein 3 stehen per transform (pos).
+     Das Gleiten setzte am Ende nur «rotate(...)» und loeschte damit die
+     Lage; jetzt endet es auf dem, was pos() gesetzt hat. */
+  const ende = el.style.transform;
   el.style.transition = 'none';
-  el.style.transform = `translate(${dx}px,${dy}px) rotate(${el._rot||0}deg)`;
+  el.style.transform = `translate(${dx}px,${dy}px) ${ende}`;
   requestAnimationFrame(()=>{
     el.style.transition = 'transform .40s cubic-bezier(.22,.61,.36,1)';
-    el.style.transform = `rotate(${el._rot||0}deg)`;
+    el.style.transform = ende;
     setTimeout(()=>{ el.style.transition = ''; }, 440);
   });
   nachtragen(z);
