@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Rundgang Station I</title>
+<!--
+  ENTWURF (15.11.2026) - Rundgang durch Station I von MA02.02 fuer den
+  Artikel in den GDM-Mitteilungen.
+
+  Bauart: Die echten Seiten laufen UNVERAENDERT in einem Rahmen; der
+  Rundgang liegt als Kaertchen darueber und zeigt in den Rahmen hinein
+  (gleiche Herkunft, deshalb darf er dort hervorheben und klicken).
+  Nichts an Lars', Kaspers oder Pias Seiten wird dafuer geaendert -
+  es gibt also keinen zweiten Stand, der veralten kann.
+
+  Vorbild: der Rundgang der Praxisbesuche (mathe-phlu/praxisbesuche).
+  Rike, 15.11.: der dortige Kasten ist ihr zu unscheinbar, «so weisse
+  Felder». Hier deshalb Papier, Stationsfarbe, Handschrift.
+
+  Quelle: LARS/rundgang/komplexe_zahlen/. Ausgeliefert nach
+  komplexe_zahlen/rundgang/ (werkzeuge/rundgang_ausliefern.py), daher
+  BASIS '../'. Ansehen nur im gebauten Stand, nicht hier.
+-->
+<style>
+@font-face{font-family:'Fira Sans';font-weight:400;src:url(../gemeinsam/fremd/fira-400-latin.woff2) format('woff2')}
+@font-face{font-family:'Fira Sans';font-weight:500;src:url(../gemeinsam/fremd/fira-500-latin.woff2) format('woff2')}
+@font-face{font-family:'Patrick Hand';font-weight:400;src:url(../gemeinsam/fremd/patrick-400-latin.woff2) format('woff2')}
+
+:root{
+  --papier:#f8f4ec; --creme:#f6ecdf; --karte:#fffefb;
+  --tinte:#2d2924; --matt:#6c6357; --linie:#e4d9c7;
+  --fach:#0065A9; --fach-dunkel:#004f85; --fach-hell:#CCDFE7;
+  --zugang:#007D57; --beweis:#E09E5A; --aktion:#9867A5;
+  --heftlinie:rgba(0,101,169,.10);
+  --druck:'Fira Sans','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+  --hand:'Patrick Hand',cursive;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--papier);color:var(--tinte);font-family:var(--druck)}
+#buehne{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--papier)}
+
+/* ---------- das Kaertchen ---------- */
+#fuehrer{
+  position:fixed; right:22px; bottom:22px; z-index:10;
+  width:410px; max-width:calc(100vw - 24px); max-height:calc(100vh - 44px);
+  display:flex; flex-direction:column;
+  background:
+    linear-gradient(90deg, transparent 30px, rgba(192,57,43,.22) 30px, rgba(192,57,43,.22) 31px, transparent 31px),
+    repeating-linear-gradient(transparent 0 25px, var(--heftlinie) 25px 26px),
+    var(--karte);
+  border:2px solid var(--fach); border-radius:3px;
+  box-shadow:0 10px 30px rgba(45,41,36,.28);
+  transition:opacity .25s, transform .25s;
+}
+#fuehrer.links{right:auto;left:22px}
+#hinweis{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:30;background:var(--tinte);color:#fff;
+  font-size:14.5px;padding:7px 14px;border-radius:2px;box-shadow:0 6px 18px rgba(45,41,36,.3)}
+#hinweis[hidden]{display:none}
+#fuehrer.weg{opacity:0;transform:translateY(12px);pointer-events:none}
+.f-kopf{background:var(--fach);color:#fff;padding:9px 14px 11px 14px;cursor:move;user-select:none;touch-action:none;position:relative}
+.f-kopf::after{ /* gerissene Kante wie ein abgerissener Notizzettel */
+  content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;
+  background:radial-gradient(circle at 5px 0,var(--fach) 4.2px,transparent 4.6px) 0 0/10px 6px repeat-x}
+.f-zeile{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;letter-spacing:.02em;color:#d6e6f2}
+.f-zeile b{font-weight:500;color:#fff}
+.f-zu{background:transparent;border:1px solid rgba(255,255,255,.45);color:#fff;border-radius:2px;padding:1px 8px;font:inherit;font-size:12px;cursor:pointer}
+.f-zu:hover{background:var(--fach-dunkel)}
+.f-titel{margin:3px 0 0;font-family:var(--hand);font-weight:400;font-size:27px;line-height:1.1}
+
+/* der Weg durch den Rundgang: fuenf Teile wie die Abschnitte einer Station */
+.f-weg{display:flex;align-items:center;gap:0;padding:14px 16px 4px 40px}
+.f-weg button{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--fach);background:var(--karte);color:var(--fach);
+  font:500 13px/1 var(--druck);cursor:pointer;padding:0;position:relative}
+.f-weg button[aria-current="true"]{background:var(--fach);color:#fff;transform:scale(1.12)}
+.f-weg button.durch{background:var(--fach-hell)}
+.f-weg button:hover::after{content:attr(data-name);position:absolute;top:31px;left:50%;transform:translateX(-50%);white-space:nowrap;
+  font:400 12px var(--druck);color:var(--matt);background:var(--karte);padding:1px 5px;border:1px solid var(--linie)}
+.f-weg i{flex:1;height:2px;background:var(--fach-hell)}
+.f-weg i.durch{background:var(--fach)}
+
+.f-inhalt{padding:8px 18px 6px 42px;overflow:auto;font-size:15px;line-height:26px}
+.f-inhalt p{margin:0 0 6px}
+.f-inhalt ul{margin:0 0 6px;padding:0;list-style:none}
+.f-inhalt li{position:relative;padding-left:16px}
+.f-inhalt li::before{content:"";position:absolute;left:2px;top:11px;width:6px;height:6px;background:var(--fach);transform:rotate(45deg)}
+.f-inhalt .hand{font-family:var(--hand);font-size:19px;color:var(--fach)}
+.f-inhalt .notiz{margin:8px 0 4px;padding:3px 10px;background:rgba(224,158,90,.16);border-left:3px solid var(--beweis);line-height:24px}
+.f-inhalt .notiz b{font-weight:500}
+.f-inhalt kbd{font-family:var(--druck);font-size:13px;border:1px solid var(--linie);border-bottom-width:2px;padding:0 5px;background:var(--karte);border-radius:2px}
+.f-tun{margin:4px 0 8px;font:500 14px var(--druck);color:var(--fach);background:var(--karte);border:1.5px dashed var(--fach);border-radius:2px;padding:4px 10px;cursor:pointer}
+.f-tun:hover{background:var(--fach-hell)}
+
+.f-fuss{display:flex;align-items:center;gap:8px;padding:9px 14px 12px 42px;border-top:1px solid var(--linie);background:rgba(255,254,251,.85)}
+.f-fuss .zahl{margin-right:auto;font-size:12.5px;color:var(--matt)}
+.knopf{font:500 14.5px var(--druck);border-radius:2px;padding:6px 14px;cursor:pointer;border:1.5px solid var(--fach);background:var(--karte);color:var(--fach)}
+.knopf.haupt{background:var(--fach);color:#fff}
+.knopf.haupt:hover{background:var(--fach-dunkel)}
+.knopf:disabled{opacity:.35;cursor:default}
+
+/* eigener Weg: der Rundgang wartet */
+.f-eigen{display:none;padding:10px 18px 4px 42px;font-size:14.5px;line-height:24px;color:var(--matt)}
+#fuehrer.eigen .f-eigen{display:block}
+#fuehrer.eigen .f-inhalt,#fuehrer.eigen .f-weg{opacity:.35}
+
+
+/* ---------- der Finger ---------- */
+#finger{position:fixed;left:0;top:0;z-index:40;pointer-events:none;width:56px;height:67px;margin:-4px 0 0 -18px;opacity:0;
+  transition:transform .65s cubic-bezier(.45,.05,.25,1),opacity .25s;filter:drop-shadow(0 3px 4px rgba(45,41,36,.35))}
+#finger.da{opacity:1}
+#finger svg{display:block;width:56px;height:67px;transition:transform .15s;transform-origin:18px 4px}
+#finger.drueckt svg{transform:scale(.86) translateY(2px)}
+.tippring{position:fixed;z-index:39;width:22px;height:22px;margin:-11px 0 0 -11px;border:3px solid var(--fach);border-radius:50%;
+  pointer-events:none;animation:tippring .6s ease-out forwards}
+@keyframes tippring{from{transform:scale(.6);opacity:1}to{transform:scale(3.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){#finger{transition:opacity .2s}.tippring{animation-duration:.01s}}
+
+/* ---------- der Anfang ---------- */
+#anfang{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(45,41,36,.38)}
+#anfang[hidden]{display:none}
+.a-blatt{width:620px;max-width:100%;max-height:100%;overflow:auto;background:
+    linear-gradient(90deg, transparent 46px, rgba(192,57,43,.22) 46px, rgba(192,57,43,.22) 47px, transparent 47px),
+    repeating-linear-gradient(transparent 0 27px, var(--heftlinie) 27px 28px), var(--karte);
+  border-top:10px solid var(--fach);box-shadow:0 18px 50px rgba(45,41,36,.35);padding:22px 30px 22px 62px;line-height:28px}
+.a-blatt .ueber{font-size:12.5px;letter-spacing:.06em;color:var(--matt);text-transform:uppercase}
+.a-blatt h1{font-family:var(--hand);font-weight:400;font-size:40px;line-height:1.1;margin:4px 0 10px;color:var(--fach)}
+.a-blatt p{margin:0 0 12px;font-size:15.5px}
+.a-weg{list-style:none;margin:6px 0 16px;padding:0;counter-reset:t}
+.a-weg li{position:relative;padding:0 0 10px 40px;font-size:15px;line-height:22px}
+.a-weg li::before{counter-increment:t;content:counter(t);position:absolute;left:0;top:-2px;width:26px;height:26px;border-radius:50%;background:var(--fach);color:#fff;font:500 13px/26px var(--druck);text-align:center}
+.a-weg li:not(:last-child)::after{content:"";position:absolute;left:12px;top:24px;bottom:0;width:2px;background:var(--fach-hell)}
+.a-weg b{font-family:var(--hand);font-weight:400;font-size:20px;color:var(--tinte)}
+.a-knoepfe{display:flex;gap:10px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  #fuehrer{right:6px;left:6px;bottom:6px;width:auto;max-height:52vh}
+  .f-kopf{cursor:default}
+  .f-inhalt,.f-fuss,.f-eigen{padding-left:18px}
+  .f-weg{padding-left:18px}
+  #fuehrer{background:repeating-linear-gradient(transparent 0 25px, var(--heftlinie) 25px 26px),var(--karte)}
+  .a-blatt{padding:18px 18px 18px 24px;background:var(--karte)}
+}
+</style>
+</head>
+<body>
+<iframe id="buehne" title="Material Komplexe Zahlen"></iframe>
+
+<div id="anfang">
+  <div class="a-blatt">
+    <div class="ueber">MA02.02 Komplexe Zahlen · PH Luzern</div>
+    <h1>Ein Rundgang durch Station I</h1>
+    <p>Das Modul hat vier Stationen. Die erste lässt sich hier ganz ansehen:
+      so, wie Studierende sie vorfinden, mit allen Videos, Aufgaben, Lösungen und Applets.
+      Der Rundgang zeigt die Stellen, auf die es ankommt; dazwischen darf frei geklickt werden.</p>
+    <ol class="a-weg">
+      <li><b>Das Material</b> — vier Stationen auf einen Blick</li>
+      <li><b>Station I</b> — Skript, Playliste und Werkstatt: drei Eingänge zu denselben Inhalten</li>
+      <li><b>Die Werkstatt</b> — Video, Aufgabe, Lösung, Applet, Notizblatt</li>
+      <li><b>Der Abschluss</b> — die Station auf einer Seite, Ordnung machen</li>
+      <li><b>Meilenstein und Prüfung</b> — was danach kommt</li>
+    </ol>
+    <p style="color:var(--matt);font-size:14px">Gespeichert oder aufgezeichnet wird dabei nichts.</p>
+    <div class="a-knoepfe">
+      <button class="knopf haupt" id="los">Rundgang beginnen</button>
+      <button class="knopf" id="frei">Lieber selbst erkunden</button>
+    </div>
+  </div>
+</div>
+
+<div id="fuehrer" class="weg" role="dialog" aria-label="Rundgang">
+  <div class="f-kopf" id="griff">
+    <div class="f-zeile"><span id="teilname"></span><span><button class="f-zu" id="heim" title="zur Startseite des Materials">⌂</button> <button class="f-zu" id="zu" title="Rundgang ausblenden">✕ ausblenden</button></span></div>
+    <h2 class="f-titel" id="titel"></h2>
+  </div>
+  <nav class="f-weg" id="weg" aria-label="Teile des Rundgangs"></nav>
+  <div class="f-eigen" id="eigen">
+    <span class="hand" style="font-size:19px;color:var(--fach)">Eigener Weg.</span>
+    Der Rundgang wartet so lange.
+    <div><button class="f-tun" id="zurueck">↩ zurück zum Rundgang</button></div>
+  </div>
+  <div class="f-inhalt" id="inhalt"></div>
+  <div class="f-fuss">
+    <span class="zahl" id="zahl"></span>
+    <button class="knopf" id="vor-zurueck">‹ zurück</button>
+    <button class="knopf haupt" id="weiter">weiter ›</button>
+  </div>
+</div>
+
+<div id="hinweis" hidden></div>
+<div id="finger" aria-hidden="true"><svg viewBox="0 0 40 48" width="40" height="48"><path d="M13 3c2.2 0 4 1.8 4 4v14.5l.9-.2c.6-1.6 2.1-2.7 3.9-2.7s3.3 1.1 3.9 2.6c.6-.4 1.3-.6 2.1-.6 1.9 0 3.4 1.3 3.9 3 .5-.2 1-.3 1.5-.3 2.2 0 4 1.8 4 4v9.2C37.2 42.6 32 47 25.6 47h-3.8c-4.2 0-8-2.2-10.1-5.8L3.9 30.4c-.9-1.6-.4-3.6 1.2-4.5 1.4-.8 3.1-.5 4.1.7L9 28.9V7c0-2.2 1.8-4 4-4z" fill="#fffefb" stroke="#2d2924" stroke-width="2" stroke-linejoin="round"/><path d="M17 22v7M21.8 21.5v7.5M27.6 23v6" stroke="#2d2924" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg></div>
+
+<button id="heim2" class="knopf" hidden title="zur Startseite des Materials"
+  style="position:fixed;right:150px;bottom:22px;z-index:9;font-size:17px;padding:6px 12px">⌂</button>
+<!-- wieder einblenden, wenn ausgeblendet -->
+<button id="wieder" class="knopf haupt" hidden
+  style="position:fixed;right:22px;bottom:22px;z-index:9;font-family:var(--hand);font-weight:400;font-size:19px;padding:6px 16px">
+  ▶ Rundgang</button>
+
+<script>
+'use strict';
+const BASIS = '../';
+const BASIS_ABS = new URL(BASIS, location.href).href;
+const buehne = document.getElementById('buehne');
+const $ = (id) => document.getElementById(id);
+const pause = (ms) => new Promise(r => setTimeout(r, ms));
+
+const TEILE = ['Das Material', 'Station I', 'Die Werkstatt', 'Der Abschluss', 'Meilenstein und Prüfung'];
+
+/* Der Meilenstein laesst sich erst ausprobieren, wenn Kasper einen
+   Ansichtsmodus ohne Gruppenbrett hat (FUER-KASPER-meilenstein-ansehen.md).
+   Bis dahin bleibt er im Rundgang zum Ansehen gesperrt. */
+const MEILENSTEIN_PROBE = false;
+
+/* Hilfen fuer den Blick in den Rahmen */
+const doc = () => { try { return buehne.contentDocument; } catch (e) { return null; } };
+const win = () => buehne.contentWindow;
+const q = (s) => doc() && doc().querySelector(s);
+const sichtbar = (s) => doc() && [...doc().querySelectorAll(s)].find(e => !e.closest('[hidden]') && e.getClientRects().length);
+/* Ziel eines Fingers: Selektor im Rahmen, Funktion, oder '#id' im Rundgang selbst (oben:true) */
+function finde(t){
+  if (!t) return null;
+  if (typeof t === 'function') return t();
+  if (t.oben) return document.querySelector(t.sel);
+  return sichtbar(t.sel || t) || q(t.sel || t);
+}
+const reiter = (wort, in_ = '.tafel:not([hidden])') => () =>
+  [...(doc() ? doc().querySelectorAll(in_ + ' .reiter button') : [])].find(x => x.textContent.includes(wort));
+
+/* ================================================================
+   Der Finger. Er zeigt, wohin geklickt wird - jeder Seitenwechsel
+   und jedes Aufklappen geschieht sichtbar durch ihn (Rike, 15.11.:
+   «dass man wirklich sieht, vielleicht auch mit so einem Finger,
+   der da irgendwie draufklickt»).
+   ================================================================ */
+const finger = $('finger');
+let fingerDa = false;
+function fingerHin(x, y, ms){
+  finger.style.transitionDuration = (ms || 650) + 'ms';
+  finger.style.transform = `translate(${x}px, ${y}px)`;
+}
+async function zeigeAuf(el){
+  if (!el) return null;
+  const innen = el.ownerDocument !== document;
+  if (innen) { el.scrollIntoView({behavior:'smooth', block:'center'}); await pause(450); }
+  const r = el.getBoundingClientRect();
+  const x = r.left + Math.min(r.width / 2, 120), y = r.top + Math.min(r.height / 2, 40);
+  if (!fingerDa) {   // erscheint neben dem Kaertchen
+    const k = $('fuehrer').getBoundingClientRect();
+    fingerHin(k.left + 30, k.top + 20, 0); await pause(30);
+    finger.classList.add('da'); fingerDa = true;
+  }
+  fingerHin(x, y); await pause(700);
+  return [x, y];
+}
+async function tippe(el){
+  const p = await zeigeAuf(el); if (!p) return false;
+  finger.classList.add('drueckt');
+  const ring = document.createElement('div'); ring.className = 'tippring';
+  ring.style.left = p[0] + 'px'; ring.style.top = p[1] + 'px';
+  document.body.appendChild(ring); setTimeout(() => ring.remove(), 700);
+  await pause(220); finger.classList.remove('drueckt'); await pause(180);
+  return true;
+}
+/* Ziehen: das Notizblatt hat keinen Knopf, man zieht es am Rand heraus
+   (Rike, 23.08.). Der Finger zieht ueber den echten Griff - es laeuft
+   der Code der Seite, nichts wird nachgebaut. */
+async function ziehe(el, px){
+  const p = await zeigeAuf(el); if (!p) return;
+  const P = win().PointerEvent;
+  const ev = (t, x) => el.dispatchEvent(new P(t, {bubbles:true, clientX:x, clientY:p[1], pointerId:1, pointerType:'mouse', isPrimary:true}));
+  finger.classList.add('drueckt'); ev('pointerdown', p[0]);
+  const n = 14;
+  for (let i = 1; i <= n; i++) {
+    const x = p[0] - px * i / n;
+    fingerHin(x, p[1], 40); ev('pointermove', x); await pause(40);
+  }
+  ev('pointerup', p[0] - px); finger.classList.remove('drueckt'); await pause(200);
+}
+function fingerWeg(){ finger.classList.remove('da'); fingerDa = false; }
+
+/* ================================================================
+   Die Schritte.
+   seite  wo der Schritt steht
+   hin    {von, sel}: so kommt man hin - der Finger klickt auf `sel`,
+          und zwar auf der Seite `von`. Faellt weg, wenn man springt.
+   tun    was auf der Seite noch geklickt oder gezogen wird
+   ziel   was danach hervorgehoben ist
+   ================================================================ */
+const ST1 = 'station-1/index.html', E3 = 'lernweg-1/c-ist-abgeschlossen/index.html',
+      E8 = 'lernweg-1/potenzieren/index.html', AB = 'lernweg-1/abschluss/index.html';
+
+const SCHRITTE = [
+  /* ---------- 1 · Das Material ---------- */
+  { teil:0, seite:'index.html', ziel:'.stationen', titel:'Vier Stationen',
+    text:`<p>Das ist die Startseite des Materials. Jede Station ist ein Kapitel des Skripts, und jede hat ihre Farbe:</p>
+      <ul><li><b>I</b> Komplexe Zahlen — blau</li><li><b>II</b> Komplexe Funktionen — grün</li>
+      <li><b>III</b> Komplexe Folgen — ocker</li><li><b>IV</b> Komplexe Potenzen — lila</li></ul>
+      <p class="notiz"><b>Im Rundgang ist nur Station I offen.</b> Die anderen sind zu sehen, lassen sich aber nicht öffnen.</p>
+      <p>Mit «weiter» geht es in Station I hinein.</p>` },
+
+  /* ---------- 2 · Station I ---------- */
+  { teil:1, seite:ST1, hin:{von:'index.html', sel:'.stationen a[href*="station-1"]'}, ziel:'.ueberblick', titel:'Hinein in Station I',
+    text:`<p>Station I gliedert sich in <b>vier Kapitel</b>:</p>
+      <ul><li>Entdeckung der komplexen Zahlen</li><li>Konstruktion der komplexen Zahlen</li>
+      <li>Darstellung der komplexen Zahlen</li><li>Erweiterung der Rechenoperationen</li></ul>
+      <p>Durch alle Kapitel arbeitet man sich hindurch, und zwar auf einem von drei Wegen.</p>` },
+  { teil:1, seite:ST1, ziel:'.werkzeuge', titel:'Drei Wege durch dieselben Kapitel',
+    text:`<p>Die drei Wege führen durch <b>dieselben</b> Inhalte. Unterschiedlich ist nur, wo man anfängt:</p>
+      <ul><li><b>Skript</b>: lesen</li><li><b>Playliste</b>: zuschauen</li><li><b>Werkstatt</b>: alles beieinander, Etappe für Etappe</li></ul>
+      <p>Wir klicken alle drei der Reihe nach an.</p>` },
+  { teil:1, seite:'unterlagen/MA02.02_Skript-Kapitel-1_HS26.pdf#page=5', hin:{von:ST1, sel:'.werkzeuge .karte:nth-child(1)'}, ziel:null, titel:'Das Skript',
+    text:`<p>Ein Klick auf «Skript» öffnet das Skript der Station als PDF, hier auf Seite 5.</p>
+      <ul><li>Der <b>QR-Code am Rand</b> führt zum Video dieses Abschnitts.</li>
+      <li>Der <b>QR-Code am Aufgabenkasten</b> führt zu Starthilfe und Lösung der Aufgabe.</li></ul>
+      <p>Am Bildschirm lassen sich die Codes auch anklicken. Wer lieber liest, kommt so überall hin, ohne das Skript zu verlassen.</p>
+      <p style="font-size:13.5px"><a href="../unterlagen/MA02.02_Skript-Kapitel-1_HS26.pdf#page=5" target="_blank" rel="noopener">Skript in neuem Fenster öffnen ↗</a></p>` },
+  { teil:1, seite:'./playliste.html', hin:{von:ST1, sel:'.werkzeuge .karte:nth-child(2)'}, ziel:null, titel:'Die Playliste',
+    text:`<p>Ein Klick auf «Playliste» führt aus dem Material hinaus, zu <b>YouTube</b>. Dort laufen alle Videos der Station hintereinander. Skript und Aufgaben holt man danach.</p>
+      <p>Teil 1 bis 7 sind neu aufgenommen, ab Teil 8 laufen ältere, geschnittene Aufnahmen.</p>
+      <p style="font-size:13.5px;color:var(--matt)">Im Rundgang erscheint die Playliste gleich hier, damit man nicht herausfällt.</p>` },
+
+  /* ---------- 3 · Die Werkstatt ---------- */
+  { teil:2, seite:'lernweg-1/index.html', hin:{von:ST1, sel:'.werkzeuge .karte:nth-child(3)'}, ziel:'.zeitstrahl', titel:'Die Werkstatt',
+    text:`<p>Der dritte Weg ist die <b>Werkstatt</b>. Oben liegt die ganze Station als Landkarte: die vier Kapitel, darin die Etappen.</p>
+      <ul><li><span class="hand">?</span> zweigt zu einem <b>Hilfevideo</b> ab, für wen es braucht.</li>
+      <li><span class="hand">★</span> zweigt zu einem <b>Bonus</b> ab, für wen es mag.</li></ul>
+      <p>Wir klicken auf Etappe 3.</p>` },
+  { teil:2, seite:E3, hin:{von:'lernweg-1/index.html', sel:'.zeitstrahl a[href*="c-ist-abgeschlossen"]'}, ziel:'.marken', titel:'Eine Etappe: Video mit Stopps',
+    text:`<p>Jede Etappe ist ein Video. Daneben stehen nummerierte <b>Stopps</b>: Erreicht das Video einen Stopp, hält es an, und die Aufgabe erscheint, die jetzt dran ist.</p>
+      <p>Vorher steht dort absichtlich nichts. Die Aufgabe soll kommen, wenn sie dran ist.</p>
+      <p>Die Stopps lassen sich auch direkt anklicken.</p>` },
+  { teil:2, seite:E3, tun:[{sel:'.marken button[data-marke="0"]'}], ziel:'.tafel:not([hidden])', titel:'Die Aufgabe',
+    text:`<p>Ein Klick auf Stopp 1 zeigt Aufgabe I.3. Darunter gibt es zwei Reiter:</p>
+      <ul><li><b>Starthilfe</b>: ein, zwei Fragen, die den Einstieg öffnen</li><li><b>Lösung</b>: der ganze Weg</li></ul>` },
+  { teil:2, seite:E3, tun:[{sel:'.marken button[data-marke="0"]', nurWenn:() => q('.marken button[data-marke="0"]')?.getAttribute('aria-current') !== 'true'},
+                         {sel:reiter('Lösung')}],
+    ziel:'.tafel:not([hidden]) .faltung:not([hidden])', titel:'Wie Lösungen dastehen',
+    text:`<p>Ein Klick auf «Lösung» klappt den ganzen Weg auf, Schritt für Schritt. Wo es ein Prinzip dahinter gibt, steht es als <b>Merksatz</b> daneben.</p>
+      <p>Dieselbe Lösung steht im Lösungsband und auf der Aufgabenseite. Alles wird aus demselben LaTeX-Skript erzeugt.</p>` },
+  { teil:2, seite:E3, ziel:'.nebendran', titel:'Hilfe direkt am Video',
+    text:`<p>Unter dem Video stehen die Hilfevideos dieser Etappe, dieselben wie das <span class="hand">?</span> auf der Landkarte.</p>` },
+  { teil:2, seite:E3, tun:[{sel:'.notizziehen', ziehen:true}], ziel:'.notizschirm', titel:'Das Notizblatt',
+    text:`<p>Am rechten Rand schaut immer ein Stift heraus. Zieht man ihn nach links, kommt ein <b>Notizblatt</b> herein, bis zur halben Seite.</p>
+      <ul><li>Mit Stift oder Finger schreibt man von Hand; man kann auch tippen.</li>
+      <li>Jede Etappe hat ein eigenes Blatt. Kommt man zurück, steht es wieder da.</li>
+      <li>Am Ende lassen sich alle Blätter eines Kapitels als PDF herunterladen.</li></ul>
+      <p>Wegschieben geht mit <kbd>Esc</kbd> oder zurück an den Rand.</p>` },
+  { teil:2, seite:E8, hin:{von:E3, sel:'.zeitstrahl a[href*="potenzieren"]'},
+    tun:[{sel:'.marken button[data-marke="0"]'}, {sel:reiter('GeoGebra', '#aufgabe-I-10')}],
+    ziel:'#applet-I-10', warte:900, titel:'Ein Applet in der Aufgabe',
+    text:`<p>Etappe 8, eine der älteren Aufnahmen. Aufgabe I.10 hat einen dritten Reiter: <b>GeoGebra</b>.</p>
+      <p>Das Applet öffnet sich direkt unter dem Video und lässt sich dort bedienen. Es braucht einen Moment, bis es von GeoGebra geladen ist. Wechselt man zur nächsten Aufgabe, wird es wieder weggeräumt.</p>` },
+
+  /* ---------- 4 · Der Abschluss ---------- */
+  { teil:3, seite:AB, hin:{von:E8, sel:'a.wegknopf.abschluss'}, ziel:'.abschlussknoepfe', titel:'Am Ende der Station',
+    text:`<p>Nach der letzten Etappe kommt der <b>Abschluss</b>. Hier laufen die Wege zusammen:</p>
+      <ul><li><b>Station auf einer Seite</b></li><li><b>Meilenstein</b></li><li><b>Prüfung</b></li></ul>
+      <p>Darunter kann man Ordnung machen.</p>` },
+  { teil:3, seite:AB, ziel:'.abschlussknoepfe .abschlussknopf:nth-child(1)', titel:'Station auf einer Seite',
+    text:`<p>Die ganze Station auf einem Blatt, als PDF: zum Ausdrucken oder um es beim Lernen danebenzulegen.</p>` },
+  { teil:3, seite:AB, ziel:'.sortierkopf', titel:'Ordnung machen',
+    text:`<p>Jedes Kärtchen ist ein <b>Lernziel</b> der Station. Die Farbe sagt, zu welcher Kompetenz es gehört: Begriffe, Darstellungen, Begründen oder Verfahren.</p>
+      <p>Die Kärtchen lassen sich frei verschieben, so wie man selbst die Station ordnen würde. Eine richtige Anordnung gibt es nicht. Dazwischen kann man von Hand schreiben oder tippen.</p>` },
+  { teil:3, seite:AB, ziel:'.notizleiste[data-lage="block"]', titel:'Ausprobieren erlaubt',
+    text:`<p>Das ist die Fläche zum Ordnen. Hier darf man selbst schieben und schreiben.</p>
+      <p>Gespeichert wird nur im eigenen Browser. Niemand sonst sieht es.</p>` },
+
+  /* ---------- 5 · Meilenstein und Pruefung ---------- */
+  { teil:4, seite:AB, ziel:'.abschlussknoepfe .abschlussknopf:nth-child(2)', titel:'Der Meilenstein',
+    text:`<p>Jede Station schliesst mit einem <b>Meilenstein</b>. Den machen die Studierenden mit mir zusammen, in Gruppen von vier bis fünf. Es ist die Zeit, die wir tatsächlich miteinander verbringen.</p>
+      <p>Im Modul führt dieser Knopf zur Terminwahl. Im Rundgang führt er zu einem Beispiel.</p>` },
+  { teil:4, seite:'werkstatt/meilenstein_1/index.html', hin:{von:AB, sel:'.abschlussknoepfe .abschlussknopf:nth-child(2)'}, ziel:null, titel:'Ein Beispiel: Meilenstein I',
+    text:`<p>So beginnt der Meilenstein zu Station I. Die Gruppe arbeitet an <b>einem gemeinsamen Brett</b>: Jede und jeder sitzt am eigenen Rechner, und alle sehen, was die anderen schieben.</p>
+      <ul><li>Zu sechs Rechnungen die passenden Zahlkarten legen.</li>
+      <li>Zwei Zahlen als Zeiger: die Ergebnisse der Grundrechenarten abschätzen.</li>
+      <li>Die Rechenregeln für ℂ mit denen für die rationalen Zahlen vergleichen.</li></ul>
+      ${MEILENSTEIN_PROBE ? '' : '<p class="notiz"><b>Noch zum Ansehen.</b> Selbst ausprobieren lässt er sich, sobald es eine Fassung ohne echtes Gruppenbrett gibt.</p>'}` },
+  { teil:4, seite:'pruefung/station1/index.html?werkstatt', hin:{von:AB, sel:'[data-rg-pruefung]'}, ziel:null, titel:'Ein Blick in die Prüfung',
+    text:`<p>Zu jeder Station gibt es eine <b>Prüfung</b>: eine eigene Seite, fünf Aufgaben zu je drei Punkten, ohne Zeitlimit, mit neuen Zahlen in jedem Durchgang.</p>
+      <ul><li>In der echten Prüfung laufen <b>Kamera und Ton</b> mit. Aufgezeichnet wird jeder Schritt auf der Seite, kein Bildschirmvideo.</li>
+      <li>Zu jeder Aufgabe kommt eine <b>Erklärfrage</b>. Sie gibt keine Punkte, aber sie ist das eigentliche Tor.</li>
+      <li>Am Schluss wertet die Seite sofort aus, ohne die richtige Lösung zu verraten. Die Grenze liegt bei 80 %.</li>
+      <li>Danach sehe ich mir die Aufzeichnung an und schreibe eine <b>formative Rückmeldung</b>.</li></ul>
+      <p>Hier läuft die <b>Ansichtsfassung</b>: Es wird nichts aufgezeichnet. Ausfüllen und auswerten darf man trotzdem.</p>` },
+  { teil:4, seite:'index.html', hin:{von:null, sel:{oben:true, sel:'#heim'}}, ziel:null, titel:'Ende des Rundgangs',
+    text:`<p>Mit <b>⌂</b> oben im Kärtchen sind wir zurück auf der Startseite.</p>
+      <p>Station I bleibt offen: Etappen, Abschluss, Meilenstein und Prüfung lassen sich frei weiter erkunden. ⌂ führt jederzeit hierher zurück.</p>
+      <p class="hand" style="margin-top:8px">Viel Vergnügen!</p>` },
+];
+
+/* ---------- Was im Rundgang offen ist ----------
+   Nur Station I. Alles andere ist sichtbar, aber nicht zu oeffnen. */
+function erlaubt(url){
+  let u; try { u = new URL(url, location.href); } catch (e) { return false; }
+  const basis = new URL(BASIS, location.href);
+  if (u.origin !== basis.origin) {
+    // Videos und Applets ja; Feedback-Pinnwand, Abgabeordner und anderes nein
+    return /(^|\.)youtube(-nocookie)?\.com$|(^|\.)youtu\.be$|(^|\.)geogebra\.org$/.test(u.hostname);
+  }
+  if (!u.pathname.startsWith(basis.pathname))
+    return u.pathname === new URL('playliste.html', location.href).pathname;
+  const p = u.pathname.slice(basis.pathname.length);
+  if (p === '' || p === 'index.html') return true;
+  if (/^rundgang\//.test(p)) return true;
+  if (/^station-1\//.test(p)) return true;
+  if (/^lernweg-1\//.test(p)) return true;
+  if (/^aufgabe\/I-\d+\//.test(p)) return true;
+  if (/^arbeitsblatt\/[a-z0-9]+\//.test(p)) return true;
+  if (/^unterlagen\/.*Kapitel-1/.test(p)) return true;
+  if (/^werkstatt\/meilenstein_1\//.test(p)) return true;
+  if (/^pruefung\/station1\//.test(p)) return u.searchParams.has('werkstatt');
+  if (/^(gemeinsam|bilder)\//.test(p)) return true;
+  return false;
+}
+
+/* In jede geladene Seite: Gesperrtes ausgrauen, Klicks darauf abfangen,
+   und auf der Abschlussseite den Meilenstein aufs Beispiel und die
+   Pruefung dazulegen. Die Seite selbst bleibt, wie sie ist. */
+function seiteZurichten(){
+  const d = doc(); if (!d || !d.head) return;
+  if (!d.getElementById('rg-zu-stil')) {
+    const s = d.createElement('style'); s.id = 'rg-zu-stil';
+    s.textContent = `.rg-zu{opacity:.38!important;filter:grayscale(.85);cursor:not-allowed!important}`;
+    d.head.appendChild(s);
+  }
+  const ab = d.querySelector('.abschlussknoepfe');
+  if (ab && !ab.dataset.rundgang) {
+    ab.dataset.rundgang = '1';
+    const m = [...ab.querySelectorAll('a.abschlussknopf')].find(a => /meilenstein/.test(a.getAttribute('href') || ''));
+    if (m) { m.href = BASIS_ABS + 'werkstatt/meilenstein_1/index.html';
+      const sp = m.querySelector('span'); if (sp) sp.textContent = 'Mit mir in der Gruppe — hier ein Beispiel: Meilenstein I'; }
+    if (!ab.querySelector('[data-rg-pruefung]')) {
+      const p = d.createElement('a');
+      p.className = (m && m.className) || 'abschlussknopf';
+      p.dataset.rgPruefung = '1';
+      p.href = BASIS_ABS + 'pruefung/station1/index.html?werkstatt';
+      p.innerHTML = '<b>Prüfung</b><span>Fünf Aufgaben, mit Aufnahme — hier in der Ansichtsfassung</span>';
+      ab.appendChild(p);
+    }
+  }
+  d.querySelectorAll('a[href]').forEach(a => {
+    const zu = !erlaubt(a.href);
+    a.classList.toggle('rg-zu', zu);
+    if (zu) a.title = 'Im Rundgang ist nur Station I offen';
+  });
+  if (!d.rgKlick) {
+    d.rgKlick = true;
+    d.addEventListener('click', e => {
+      const a = e.target.closest && e.target.closest('a[href]');
+      if (a && !erlaubt(a.href)) { e.preventDefault(); e.stopPropagation(); hinweis('Im Rundgang ist nur Station I offen.'); }
+    }, true);
+  }
+}
+
+/* ---------- Zustand ---------- */
+let nr = 0;
+let erwartet = null;       // Seite, die der Rundgang gerade in den Rahmen laedt
+let ladeWarter = null;     // wartet auf genau dieses Laden
+let licht = null;          // hervorgehobenes Element im Rahmen
+let lauf = 0;              // jeder Schritt bekommt eine Nummer; ein neuer bricht den alten ab
+
+function pfadVon(seite){ return new URL(seite.startsWith('./') ? seite : BASIS + seite, location.href).href; }
+function gleicheSeite(a, b){
+  const u = new URL(a), v = new URL(b);
+  return u.pathname.replace(/index\.html$/, '') === v.pathname.replace(/index\.html$/, '') && u.search === v.search;
+}
+function aufSeite(url){ let h = ''; try { h = win().location.href; } catch (e) {} return h && h !== 'about:blank' && gleicheSeite(h, url); }
+function lade(url){
+  erwartet = url;
+  return new Promise(r => { ladeWarter = r; buehne.src = url; });
+}
+
+function wegZeichnen(){
+  const t = SCHRITTE[nr].teil;
+  $('weg').innerHTML = TEILE.map((name, i) =>
+    (i ? `<i class="${i <= t ? 'durch' : ''}"></i>` : '') +
+    `<button data-teil="${i}" data-name="${name}" aria-current="${i === t}" class="${i < t ? 'durch' : ''}">${i + 1}</button>`).join('');
+  $('weg').querySelectorAll('button').forEach(b => b.onclick = () =>
+    gehe(SCHRITTE.findIndex(s => s.teil === +b.dataset.teil)));
+}
+
+/* Hervorheben im Rahmen: Stil einmal hineinlegen, dann eine Klasse setzen */
+function lichtAus(){ if (licht) { licht.classList.remove('rg-licht'); licht = null; } }
+function lichtAn(sel){
+  lichtAus();
+  const d = doc();
+  if (!sel || !d || !d.head) return;
+  if (!d.getElementById('rg-stil')){
+    const s = d.createElement('style'); s.id = 'rg-stil';
+    s.textContent = `.rg-licht{outline:3px solid #0065A9!important;outline-offset:5px;border-radius:2px;
+      box-shadow:0 0 0 5px rgba(255,254,251,.9),0 0 0 9999px rgba(45,41,36,.30)!important;z-index:2147483000!important}
+      .rg-rel{position:relative}`;
+    d.head.appendChild(s);
+  }
+  const e = sichtbar(sel) || q(sel);
+  if (!e) return;
+  /* Nur was ohnehin im Fluss steht, bekommt position:relative (fuer
+     z-index). Ein festes Element - das Notizblatt - wuerde sonst aus
+     seinem Rand gerissen. */
+  if (getComputedStyle(e).position === 'static') e.classList.add('rg-rel');
+  licht = e; e.classList.add('rg-licht');
+  if (e !== d.body) e.scrollIntoView({behavior:'smooth', block:'center'});
+  setTimeout(() => ausweichen(e), 450);
+}
+
+/* Das Kaertchen weicht auf die freie Seite aus - solange es niemand
+   selbst verschoben hat. */
+let verschoben = false;
+function ausweichen(e){
+  const f = $('fuehrer');
+  if (verschoben) return;
+  if (innerWidth <= 640 || !e) { f.classList.remove('links'); return; }
+  const r = e.getBoundingClientRect();
+  const mitte = r.left + r.width / 2;
+  f.classList.toggle('links', mitte > innerWidth * 0.55 && r.width < innerWidth * 0.7);
+}
+
+function sperren(an){
+  const d = doc(); if (!d || !d.body) return;
+  let s = d.querySelector('.rg-sperre');
+  if (an && !s){
+    /* eigener Stil, unabhaengig vom Hervorheben - sonst hat die Sperre
+       keine Groesse und faengt nichts ab */
+    s = d.createElement('div'); s.className = 'rg-sperre'; s.title = 'Im Rundgang nur zum Ansehen';
+    s.style.cssText = 'position:fixed;inset:0;z-index:2147483600;cursor:not-allowed;background:transparent';
+    s.addEventListener('click', () => hinweis('Der Meilenstein ist im Rundgang vorerst nur zum Ansehen.'));
+    d.body.appendChild(s);
+  }
+  if (!an && s) s.remove();
+}
+
+function zeigen(){
+  const s = SCHRITTE[nr];
+  $('teilname').innerHTML = `Teil ${s.teil + 1} von ${TEILE.length} · <b>${TEILE[s.teil]}</b>`;
+  $('titel').textContent = s.titel;
+  $('inhalt').innerHTML = s.text;
+  $('zahl').textContent = `${nr + 1} / ${SCHRITTE.length}`;
+  $('vor-zurueck').disabled = nr === 0;
+  $('weiter').textContent = nr === SCHRITTE.length - 1 ? 'fertig' : 'weiter ›';
+  $('fuehrer').classList.remove('eigen');
+  $('inhalt').scrollTop = 0;
+  wegZeichnen();
+}
+
+/* Ein Schritt: erst der Weg dorthin (mit dem Finger), dann was auf der
+   Seite zu tun ist, dann das Hervorheben. `mitWeg` nur beim
+   Vorwaertsgehen - wer zurueck- oder springt, wird direkt hingebracht. */
+async function gehe(n, mitWeg){
+  if (n < 0 || n >= SCHRITTE.length) return;
+  const mein = ++lauf;
+  nr = n; zeigen(); lichtAus();
+  history.replaceState(null, '', '#' + (nr + 1));
+  const s = SCHRITTE[nr], ziel = pfadVon(s.seite);
+  try {
+    if (mitWeg && s.hin) {
+      if (s.hin.von && !aufSeite(pfadVon(s.hin.von))) { await lade(pfadVon(s.hin.von)); await pause(300); }
+      if (mein !== lauf) return;
+      const el = finde(s.hin.sel);
+      if (el) { await tippe(el); fingerWeg(); }
+      if (mein !== lauf) return;
+    }
+    if (!aufSeite(ziel) || (s.hin && mitWeg)) await lade(ziel);
+    if (mein !== lauf) return;
+    sperren(/meilenstein_/.test(ziel) && !MEILENSTEIN_PROBE);
+    await pause(250);
+    for (const t of (s.tun || [])) {
+      if (t.nurWenn && !t.nurWenn()) continue;
+      const el = finde(t.sel); if (!el) continue;
+      if (t.ziehen) await ziehe(el, Math.min(430, win().innerWidth * 0.42));
+      else { await tippe(el); el.click(); }
+      await pause(350);
+      if (mein !== lauf) return;
+    }
+    await pause(s.warte || 60);
+    if (mein !== lauf) return;
+    lichtAn(s.ziel);
+    if (!s.ziel) ausweichen(null);
+  } finally {
+    if (mein === lauf) setTimeout(() => { if (mein === lauf) fingerWeg(); }, 900);
+  }
+}
+
+let zuletztErlaubt = null;
+buehne.addEventListener('load', () => {
+  let hier = ''; try { hier = win().location.href; } catch (e) {}
+  licht = null;
+
+  /* Eine Seite ausserhalb von Station I: gar nicht erst stehen lassen. */
+  if (hier && hier !== 'about:blank' && !erlaubt(hier)) {
+    hinweis('Im Rundgang ist nur Station I offen.');
+    buehne.src = zuletztErlaubt || pfadVon('index.html');
+    return;
+  }
+  if (hier) { zuletztErlaubt = hier; seiteZurichten(); }
+
+  /* Der Meilenstein darf nie in ein echtes Gruppenbrett fuehren. */
+  if (/werkstatt\/meilenstein_/.test(hier) && !MEILENSTEIN_PROBE) sperren(true);
+
+  const wieErwartet = erwartet && hier && gleicheSeite(hier, erwartet);
+  if (wieErwartet) {
+    $('fuehrer').classList.remove('eigen');
+    if (ladeWarter) { const r = ladeWarter; ladeWarter = null; r(); }
+  } else if (!$('fuehrer').classList.contains('weg')) {
+    /* jemand ist selbst weitergeklickt: nicht zurueckreissen, nur anbieten */
+    $('fuehrer').classList.add('eigen');
+  }
+});
+
+/* kurzer Hinweis unten in der Mitte */
+let hinweisUhr = null;
+function hinweis(t){
+  const h = $('hinweis'); h.textContent = t; h.hidden = false;
+  clearTimeout(hinweisUhr); hinweisUhr = setTimeout(() => h.hidden = true, 2600);
+}
+
+/* ---------- Bedienung ---------- */
+$('weiter').onclick = () => nr === SCHRITTE.length - 1 ? ausblenden() : gehe(nr + 1, true);
+$('vor-zurueck').onclick = () => gehe(nr - 1);
+$('zurueck').onclick = () => gehe(nr);
+function ausblenden(){ lauf++; lichtAus(); fingerWeg(); $('fuehrer').classList.add('weg'); $('wieder').hidden = false; $('heim2').hidden = false; }
+$('zu').onclick = ausblenden;
+$('wieder').onclick = () => { $('wieder').hidden = true; $('heim2').hidden = true; $('fuehrer').classList.remove('weg'); gehe(nr); };
+$('heim').onclick = () => { lauf++; lichtAus(); lade(pfadVon('index.html')); };
+$('heim2').onclick = $('heim').onclick;
+$('los').onclick = () => { $('anfang').hidden = true; $('fuehrer').classList.remove('weg'); gehe(0); };
+$('frei').onclick = () => { $('anfang').hidden = true; $('wieder').hidden = false; $('heim2').hidden = false; };
+document.addEventListener('keydown', e => {
+  if ($('fuehrer').classList.contains('weg')) return;
+  if (e.key === 'ArrowRight') gehe(nr + 1, true);
+  if (e.key === 'ArrowLeft') gehe(nr - 1);
+});
+
+/* Das Kaertchen laesst sich am Kopf verschieben */
+(() => {
+  const f = $('fuehrer'); let start = null;
+  $('griff').addEventListener('pointerdown', e => {
+    if (e.target.closest('button') || innerWidth <= 640) return;
+    const r = f.getBoundingClientRect();
+    start = [e.clientX - r.left, e.clientY - r.top];
+    $('griff').setPointerCapture(e.pointerId);
+    buehne.style.pointerEvents = 'none';
+  });
+  $('griff').addEventListener('pointermove', e => {
+    if (!start) return;
+    verschoben = true; f.classList.remove('links');
+    const x = Math.max(4, Math.min(innerWidth - f.offsetWidth - 4, e.clientX - start[0]));
+    const y = Math.max(4, Math.min(innerHeight - 60, e.clientY - start[1]));
+    Object.assign(f.style, {left: x + 'px', top: y + 'px', right: 'auto', bottom: 'auto'});
+  });
+  ['pointerup', 'pointercancel'].forEach(t => $('griff').addEventListener(t, () => { start = null; buehne.style.pointerEvents = ''; }));
+})();
+
+/* #7 in der Adresse springt direkt zu Schritt 7 - zum Zeigen einzelner
+   Stellen, etwa im Artikel. Sonst liegt hinter dem Anfangsblatt die
+   Startseite. */
+const sprung = parseInt(location.hash.slice(1), 10);
+if (sprung >= 1 && sprung <= SCHRITTE.length) {
+  $('anfang').hidden = true; $('fuehrer').classList.remove('weg'); gehe(sprung - 1);
+} else {
+  erwartet = pfadVon('index.html');
+  buehne.src = erwartet;
+}
+</script>
+</body>
+</html>

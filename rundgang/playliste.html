@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Playliste Station I</title>
+<!-- Teil des Rundgangs: zeigt die Playliste von Station I. YouTube wird
+     erst geladen, wenn diese Seite geoeffnet wird - und das geschieht
+     nur ueber den Knopf im Rundgang. -->
+<style>
+@font-face{font-family:'Fira Sans';font-weight:400;src:url(../gemeinsam/fremd/fira-400-latin.woff2) format('woff2')}
+@font-face{font-family:'Patrick Hand';font-weight:400;src:url(../gemeinsam/fremd/patrick-400-latin.woff2) format('woff2')}
+:root{--papier:#f8f4ec;--tinte:#2d2924;--matt:#6c6357;--fach:#0065A9}
+html,body{margin:0;background:var(--papier);color:var(--tinte);font-family:'Fira Sans',sans-serif}
+header{background:var(--fach);color:#fff;padding:12px 20px}
+header small{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+header h1{margin:0;font-family:'Patrick Hand',cursive;font-weight:400;font-size:28px}
+main{max-width:960px;margin:24px auto;padding:0 16px}
+.video{position:relative;aspect-ratio:16/9;background:#000}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+p{color:var(--matt);font-size:14.5px}
+</style>
+</head>
+<body>
+<header><small>Station I · Komplexe Zahlen</small><h1>Die Playliste</h1></header>
+<main>
+  <div class="video">
+    <iframe src="https://www.youtube.com/embed/videoseries?list=PLQnP7g_tRz6okGUDTexa0FFKteQuv4bAW"
+      title="Playliste Station I" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+      referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+  <p>Alle Videos der Station hintereinander. Rechts oben im Video lässt sich die Liste aufklappen.</p>
+</main>
+</body>
+</html>
