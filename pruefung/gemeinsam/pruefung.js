@@ -551,8 +551,13 @@ function Bau(aufgabe, wurzel){
             },
             gegeben: () => fd.roh(),
             soll: () => wort + ' ' + Z.zahlText(o.soll[teil], 3),
+            /* Aus r · cis(g°) gerechnet, aber auf RAD: fast voll.
+               Nur wenn die Aufgabe `polar` mitgibt (Station 1, 2b). */
+            teilweise: o.polar ? () => Z.bogenStattGradTeil(fd.wert(), o.polar.r, o.polar.g, teil)
+                ? { anteil: Z.BOGEN_ANTEIL, hinweis: Z.BOGEN_HINWEIS } : null : undefined,
             sollRoh: { art: 'zahlTeil', felder: [o.name + '.' + teil],
-                       soll: o.soll[teil], raster: o.raster },
+                       soll: o.soll[teil], raster: o.raster,
+                       bogen: o.polar ? { r: o.polar.r, g: o.polar.g, teil: teil } : undefined },
             setzen: (wie) => {
               schreiben(fd, genau(wie === 'richtig' ? o.soll[teil]
                                                    : daneben(o.soll[teil])));
@@ -771,8 +776,11 @@ function Bau(aufgabe, wurzel){
         nimm({ name: o.name + '#phi', p: o.p / 2, art: 'winkel',
           zeigt: 'Winkel', gefuellt: () => !!fg.roh(),
           pruefen: () => Z.winkelGleich(fg.wert(), o.sollG),
+          /* Winkel im Bogenmass hingeschrieben (Rechner auf RAD): fast voll. */
+          teilweise: () => Z.bogenStattGradWinkel(fg.wert(), o.sollG)
+            ? { anteil: Z.BOGEN_ANTEIL, hinweis: Z.BOGEN_HINWEIS } : null,
           gegeben: () => fg.roh(), soll: () => 'Winkel ' + Z.zahlText(o.sollG, 2) + '°',
-          sollRoh: { art: 'winkel', felder: [o.name + '.phi'], soll: o.sollG },
+          sollRoh: { art: 'winkel', felder: [o.name + '.phi'], soll: o.sollG, bogen: true },
           setzen: (wie) => { schreiben(fg, genau(wie === 'richtig' ? o.sollG
                                                 : o.sollG + 37)); return true; }
         });

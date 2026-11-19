@@ -239,6 +239,21 @@ function teilStimmt(sollRoh, stand){
   return null;                                // unbekannte Art: nicht nachweisbar
 }
 
+/* Fast richtig: im Bogenmass statt in Grad gerechnet (19.11.2026).
+   Dieselben Erkenner wie in der Prüfung, siehe zahl.js. */
+function teilFast(sollRoh, stand){
+  if (!sollRoh || !sollRoh.bogen) return null;
+  const roh = name => (stand.feld[name] === undefined ? '' : String(stand.feld[name]).trim());
+  let fast = false;
+  if (sollRoh.art === 'zahlTeil' && typeof sollRoh.bogen === 'object'){
+    const b = sollRoh.bogen;
+    fast = Z.bogenStattGradTeil(Z.liesReell(roh(sollRoh.felder[0])), b.r, b.g, b.teil);
+  } else if (sollRoh.art === 'winkel'){
+    fast = Z.bogenStattGradWinkel(Z.liesWinkelGrad(roh(sollRoh.felder[0])), sollRoh.soll);
+  }
+  return fast ? { anteil: Z.BOGEN_ANTEIL, hinweis: Z.BOGEN_HINWEIS } : null;
+}
+
 /* ------------------------------------------------------------
    Die ganze Prüfung
    ------------------------------------------------------------ */
@@ -257,11 +272,15 @@ function bewerten(ereignisse){
     .map(bild => {
       const teile = (bild.teile || []).map(t => {
         const ok = teilStimmt(t.sollRoh, stand);
-        return { name: t.name, p: t.p, soll: t.soll,
-                 gegeben: teilGegeben(t.sollRoh, stand),
-                 ok: ok === true, nachweisbar: ok !== null };
+        const x = { name: t.name, p: t.p, soll: t.soll,
+                    gegeben: teilGegeben(t.sollRoh, stand),
+                    ok: ok === true, nachweisbar: ok !== null };
+        const fast = ok === true ? null : teilFast(t.sollRoh, stand);
+        if (fast){ x.anteil = fast.anteil; x.hinweis = fast.hinweis; }
+        return x;
       });
-      const erreicht = teile.reduce((x,t) => x + (t.ok ? t.p : 0), 0);
+      const erreicht = teile.reduce((x,t) =>
+        x + (t.ok ? t.p : t.anteil ? t.p * t.anteil : 0), 0);
       return {
         nr: bild.nr, id: bild.aufgabe, titel: bild.titel,
         moeglich: bild.punkte, erreicht: erreicht,
@@ -286,5 +305,6 @@ function bewerten(ereignisse){
 }
 
 window.Nachwerten = { bewerten: bewerten, letzterStand: letzterStand,
-                      teilStimmt: teilStimmt, teilGegeben: teilGegeben };
+                      teilStimmt: teilStimmt, teilGegeben: teilGegeben,
+                      teilFast: teilFast };
 })();

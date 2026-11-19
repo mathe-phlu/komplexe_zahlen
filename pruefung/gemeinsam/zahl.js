@@ -78,9 +78,12 @@ function zerlegen(s){
       t.push({ art: 'wort', wert: s.slice(i, j) });
       i = j; continue;
     }
-    if ('+-*·×/÷^()°'.indexOf(c) >= 0){
+    /* «:» ist Geteilt, wie in der Schule. Seit 19.11.2026: Eine
+       Abgabe mit «(57 + 184i) : 41» war richtig und fiel als nicht
+       lesbar durch (Rike: «das geteilt durch soll angenommen werden»). */
+    if ('+-*·×/÷:^()°'.indexOf(c) >= 0){
       // Vereinheitlichen, damit der Rechner nur drei Zeichen kennt
-      const z = c === '·' || c === '×' ? '*' : c === '÷' ? '/' : c;
+      const z = c === '·' || c === '×' ? '*' : c === '÷' || c === ':' ? '/' : c;
       t.push({ art: 'zeichen', wert: z });
       i++; continue;
     }
@@ -304,6 +307,47 @@ function winkelGleich(grad, sollGrad, schranke){
   return Math.abs(d) <= s + 1e-12;
 }
 
+/* ============================================================
+   Im Bogenmass statt in Grad gerechnet
+
+   Seit 19.11.2026 (Rike): Wer offensichtlich mit dem Taschenrechner
+   auf RAD statt DEG gerechnet hat, bekommt das gesagt und trotzdem
+   fast die volle Punktzahl (BOGEN_ANTEIL). Der Rechenweg stimmt, nur
+   die Einstellung nicht.
+
+   Erkannt wird nur, was GENAU herauskommt, wenn man den Gradwert als
+   Bogenmass in den Rechner gibt - mit derselben Toleranz wie sonst.
+   Eine zufaellig nahe Zahl reicht nicht; eine richtige Antwort wird
+   vorher schon als richtig erkannt und kommt hier nie an.
+   ============================================================ */
+const BOGEN_ANTEIL = 0.75;
+const BOGEN_HINWEIS = 'Hier haben Sie im <b>Bogenmass</b> gerechnet statt in ' +
+  '<b>Grad</b> — der Taschenrechner stand auf RAD statt auf DEG. Der Weg stimmt; ' +
+  'dafür gibt es fast die volle Punktzahl.';
+
+/* r · cis(g°) zerlegt, aber g als Bogenmass genommen.
+   teil: 're' oder 'im'. */
+function bogenStattGradTeil(x, r, gGrad, teil){
+  if (x === null || !isFinite(x)) return false;
+  const falsch = teil === 're' ? r * Math.cos(gGrad) : r * Math.sin(gGrad);
+  const richtig = teil === 're' ? r * Math.cos(gGrad * Math.PI / 180)
+                                : r * Math.sin(gGrad * Math.PI / 180);
+  return nahe(x, falsch) && !nahe(x, richtig);
+}
+
+/* Ein Winkel, der in Grad verlangt war, steht im Bogenmass da: der
+   Wert selbst (auch negativ oder ueber 2π verschoben) oder das, was
+   tan⁻¹ auf RAD liefert, bevor der Quadrant korrigiert wird. */
+function bogenStattGradWinkel(x, sollGrad){
+  if (x === null || !isFinite(x) || Math.abs(x) > 2 * Math.PI + 0.02) return false;
+  const b = sollGrad * Math.PI / 180;
+  let haupt = ((sollGrad % 180) + 180) % 180;      // tan⁻¹ auf (−90°, 90°]
+  if (haupt > 90) haupt -= 180;
+  const kandidaten = [b, b - 2*Math.PI, b + 2*Math.PI, b - 4*Math.PI,
+                      haupt * Math.PI / 180];
+  return kandidaten.some(k => Math.abs(x - k) <= 0.01 + 1e-12);
+}
+
 /* Regel 3 - je Komponente ein halber Rasterschritt */
 function abgelesenGleich(z, soll, rasterschritt){
   if (!z || !soll) return false;
@@ -471,6 +515,8 @@ window.Zahl = {
   nahe: nahe, gleich: gleich, winkelGleich: winkelGleich,
   abgelesenGleich: abgelesenGleich, polarGleich: polarGleich,
   mengeGleich: mengeGleich,
+  bogenStattGradTeil: bogenStattGradTeil, bogenStattGradWinkel: bogenStattGradWinkel,
+  BOGEN_ANTEIL: BOGEN_ANTEIL, BOGEN_HINWEIS: BOGEN_HINWEIS,
 
   istLogarithmusWert: istLogarithmusWert, istPotenzWert: istPotenzWert,
   istLogRealteil: istLogRealteil, istLogImaginaerteil: istLogImaginaerteil,

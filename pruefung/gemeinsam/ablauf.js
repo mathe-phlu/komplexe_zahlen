@@ -1060,10 +1060,18 @@ function pruefung(def){
          daneben stehen: Er verbindet den Teil mit dem Ereignisstrom
          und mit dem Schnappschuss, und ohne ihn liesse sich im Bild
          nichts markieren. Angezeigt wird `zeigt`. */
-      const teile = s.teile.map(t => ({ name: t.name, zeigt: t.zeigt || null,
-                                        p: t.p, ok: !!t.pruefen(),
-                                        gegeben: t.gegeben(), soll: t.soll() }));
-      const erreicht = teile.reduce((x,t) => x + (t.ok ? t.p : 0), 0);
+      const teile = s.teile.map(t => {
+        const ok = !!t.pruefen();
+        /* Fast richtig (z. B. im Bogenmass gerechnet): Teilpunkte und
+           ein Hinweis, aber nicht `ok` - die Aufgabe bleibt offen. */
+        const tw = !ok && t.teilweise ? t.teilweise() : null;
+        const x = { name: t.name, zeigt: t.zeigt || null, p: t.p, ok: ok,
+                    gegeben: t.gegeben(), soll: t.soll() };
+        if (tw){ x.anteil = tw.anteil; x.hinweis = tw.hinweis; }
+        return x;
+      });
+      const erreicht = teile.reduce((x,t) =>
+        x + (t.ok ? t.p : t.anteil ? t.p * t.anteil : 0), 0);
       return { nr: s.aufgabe.nr, id: s.aufgabe.id, titel: s.aufgabe.titel,
                moeglich: s.aufgabe.punkte, erreicht: erreicht,
                ganz: teile.every(t => t.ok), teile: teile };
@@ -1165,6 +1173,47 @@ function pruefung(def){
     t.appendChild(summe);
     d.appendChild(t);
     blatt.appendChild(d);
+
+    /* --- Was genau nicht gestimmt hat ---
+
+       Seit 19.11.2026 (Rike): Die Studierenden sollen gleich am Ende
+       sehen, welcher Teil falsch war, und das in die Nachpruefung
+       mitnehmen. Die persoenliche Rueckmeldung kommt spaeter.
+       Wie in der Rueckmeldung OHNE die richtige Loesung - beim
+       naechsten Durchgang kommt dieselbe Aufgabe mit neuen Zahlen.
+       Eigener Kasten, damit die Tabelle oben unveraendert bleibt
+       (`pruefstand/durchgang.html` liest ihre Summenzeile). */
+    const mitFehler = ergebnis.filter(a => !a.ganz);
+    if (mitFehler.length){
+      const f = el('div', 'ergebnis genauer');
+      f.appendChild(el('h3', null, 'Was genau nicht gestimmt hat'));
+      f.appendChild(el('p', 'hinweis',
+        '<b>✓</b> richtig, <b>≈</b> fast richtig, <b>✗</b> falsch. Die richtige Lösung ' +
+        'steht hier absichtlich nicht — überlegen Sie, woran es lag. Beim nächsten ' +
+        'Durchgang kommt dieselbe Aufgabe mit neuen Zahlen.'));
+      mitFehler.forEach(a => {
+        f.appendChild(el('h4', null, 'Aufgabe ' + a.nr + ' · ' + a.titel));
+        const ul = el('ul');
+        const gesagt = [];
+        a.teile.forEach(x => {
+          const zeichen = x.ok ? '✓' : x.anteil ? '≈' : '✗';
+          const klasse = x.ok ? 'ganz' : x.anteil ? 'teils' : 'nichts';
+          const leer = x.gegeben === undefined || x.gegeben === null ||
+                       /^[\s—?∠]*$/.test(String(x.gegeben));
+          const eingabe = leer ? 'nichts eingetragen'
+                        : 'Ihre Eingabe: ' + String(x.gegeben).replace(/</g, '&lt;');
+          const li = el('li', null,
+            '<span class="' + klasse + '"><b>' + zeichen + '</b></span> ' +
+            (x.zeigt || x.name) +
+            (x.ok ? '' : ' — <span class="hinweis">' + eingabe + '</span>') +
+            (!x.ok && x.hinweis && gesagt.indexOf(x.hinweis) < 0
+              ? (gesagt.push(x.hinweis), '<br><span class="hinweis">' + x.hinweis + '</span>') : ''));
+          ul.appendChild(li);
+        });
+        f.appendChild(ul);
+      });
+      blatt.appendChild(f);
+    }
 
     /* --- Wie es weitergeht --- */
     const w = el('div', 'ergebnis');

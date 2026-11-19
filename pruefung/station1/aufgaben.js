@@ -132,7 +132,10 @@ const AUFGABEN = [
     b.kasten('b) Polarform → Normalform');
     b.satz('Geben Sie <b>Real- und Imaginärteil</b> dieser Zahl an.');
     b.formel('<b>z = ' + Z.zahlText(rb, 2) + ' · cis(' + gb + '°)</b>');
-    b.komplexZweiFelder({ name: 'S1A2b', vor: 'z =', soll: zb, p: 1, getrennt: true });
+    /* `polar` nur fuer die Bogenmass-Erkennung (19.11.2026); an
+       Aufgabe und Punkten aendert es nichts. */
+    b.komplexZweiFelder({ name: 'S1A2b', vor: 'z =', soll: zb, p: 1, getrennt: true,
+                          polar: { r: rb, g: gb } });
 
     /* ---- 2c: zuordnen, ohne zu rechnen ----
 
